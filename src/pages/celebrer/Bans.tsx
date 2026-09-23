@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
+import { apiPost, ApiError } from "@/lib/api";
 
 export default function Bans() {
   const [form, setForm] = useState({
@@ -8,10 +9,31 @@ export default function Bans() {
     fiance2Nom: "", fiance2Prenom: "", fiance2Age: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setError(null);
+    setValidationErrors([]);
+    try {
+      await apiPost("/bans", {
+        nom: form.nom,
+        prenom: form.prenom,
+        email: form.email,
+        telephone: form.telephone,
+        fiance1_nom: form.fiance1Nom,
+        fiance1_prenom: form.fiance1Prenom,
+        fiance2_nom: form.fiance2Nom,
+        fiance2_prenom: form.fiance2Prenom,
+      });
+      setSubmitted(true);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Une erreur est survenue, veuillez réessayer.");
+      if (err instanceof ApiError && err.errors) {
+        setValidationErrors(Object.values(err.errors).flat());
+      }
+    }
   };
 
   const inputClass = "w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all";
@@ -146,6 +168,18 @@ export default function Bans() {
                   </div>
                 </div>
 
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.82rem" }}>
+                    {error}
+                    {validationErrors.length > 0 && (
+                      <ul className="list-disc list-inside mt-1">
+                        {validationErrors.map((m, i) => (
+                          <li key={i}>{m}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
                 <button type="submit"
                   style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.85rem" }}
                   className="w-full text-white py-3.5 rounded-xl hover:opacity-90 transition-opacity">

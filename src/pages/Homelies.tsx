@@ -14,6 +14,15 @@ interface Homelie {
   excerpt: string;
   img: string;
   published_at: string;
+  audio_url: string | null;
+  pdf_url: string | null;
+}
+
+/** Resolve a stored media path ("audio/x.mp3") to a servable URL. */
+function mediaUrl(path: string | null | undefined): string | null {
+  if (!path) return null;
+  if (/^https?:\/\//.test(path)) return path; // external URL kept as-is
+  return `/storage/${path}`;
 }
 
 const IconArrow = () => (
@@ -184,15 +193,24 @@ export default function Homelies() {
                 ))}
               </div>
               <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.87rem", color: "#4b5563", lineHeight: 1.8, marginBottom: 20 }}>{selected.excerpt}</p>
+              {mediaUrl(selected.audio_url) && (
+                <audio controls src={mediaUrl(selected.audio_url)!} className="w-full mb-4" preload="none">
+                  Votre navigateur ne supporte pas la lecture audio.
+                </audio>
+              )}
               <div className="flex gap-3">
-                <button style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.8rem" }}
-                  className="flex-1 flex items-center justify-center gap-2 text-white py-3 rounded-xl hover:opacity-90 transition-opacity">
-                  🎙️ Écouter l'homélie
-                </button>
-                <button style={{ border: "2px solid #0B3D91", color: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.8rem" }}
-                  className="px-4 py-3 rounded-xl hover:bg-blue-50 transition-all">
-                  ⬇️ PDF
-                </button>
+                {mediaUrl(selected.pdf_url) ? (
+                  <a href={mediaUrl(selected.pdf_url)!} target="_blank" rel="noreferrer"
+                    style={{ border: "2px solid #0B3D91", color: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.8rem" }}
+                    className="px-4 py-3 rounded-xl hover:bg-blue-50 transition-all">
+                    ⬇️ Télécharger le PDF
+                  </a>
+                ) : (
+                  <button disabled style={{ border: "2px solid #e5e7eb", color: "#9ca3af", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.8rem", cursor: "not-allowed" }}
+                    className="px-4 py-3 rounded-xl">
+                    PDF indisponible
+                  </button>
+                )}
               </div>
             </div>
           </div>

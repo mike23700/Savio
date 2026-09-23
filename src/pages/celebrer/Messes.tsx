@@ -1,17 +1,38 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { apiGet } from "@/lib/api";
+import { apiGet, tzQuery } from "@/lib/api";
 
 interface ScheduleGroup {
   day: string;
   times: { id: number; time: string | null; type: string; note: string | null }[];
 }
 
+interface TodayItem {
+  time: string;
+  type: string;
+  note: string | null;
+}
+
+interface LatestHomelie {
+  title: string;
+  sunday: string;
+  readings: string;
+  reading_1: string | null;
+  psalm: string | null;
+  reading_2: string | null;
+  gospel: string | null;
+  published_at: string;
+}
+
 export default function Messes() {
   const [schedule, setSchedule] = useState<ScheduleGroup[]>([]);
+  const [todayItems, setTodayItems] = useState<TodayItem[]>([]);
+  const [latestHomelie, setLatestHomelie] = useState<LatestHomelie | null>(null);
 
   useEffect(() => {
     apiGet<ScheduleGroup[]>("/mass-schedule").then(setSchedule).catch(() => {});
+    apiGet<TodayItem[]>(`/mass-schedule/today${tzQuery()}`).then(setTodayItems).catch(() => {});
+    apiGet<LatestHomelie | null>("/homelies/latest").then(setLatestHomelie).catch(() => {});
   }, []);
 
   return (
@@ -32,25 +53,82 @@ export default function Messes() {
         </div>
       </div>
 
-      {/* Messe du jour */}
+      {/* Messe du jour — programme réel calculé avec le fuseau du visiteur */}
       <section className="py-8 px-4" style={{ background: "#E8F2FF" }}>
         <div className="max-w-4xl mx-auto">
           <div style={{ background: "#0B3D91", borderRadius: 20, padding: 32, color: "white" }}>
-            <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.15em", marginBottom: 8 }}>AUJOURD'HUI · 15 SEPTEMBRE 2026</div>
-            <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.4rem", fontWeight: 700, color: "white", marginBottom: 4 }}>Fête de la Croix Glorieuse</h2>
-            <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.85rem", color: "rgba(255,255,255,0.8)", marginBottom: 20 }}>Messe de 06h30</p>
+            <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.15em", marginBottom: 8 }}>
+              AUJOURD'HUI · {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).toUpperCase()}
+            </div>
+            {todayItems.length === 0 ? (
+              <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.9rem", color: "rgba(255,255,255,0.8)", marginBottom: 20 }}>
+                Aucune célébration programmée aujourd'hui. Retrouvez les horaires hebdomadaires ci-dessous.
+              </p>
+            ) : (
+              <>
+                <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.4rem", fontWeight: 700, color: "white", marginBottom: 12 }}>
+                  Programme du jour
+                </h2>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
+                  {todayItems.map((item, i) => (
+                    <div key={`${item.time}-${i}`} style={{ background: "rgba(255,255,255,0.1)", borderRadius: 12, padding: "14px 20px", display: "flex", alignItems: "baseline", gap: 16 }}>
+                      <span style={{ fontFamily: "Playfair Display, serif", fontSize: "1.2rem", fontWeight: 700, color: "#D4AF37", minWidth: 64 }}>{item.time}</span>
+                      <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.9rem", fontWeight: 600 }}>{item.type}</span>
+                      {item.note && <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "rgba(255,255,255,0.7)" }}>· {item.note}</span>}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
             <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 12, padding: "16px 20px" }}>
               <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.1em", marginBottom: 12 }}>LECTURES DU JOUR</div>
-              {[
-                { ref: "Nb 21,4-9", titre: "1ère lecture – Le serpent d'airain" },
-                { ref: "Ph 2,6-11", titre: "2ème lecture – L'hymne christologique" },
-                { ref: "Jn 3,13-17", titre: "Évangile – Dieu a tant aimé le monde" },
-              ].map((lecture) => (
-                <div key={lecture.ref} className="flex items-center gap-3 mb-2 last:mb-0">
-                  <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", fontWeight: 700, color: "#D4AF37", minWidth: 80 }}>{lecture.ref}</span>
-                  <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "rgba(255,255,255,0.8)" }}>{lecture.titre}</span>
-                </div>
-              ))}
+              {(() => {
+                if (!latestHomelie) {
+                  return (
+                    <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "rgba(255,255,255,0.7)" }}>
+                      Les lectures du jour seront publiées prochainement.
+                    </p>
+                  );
+                }
+                const structured = [
+                  { label: "1ère lecture", value: latestHomelie?.reading_1 },
+                  { label: "Psaume", value: latestHomelie?.psalm },
+                  { label: "2ème lecture", value: latestHomelie?.reading_2 },
+                  { label: "Évangile", value: latestHomelie?.gospel },
+                ].filter((r) => r.value);
+                const hasAny = structured.length > 0 || !!latestHomelie?.readings;
+
+                return hasAny ? (
+                  <>
+                    {latestHomelie.sunday && (
+                      <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.8rem", fontWeight: 700, color: "white", marginBottom: 8 }}>
+                        {latestHomelie.sunday}
+                      </div>
+                    )}
+                    {structured.length > 0
+                      ? structured.map((r) => (
+                          <div key={r.label} className="flex items-center gap-3 mb-2 last:mb-0">
+                            <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", fontWeight: 700, color: "#D4AF37", minWidth: 92 }}>{r.label}</span>
+                            <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "rgba(255,255,255,0.85)" }}>{r.value}</span>
+                          </div>
+                        ))
+                      : latestHomelie.readings.split("·").map((ref, i) => (
+                          <div key={i} className="flex items-center gap-3 mb-2 last:mb-0">
+                            <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "#D4AF37" }}>📖</span>
+                            <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "rgba(255,255,255,0.85)" }}>{ref.trim()}</span>
+                          </div>
+                        ))}
+                    <Link to="/homelies" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.74rem", fontWeight: 700, color: "#D4AF37" }}
+                      className="inline-flex items-center gap-1 mt-3 hover:underline">
+                      Écouter l'homélie →
+                    </Link>
+                  </>
+                ) : (
+                  <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "rgba(255,255,255,0.7)" }}>
+                    Les lectures du jour seront publiées prochainement.
+                  </p>
+                );
+              })()}
             </div>
           </div>
         </div>

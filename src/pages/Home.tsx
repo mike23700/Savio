@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import { NEWS } from "@/data/content";
-import { apiGet } from "@/lib/api";
+import { apiGet, tzQuery } from "@/lib/api";
 
 interface NextMass {
   date: string;
@@ -231,13 +231,16 @@ export default function Home() {
   const [latestHomelie, setLatestHomelie] = useState<LatestHomelie | null>(null);
 
   useEffect(() => {
-    apiGet<NextMass | null>("/mass-schedule/next").then(setNextMass).catch(() => {});
-    apiGet<TodayItem[]>("/mass-schedule/today").then(setTodayItems).catch(() => {});
+    apiGet<NextMass | null>(`/mass-schedule/next${tzQuery()}`).then(setNextMass).catch(() => {});
+    apiGet<TodayItem[]>(`/mass-schedule/today${tzQuery()}`).then(setTodayItems).catch(() => {});
     apiGet<LatestHomelie | null>("/homelies/latest").then(setLatestHomelie).catch(() => {});
   }, []);
 
+  // Local (visitor-timezone) date, e.g. "2026-09-23" — matches the `date`
+  // field returned by the API which is computed with the same timezone.
+  const todayLocal = new Date().toLocaleDateString("en-CA");
   const nextMassLabel = nextMass
-    ? `${nextMass.date === new Date().toISOString().slice(0, 10) ? "Aujourd'hui" : nextMass.day_label} – ${nextMass.time}`
+    ? `${nextMass.date === todayLocal ? "Aujourd'hui" : nextMass.day_label} – ${nextMass.time}`
     : null;
 
   return (

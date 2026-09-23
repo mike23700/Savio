@@ -5,6 +5,8 @@ import { apiGet } from "@/lib/api";
 interface Stats {
   intentions_en_attente: number;
   commandes_en_attente: number;
+  messages_non_traites: number;
+  bans_non_traites: number;
   catechese_inscriptions_en_attente: number;
   registre_cette_semaine: number;
   registre_total: number;
@@ -15,6 +17,8 @@ interface Stats {
 const CARDS: { key: keyof Stats; label: string; icon: string; to: string }[] = [
   { key: "commandes_en_attente", label: "Commandes en attente de paiement", icon: "🛒", to: "/admin/commandes" },
   { key: "intentions_en_attente", label: "Intentions de messe en attente", icon: "🙏", to: "/admin/intentions" },
+  { key: "messages_non_traites", label: "Messages de contact non traités", icon: "✉️", to: "/admin/messages" },
+  { key: "bans_non_traites", label: "Demandes de bans non traitées", icon: "💍", to: "/admin/bans" },
   { key: "catechese_inscriptions_en_attente", label: "Inscriptions catéchèse en attente", icon: "📖", to: "/admin/catechese" },
   { key: "registre_cette_semaine", label: "Nouvelles inscriptions au registre (7 jours)", icon: "📋", to: "/admin/registre" },
 ];

@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Homelie extends Model
 {
     protected $fillable = [
-        'title', 'slug', 'priest', 'readings', 'sunday', 'duration',
-        'excerpt', 'img', 'published_at', 'audio_url', 'pdf_url', 'is_published',
+        'title', 'slug', 'priest', 'readings', 'reading_1', 'psalm', 'reading_2', 'gospel',
+        'sunday', 'duration', 'excerpt', 'img', 'published_at', 'audio_url', 'pdf_url', 'is_published',
     ];
 
     protected function casts(): array

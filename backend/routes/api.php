@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\BanController;
 use App\Http\Controllers\Api\CatecheseController;
+use App\Http\Controllers\Api\ContactMessageController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DonationController;
 use App\Http\Controllers\Api\FavoriteController;
@@ -44,6 +46,9 @@ Route::post('/catechese/inscriptions', [CatecheseController::class, 'storeInscri
 Route::get('/priere', [PrayerTimeController::class, 'index']);
 
 Route::post('/intentions', [IntentionMesseController::class, 'store']);
+
+Route::post('/contact', [ContactMessageController::class, 'store']);
+Route::post('/bans', [BanController::class, 'store']);
 
 Route::get('/homelies', [HomelieController::class, 'index']);
 Route::get('/homelies/latest', [HomelieController::class, 'latest']);
@@ -106,6 +111,14 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
 
     Route::get('/intentions', [IntentionMesseController::class, 'adminIndex']);
     Route::patch('/intentions/{intention}', [IntentionMesseController::class, 'update']);
+
+    Route::get('/contact', [ContactMessageController::class, 'adminIndex']);
+    Route::patch('/contact/{contactMessage}', [ContactMessageController::class, 'update']);
+    Route::delete('/contact/{contactMessage}', [ContactMessageController::class, 'destroy']);
+
+    Route::get('/bans', [BanController::class, 'adminIndex']);
+    Route::patch('/bans/{ban}', [BanController::class, 'update']);
+    Route::delete('/bans/{ban}', [BanController::class, 'destroy']);
 
     Route::get('/homelies', [HomelieController::class, 'adminIndex']);
     Route::post('/homelies', [HomelieController::class, 'store']);

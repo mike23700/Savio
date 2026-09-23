@@ -1,14 +1,29 @@
 import { useState } from "react";
 import { Link } from "react-router";
+import { apiPost, ApiError } from "@/lib/api";
 import { PARISH } from "@/data/content";
 
 export default function Contact() {
   const [form, setForm] = useState({ nom: "", prenom: "", email: "", telephone: "", sujet: "general", message: "" });
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setError(null);
+    try {
+      await apiPost("/contact", {
+        nom: form.nom,
+        prenom: form.prenom,
+        email: form.email,
+        telephone: form.telephone || null,
+        sujet: form.sujet,
+        message: form.message,
+      });
+      setSubmitted(true);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Une erreur est survenue, veuillez réessayer.");
+    }
   };
 
   const inputClass = "w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all";
@@ -167,6 +182,11 @@ export default function Contact() {
                       placeholder="Votre message..." rows={6}
                       className={inputClass} style={{ ...inputStyle, resize: "vertical" }} />
                   </div>
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.82rem" }}>
+                      {error}
+                    </div>
+                  )}
                   <button type="submit"
                     style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.88rem" }}
                     className="w-full text-white py-4 rounded-xl hover:opacity-90 transition-opacity">

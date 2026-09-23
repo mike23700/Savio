@@ -8,6 +8,8 @@ const NAV = [
   { label: "Catéchèse", to: "/admin/catechese" },
   { label: "Prière & Méditation", to: "/admin/priere" },
   { label: "Intentions de messe", to: "/admin/intentions" },
+  { label: "Messages reçus", to: "/admin/messages" },
+  { label: "Bans de mariage", to: "/admin/bans" },
   { label: "Homélies", to: "/admin/homelies" },
   { label: "Mouvements & Groupes", to: "/admin/mouvements" },
   { label: "Projets paroissiaux", to: "/admin/projets" },

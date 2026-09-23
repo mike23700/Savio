@@ -55,6 +55,52 @@ export const apiPost = <T,>(path: string, body?: unknown) =>
   request<T>(path, { method: "POST", body: body instanceof FormData ? body : JSON.stringify(body ?? {}) });
 export const apiPut = <T,>(path: string, body?: unknown) =>
   request<T>(path, { method: "PUT", body: JSON.stringify(body ?? {}) });
+
+/**
+ * Multipart upload helper. The browser sets the multipart Content-Type
+ * (with boundary) itself, so we must not set any Content-Type header —
+ * hence the dedicated path instead of request().
+ *
+ * PHP cannot parse multipart bodies on PUT requests, so for updates we
+ * use Laravel's method spoofing: a POST carrying _method=PUT.
+ */
+export async function apiFormData<T>(path: string, body: FormData, method: "POST" | "PUT" = "POST"): Promise<T> {
+  if (method === "PUT" && !body.has("_method")) {
+    body.append("_method", "PUT");
+  }
+  const token = getToken();
+  const res = await fetch(`${API_URL}${path}`, {
+    method: method === "PUT" ? "POST" : method,
+    headers: {
+      Accept: "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body,
+  });
+
+  const isJson = res.headers.get("content-type")?.includes("application/json");
+  const data = isJson ? await res.json().catch(() => null) : null;
+
+  if (!res.ok) {
+    throw new ApiError(res.status, data?.message || res.statusText, data?.errors);
+  }
+
+  return data as T;
+}
 export const apiPatch = <T,>(path: string, body?: unknown) =>
   request<T>(path, { method: "PATCH", body: JSON.stringify(body ?? {}) });
 export const apiDelete = <T,>(path: string) => request<T>(path, { method: "DELETE" });
+
+/**
+ * Query string carrying the visitor's IANA timezone (e.g. "?tz=Africa/Douala")
+ * so time-sensitive endpoints ("next mass", "today's program") are computed
+ * with the user's local time. Returns "" when the timezone is unavailable.
+ */
+export function tzQuery(): string {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return tz ? `?tz=${encodeURIComponent(tz)}` : "";
+  } catch {
+    return "";
+  }
+}

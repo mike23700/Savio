@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\MassSchedule;
 use App\Services\NextMassCalculator;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class MassScheduleController extends Controller
@@ -28,14 +29,34 @@ class MassScheduleController extends Controller
         return response()->json($grouped);
     }
 
-    public function next(NextMassCalculator $calculator)
+    public function next(Request $request, NextMassCalculator $calculator)
     {
-        return response()->json($calculator->next());
+        return response()->json($calculator->next($this->clientNow($request)));
     }
 
-    public function today(NextMassCalculator $calculator)
+    public function today(Request $request, NextMassCalculator $calculator)
     {
-        return response()->json($calculator->today());
+        return response()->json($calculator->today($this->clientNow($request)));
+    }
+
+    /**
+     * Build "now" in the visitor's timezone so "next mass" and "today"
+     * match what the user sees on their device. Falls back to server
+     * time when the tz parameter is missing or invalid.
+     */
+    private function clientNow(Request $request): Carbon
+    {
+        $tz = $request->query('tz');
+
+        if (is_string($tz) && $tz !== '') {
+            try {
+                return Carbon::now(new \DateTimeZone($tz));
+            } catch (\Exception) {
+                // invalid timezone identifier → server time
+            }
+        }
+
+        return Carbon::now();
     }
 
     public function adminIndex()

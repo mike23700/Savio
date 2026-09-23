@@ -43,6 +43,11 @@ export default defineConfig(({ mode }) => {
           target: process.env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:8001',
           changeOrigin: true,
         },
+        // Serve uploaded files (homily audio/PDF...) from the Laravel backend.
+        '/storage': {
+          target: process.env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:8001',
+          changeOrigin: true,
+        },
       },
     },
     preview: {

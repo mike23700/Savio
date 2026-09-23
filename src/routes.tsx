@@ -10,6 +10,8 @@ import AdminSacrements from "@/pages/admin/Sacrements";
 import AdminCatechese from "@/pages/admin/Catechese";
 import AdminPriere from "@/pages/admin/Priere";
 import AdminIntentions from "@/pages/admin/Intentions";
+import AdminMessages from "@/pages/admin/Messages";
+import AdminBans from "@/pages/admin/Bans";
 import AdminHomelies from "@/pages/admin/Homelies";
 import AdminMouvements from "@/pages/admin/Mouvements";
 import AdminProjets from "@/pages/admin/Projets";
@@ -160,6 +162,8 @@ export const router = createBrowserRouter([
       { path: "catechese", Component: AdminCatechese },
       { path: "priere", Component: AdminPriere },
       { path: "intentions", Component: AdminIntentions },
+      { path: "messages", Component: AdminMessages },
+      { path: "bans", Component: AdminBans },
       { path: "homelies", Component: AdminHomelies },
       { path: "mouvements", Component: AdminMouvements },
       { path: "projets", Component: AdminProjets },
