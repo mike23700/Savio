@@ -4,6 +4,8 @@ Site de la **Paroisse Saint Dominique Savio** (Archidiocèse de Douala, Doyenné
 
 Le frontend est issu d'un export **Figma Make**, adapté pour npm, et connecté à un backend Laravel/MySQL construit spécifiquement pour ce projet.
 
+> 📝 L'historique des évolutions du site (formulaire de contact, bans, upload audio/PDF des homélies…) est documenté dans le [CHANGELOG.md](CHANGELOG.md).
+
 ## Technologies utilisées
 
 **Frontend**
