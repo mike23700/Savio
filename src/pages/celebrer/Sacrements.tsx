@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { apiGet } from "@/lib/api";
+import { apiGet, mediaUrl } from "@/lib/api";
 
 interface Sacrement {
   id: number;
@@ -16,7 +16,7 @@ function SacrementCard({ s }: { s: Sacrement }) {
   return (
     <Link to={`/celebrer/sacrements/${s.slug}`} className="text-left bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all group border border-transparent hover:border-yellow-200 block">
       <div className="relative h-40 overflow-hidden">
-        <img src={s.img} alt={s.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        <img src={mediaUrl(s.img) ?? undefined} alt={s.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,45,107,0.85) 0%, transparent 60%)" }} />
         <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center gap-2">
           <span className="text-2xl">{s.icon}</span>

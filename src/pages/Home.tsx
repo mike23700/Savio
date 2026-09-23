@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router";
-import { NEWS } from "@/data/content";
-import { apiGet, tzQuery } from "@/lib/api";
+import { apiGet, clientTimeQuery, localDateISO, mediaUrl } from "@/lib/api";
+import { formatNewsDate, readingsList, type DailyReadings, type NewsArticle } from "@/lib/content-types";
 
-interface NextMass {
+interface MassOccurrence {
   date: string;
   time: string;
   type: string;
@@ -11,16 +11,18 @@ interface NextMass {
   day_label: string;
 }
 
-interface TodayItem {
-  time: string;
-  type: string;
-}
-
-interface LatestHomelie {
-  title: string;
-  sunday: string;
-  readings: string;
-  published_at: string;
+/** "Aujourd'hui – 18h30", "Demain – 06h30" or "Dimanche 27 septembre – 09h00". */
+function massLabel(m: MassOccurrence, today: string): string {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  let day: string;
+  if (m.date === today) day = "Aujourd'hui";
+  else if (m.date === localDateISO(tomorrow)) day = "Demain";
+  else {
+    day = new Date(`${m.date}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+    day = day.charAt(0).toUpperCase() + day.slice(1);
+  }
+  return `${day} – ${m.time}`;
 }
 
 const IconArrow = () => (
@@ -226,22 +228,41 @@ function HeroSlideshow() {
 
 export default function Home() {
   const [hoveredService, setHoveredService] = useState<string | null>(null);
-  const [nextMass, setNextMass] = useState<NextMass | null>(null);
-  const [todayItems, setTodayItems] = useState<TodayItem[]>([]);
-  const [latestHomelie, setLatestHomelie] = useState<LatestHomelie | null>(null);
+  const [nextMass, setNextMass] = useState<MassOccurrence | null>(null);
+  const [todayItems, setTodayItems] = useState<MassOccurrence[]>([]);
+  const [readings, setReadings] = useState<DailyReadings | null>(null);
+  const [news, setNews] = useState<NewsArticle[]>([]);
+  // Local date of the visitor's computer; re-evaluated every minute so the
+  // cards roll over at midnight without reloading the page.
+  const [today, setToday] = useState(localDateISO());
 
   useEffect(() => {
-    apiGet<NextMass | null>(`/mass-schedule/next${tzQuery()}`).then(setNextMass).catch(() => {});
-    apiGet<TodayItem[]>(`/mass-schedule/today${tzQuery()}`).then(setTodayItems).catch(() => {});
-    apiGet<LatestHomelie | null>("/homelies/latest").then(setLatestHomelie).catch(() => {});
+    apiGet<NewsArticle[]>("/news?limit=4").then(setNews).catch(() => {});
   }, []);
 
-  // Local (visitor-timezone) date, e.g. "2026-09-23" — matches the `date`
-  // field returned by the API which is computed with the same timezone.
-  const todayLocal = new Date().toLocaleDateString("en-CA");
-  const nextMassLabel = nextMass
-    ? `${nextMass.date === todayLocal ? "Aujourd'hui" : nextMass.day_label} – ${nextMass.time}`
-    : null;
+  // Next mass + the next 4 masses of today, computed from the device clock
+  // and refreshed every minute so past masses drop off the list.
+  useEffect(() => {
+    function refresh() {
+      setToday(localDateISO());
+      apiGet<MassOccurrence | null>(`/mass-schedule/next${clientTimeQuery()}`).then(setNextMass).catch(() => {});
+      apiGet<MassOccurrence[]>(`/mass-schedule/today${clientTimeQuery({ upcoming: true, masses: true, limit: 4 })}`)
+        .then(setTodayItems)
+        .catch(() => {});
+    }
+    refresh();
+    const timer = setInterval(refresh, 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    setReadings(null);
+    apiGet<DailyReadings | null>(`/lectures/jour?date=${today}`).then(setReadings).catch(() => {});
+  }, [today]);
+
+  const todayLong = new Date(`${today}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const todayShort = new Date(`${today}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+  const readingRefs = readingsList(readings);
 
   return (
     <>
@@ -258,7 +279,7 @@ export default function Home() {
                 <span className="text-lg">⛪</span>
                 <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.12em" }}>PROCHAINE MESSE</span>
               </div>
-              <div style={{ fontFamily: "Playfair Display, serif", fontSize: "1.25rem", fontWeight: 700, color: "#0B3D91" }}>{nextMassLabel || "—"}</div>
+              <div style={{ fontFamily: "Playfair Display, serif", fontSize: "1.25rem", fontWeight: 700, color: "#0B3D91" }}>{nextMass ? massLabel(nextMass, today) : "—"}</div>
               <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.8rem", color: "#4b5563", marginTop: 4 }}>{nextMass?.type} {nextMass?.note ? `· ${nextMass.note}` : ""}</div>
               <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.75rem", color: "#9ca3af", marginTop: 6, lineHeight: 1.5 }}>
                 📍 New-Bell Bonadoumbé, Douala
@@ -275,16 +296,26 @@ export default function Home() {
                 <span className="text-lg">📖</span>
                 <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.12em" }}>LECTURES DU JOUR</span>
               </div>
-              <div style={{ fontFamily: "Playfair Display, serif", fontSize: "1rem", fontWeight: 600, color: "#1c2340", lineHeight: 1.3 }}>
-                {latestHomelie ? new Date(latestHomelie.published_at).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : "—"}
+              <div style={{ fontFamily: "Playfair Display, serif", fontSize: "1rem", fontWeight: 600, color: "#1c2340", lineHeight: 1.3, textTransform: "capitalize" }}>
+                {todayLong}
               </div>
-              <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.8rem", color: "#4b5563", marginTop: 4 }}>{latestHomelie?.sunday}</div>
-              <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.75rem", color: "#9ca3af", marginTop: 6, lineHeight: 1.6 }}>
-                {latestHomelie?.readings}
-              </div>
+              {readings?.liturgical_day && (
+                <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.8rem", color: "#4b5563", marginTop: 4 }}>{readings.liturgical_day}</div>
+              )}
+              {readingRefs.length > 0 ? (
+                <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.75rem", color: "#6b7280", marginTop: 6, lineHeight: 1.6 }}>
+                  {readingRefs.map((r) => (
+                    <div key={r.label}><span style={{ fontWeight: 600, color: "#0B3D91" }}>{r.label} :</span> {r.value}</div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.75rem", color: "#9ca3af", marginTop: 6 }}>
+                  {readings === null ? "Chargement des lectures…" : "Lectures indisponibles pour le moment."}
+                </div>
+              )}
               <div className="mt-auto pt-4">
-                <Link to="/celebrer" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.76rem", color: "#0B3D91", fontWeight: 600 }}
-                  className="flex items-center gap-1 hover:underline">Lire les lectures <IconArrow /></Link>
+                <a href={`https://www.aelf.org/${today}/romain/messe`} target="_blank" rel="noreferrer" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.76rem", color: "#0B3D91", fontWeight: 600 }}
+                  className="flex items-center gap-1 hover:underline">Lire les lectures <IconArrow /></a>
               </div>
             </div>
 
@@ -294,17 +325,27 @@ export default function Home() {
                 <span className="text-lg">📅</span>
                 <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.12em" }}>AUJOURD'HUI</span>
               </div>
+              <div style={{ fontFamily: "Playfair Display, serif", fontSize: "1rem", fontWeight: 600, color: "#1c2340", marginBottom: 10, textTransform: "capitalize" }}>
+                {todayShort}
+              </div>
               <div className="space-y-2 flex-1">
-                {todayItems.slice(0, 4).map(({ time, type }, i) => (
-                  <div key={`${time}-${i}`} className="flex items-center gap-3">
-                    <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", fontWeight: 700, color: "#0B3D91", minWidth: 44 }}>{time}</span>
-                    <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "#4b5563" }}>{type}</span>
+                {todayItems.length === 0 ? (
+                  <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "#6b7280", lineHeight: 1.6 }}>
+                    Plus de messe aujourd'hui.
+                    {nextMass && <> Prochaine : <strong style={{ color: "#0B3D91" }}>{massLabel(nextMass, today)}</strong></>}
                   </div>
-                ))}
+                ) : (
+                  todayItems.map(({ time, type }, i) => (
+                    <div key={`${time}-${i}`} className="flex items-center gap-3">
+                      <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", fontWeight: 700, color: "#0B3D91", minWidth: 44 }}>{time}</span>
+                      <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "#4b5563" }}>{type}</span>
+                    </div>
+                  ))
+                )}
               </div>
               <div className="mt-auto pt-4">
-                <Link to="/agenda" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.76rem", color: "#0B3D91", fontWeight: 600 }}
-                  className="flex items-center gap-1 hover:underline">Voir tout l'agenda <IconArrow /></Link>
+                <Link to="/celebrer/messes" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.76rem", color: "#0B3D91", fontWeight: 600 }}
+                  className="flex items-center gap-1 hover:underline">Tous les horaires <IconArrow /></Link>
               </div>
             </div>
 
@@ -385,16 +426,18 @@ export default function Home() {
             </Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {NEWS.slice(0, 4).map((n) => (
+            {news.map((n) => (
               <Link to={`/actualites/${n.id}`} key={n.id}
                 className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow group">
                 <div className="relative h-44 overflow-hidden">
-                  <img src={n.img} alt={n.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.62rem", fontWeight: 700, background: n.tagColor, color: "white", letterSpacing: "0.08em" }}
-                    className="absolute top-3 left-3 px-2.5 py-1 rounded-full">{n.tag.toUpperCase()}</span>
+                  {n.img && <img src={mediaUrl(n.img) ?? undefined} alt={n.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
+                  {n.category && (
+                    <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.62rem", fontWeight: 700, background: n.category.color, color: "white", letterSpacing: "0.08em" }}
+                      className="absolute top-3 left-3 px-2.5 py-1 rounded-full">{n.category.name.toUpperCase()}</span>
+                  )}
                 </div>
                 <div className="p-4">
-                  <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", color: "#9ca3af", marginBottom: 6 }}>{n.date}</div>
+                  <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", color: "#9ca3af", marginBottom: 6 }}>{formatNewsDate(n.published_at)}</div>
                   <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "0.92rem", fontWeight: 600, color: "#1c2340", lineHeight: 1.45 }}>{n.title}</h3>
                   <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.74rem", color: "#0B3D91", fontWeight: 600 }}
                     className="flex items-center gap-1 mt-3">Lire la suite <IconArrow /></span>

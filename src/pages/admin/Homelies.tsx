@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiGet, apiDelete, apiFormData } from "@/lib/api";
+import { confirmDialog } from "./ConfirmDialog";
+import ImageUpload, { Thumb } from "./ImageUpload";
 
 interface Homelie {
   id: number;
@@ -83,7 +85,7 @@ export default function AdminHomelies() {
   }
 
   async function remove(id: number) {
-    if (!confirm("Supprimer cette homélie ?")) return;
+    if (!(await confirmDialog("Supprimer cette homélie ?"))) return;
     await apiDelete(`/admin/homelies/${id}`);
     load();
   }
@@ -116,11 +118,13 @@ export default function AdminHomelies() {
               <Field label="Évangile (ex: Jn 3,13-17)"><input value={form.gospel} onChange={(e) => setForm({ ...form, gospel: e.target.value })} style={inputStyle} /></Field>
             </div>
             <p style={{ fontSize: "0.72rem", color: "#9ca3af", marginTop: 4 }}>
-              Ces 4 champs alimentent automatiquement les « lectures du jour » affichées sur l'accueil et la page des messes.
+              Références des lectures commentées dans cette homélie. Les « lectures du jour » de l'accueil se gèrent dans le menu « Lectures du jour ».
             </p>
           </div>
           <Field label="Extrait"><textarea value={form.excerpt} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} rows={3} style={{ ...inputStyle, marginTop: 8 }} /></Field>
-          <Field label="Image (URL)"><input value={form.img} onChange={(e) => setForm({ ...form, img: e.target.value })} style={{ ...inputStyle, marginTop: 8 }} /></Field>
+          <div style={{ marginTop: 8 }}>
+            <ImageUpload folder="homelies" value={form.img} onChange={(img) => setForm({ ...form, img })} />
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
             <Field label={`Audio ${audioFile ? `(${audioFile.name})` : "(fichier MP3, max 20 Mo)"}`}>
               <input type="file" accept="audio/*" onChange={(e) => setAudioFile(e.target.files?.[0] ?? null)} style={fileStyle} />
@@ -150,12 +154,13 @@ export default function AdminHomelies() {
       <table style={{ width: "100%", background: "#fff", borderRadius: 12, overflow: "hidden", borderCollapse: "collapse" }}>
         <thead>
           <tr style={{ background: "#F5F7FA", textAlign: "left", fontSize: "0.75rem", color: "#6b7280" }}>
-            <th style={th}>Titre</th><th style={th}>Date</th><th style={th}>Publiée</th><th style={th}></th>
+            <th style={th}>Image</th><th style={th}>Titre</th><th style={th}>Date</th><th style={th}>Publiée</th><th style={th}></th>
           </tr>
         </thead>
         <tbody>
           {rows.map((r) => (
             <tr key={r.id} style={{ borderTop: "1px solid #f1f5f9", fontSize: "0.85rem" }}>
+              <td style={td}><Thumb path={r.img} /></td>
               <td style={td}>{r.title}</td>
               <td style={td}>{new Date(r.published_at).toLocaleDateString("fr-FR")}</td>
               <td style={td}>{r.is_published ? "Oui" : "Non"}</td>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiGet, apiPost, apiDelete } from "@/lib/api";
+import { confirmDialog } from "./ConfirmDialog";
 
 interface Row {
   id: number;
@@ -44,7 +45,7 @@ export default function AdminRegistre() {
   }
 
   async function remove(id: number) {
-    if (!confirm("Supprimer cette inscription ?")) return;
+    if (!(await confirmDialog("Supprimer cette inscription ?"))) return;
     await apiDelete(`/admin/registre/${id}`);
     load(q);
   }

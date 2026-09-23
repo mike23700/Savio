@@ -1,6 +1,6 @@
 # figma-make-app
 
-React + Vite + Tailwind CSS project running inside Figma Make, connected to a Laravel/MySQL backend in `backend/` (API only, no Blade views). The frontend fetches content from the API via `src/lib/api.ts` instead of static data wherever a Laravel-backed resource exists; only `NEWS`, `EVENTS` and `TEAM` in `src/data/content.ts` remain static.
+React + Vite + Tailwind CSS project running inside Figma Make, connected to a Laravel/MySQL backend in `backend/` (API only, no Blade views). The frontend fetches content from the API via `src/lib/api.ts` instead of static data: news, agenda, pastoral team, media library (photos + YouTube videos) and daily readings are all managed from the admin. Only `PARISH` (contact info) remains static in `src/data/content.ts`.
 
 ## Development Server
 
@@ -23,7 +23,8 @@ This is the canonical project structure. Start with task-relevant files below. O
 - `src/lib/api.ts` - fetch wrapper for the Laravel API (reads `VITE_API_URL`, attaches the Bearer token)
 - `src/lib/auth.tsx` - `AuthProvider`, `useAuth()`, `RequireAuth`, `RequireAdmin` route guards
 - `src/lib/settings.tsx` - parish-wide settings (WhatsApp number, social links) fetched from `/api/settings`
-- `src/pages/admin/**` - the admin panel (mounted at `/admin`, gated by `RequireAdmin`)
+- `src/pages/admin/**` - the admin panel (mounted at `/admin`, gated by `RequireAdmin`); image fields use `src/pages/admin/ImageUpload.tsx`, which uploads to `POST /api/admin/uploads/image` and stores the returned path (served at `/storage/<path>`, resolve with `mediaUrl()` from `src/lib/api.ts`)
+- `src/lib/content-types.ts` - shared types for news, agenda events, team, media and daily readings
 - `backend/` - Laravel API (PHP 8.2, MySQL via XAMPP, Sanctum token auth); see `backend/routes/api.php` for every endpoint and `backend/database/seeders/` for starter data
 
 ## Dependencies
@@ -42,7 +43,7 @@ The Vite dev server proxies `/api` to `http://127.0.0.1:8001` (configurable via 
 2. `cd backend && php artisan serve --host=127.0.0.1 --port=8001`
 3. `npm run dev` at the repo root (already documented as always-on in this environment).
 
-Admin panel: `/admin`, gated by a `role=admin` user (seeded by `backend/database/seeders/AdminUserSeeder.php`). Payment (boutique orders, donations) goes through `backend/app/Payments/PaymentProviderInterface.php` — currently a manual/guided provider (instructions + admin confirmation), swappable later for a real Orange Money/MTN MoMo integration without touching the Order/Donation flow.
+Admin panel: `/admin`, gated by a `role=admin` user (seeded by `backend/database/seeders/AdminUserSeeder.php`). Time-sensitive endpoints (`/mass-schedule/next`, `/mass-schedule/today`) receive the visitor's device clock via `clientTimeQuery()` (`?tz=…&now=…`). Daily readings (`/api/lectures/jour?date=`) come from the AELF API (zone Afrique, cached) unless an admin entry exists for that date. Payment (boutique orders, donations) goes through `backend/app/Payments/PaymentProviderInterface.php` — currently a manual/guided provider (instructions + admin confirmation), swappable later for a real Orange Money/MTN MoMo integration without touching the Order/Donation flow.
 
 ## Styling
 

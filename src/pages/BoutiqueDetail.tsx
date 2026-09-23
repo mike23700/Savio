@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
-import { apiGet } from "@/lib/api";
+import { apiGet, mediaUrl } from "@/lib/api";
 
 interface Product {
   id: number;
@@ -54,7 +54,7 @@ export default function BoutiqueDetail() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div className="rounded-2xl overflow-hidden">
-            <img src={product.img} alt={product.nom} className="w-full h-80 object-cover" />
+            <img src={mediaUrl(product.img) ?? undefined} alt={product.nom} className="w-full h-80 object-cover" />
           </div>
           <div>
             <span style={{ background: product.category === "Livres" ? "#E8F2FF" : "#FDF8E7", color: product.category === "Livres" ? "#0B3D91" : "#D4AF37", fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, padding: "3px 10px", borderRadius: 20 }}>

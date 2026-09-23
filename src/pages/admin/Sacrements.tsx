@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
+import { confirmDialog } from "./ConfirmDialog";
+import ImageUpload, { Thumb } from "./ImageUpload";
 
 interface SacrementRow {
   id: number;
@@ -64,7 +66,7 @@ export default function AdminSacrements() {
   }
 
   async function remove(id: number) {
-    if (!confirm("Supprimer ce sacrement ?")) return;
+    if (!(await confirmDialog("Supprimer ce sacrement ?"))) return;
     await apiDelete(`/admin/sacrements/${id}`);
     load();
   }
@@ -94,9 +96,9 @@ export default function AdminSacrements() {
           <Field label="Description">
             <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} style={{ ...inputStyle, marginTop: 8 }} />
           </Field>
-          <Field label="Image (URL)">
-            <input value={form.img} onChange={(e) => setForm({ ...form, img: e.target.value })} style={{ ...inputStyle, marginTop: 8 }} />
-          </Field>
+          <div style={{ marginTop: 8 }}>
+            <ImageUpload folder="sacrements" value={form.img} onChange={(img) => setForm({ ...form, img })} />
+          </div>
           <Field label="Informations pratiques (une par ligne)">
             <textarea value={form.details} onChange={(e) => setForm({ ...form, details: e.target.value })} rows={4} style={{ ...inputStyle, marginTop: 8 }} />
           </Field>
@@ -114,6 +116,7 @@ export default function AdminSacrements() {
       <table style={{ width: "100%", background: "#fff", borderRadius: 12, overflow: "hidden", borderCollapse: "collapse" }}>
         <thead>
           <tr style={{ background: "#F5F7FA", textAlign: "left", fontSize: "0.75rem", color: "#6b7280" }}>
+            <th style={th}>Image</th>
             <th style={th}>Sacrement</th>
             <th style={th}>Sous-titre</th>
             <th style={th}></th>
@@ -122,6 +125,7 @@ export default function AdminSacrements() {
         <tbody>
           {rows.map((r) => (
             <tr key={r.id} style={{ borderTop: "1px solid #f1f5f9", fontSize: "0.85rem" }}>
+              <td style={td}><Thumb path={r.img} /></td>
               <td style={td}>{r.icon} {r.title}</td>
               <td style={td}>{r.subtitle}</td>
               <td style={td}>

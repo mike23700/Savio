@@ -65,17 +65,26 @@ class NextMassCalculator
         return $this->format($occurrence);
     }
 
-    public function today(?Carbon $now = null): array
+    /**
+     * Occurrences scheduled on the same calendar day as $now.
+     *
+     * @param  bool  $upcomingOnly  drop the ones already started before $now
+     * @param  bool  $onlyMasses  keep only rows flagged counts_as_mass
+     * @param  int|null  $limit  maximum number of items returned
+     */
+    public function today(?Carbon $now = null, bool $upcomingOnly = false, bool $onlyMasses = false, ?int $limit = null): array
     {
         $now = $now ?? Carbon::now();
         $todayStart = $now->copy()->startOfDay();
         $todayEnd = $now->copy()->endOfDay();
+        $from = $upcomingOnly ? $now : $todayStart;
 
-        return $this->upcomingOccurrences($now->copy()->startOfDay(), 1, false)
-            ->filter(fn ($o) => $o['at']->between($todayStart, $todayEnd))
+        $items = $this->upcomingOccurrences($todayStart, 1, $onlyMasses)
+            ->filter(fn ($o) => $o['at']->between($from, $todayEnd))
             ->map(fn ($o) => $this->format($o))
-            ->values()
-            ->all();
+            ->values();
+
+        return ($limit ? $items->take($limit) : $items)->all();
     }
 
     private function combine(Carbon $date, ?Carbon $time): Carbon

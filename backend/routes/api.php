@@ -4,14 +4,18 @@ use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\BanController;
 use App\Http\Controllers\Api\CatecheseController;
 use App\Http\Controllers\Api\ContactMessageController;
+use App\Http\Controllers\Api\DailyReadingController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DonationController;
+use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\JournalController;
 use App\Http\Controllers\Api\HomelieController;
 use App\Http\Controllers\Api\IntentionMesseController;
 use App\Http\Controllers\Api\MassScheduleController;
+use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\MouvementController;
+use App\Http\Controllers\Api\NewsController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PrayerTimeController;
 use App\Http\Controllers\Api\ProductController;
@@ -19,6 +23,8 @@ use App\Http\Controllers\Api\ProjetController;
 use App\Http\Controllers\Api\RegistreController;
 use App\Http\Controllers\Api\SacrementController;
 use App\Http\Controllers\Api\SettingsController;
+use App\Http\Controllers\Api\TeamMemberController;
+use App\Http\Controllers\Api\UploadController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -36,6 +42,21 @@ Route::get('/settings', [SettingsController::class, 'index']);
 Route::get('/mass-schedule', [MassScheduleController::class, 'index']);
 Route::get('/mass-schedule/next', [MassScheduleController::class, 'next']);
 Route::get('/mass-schedule/today', [MassScheduleController::class, 'today']);
+
+Route::get('/events', [EventController::class, 'index']);
+Route::get('/event-categories', [EventController::class, 'categories']);
+
+Route::get('/media', [MediaController::class, 'index']);
+Route::get('/media-categories', [MediaController::class, 'categories']);
+
+Route::get('/equipe', [TeamMemberController::class, 'index']);
+Route::get('/equipe/{slug}', [TeamMemberController::class, 'show']);
+
+Route::get('/lectures/jour', [DailyReadingController::class, 'show']);
+
+Route::get('/news', [NewsController::class, 'index']);
+Route::get('/news/{news}', [NewsController::class, 'show']);
+Route::get('/news-categories', [NewsController::class, 'categories']);
 
 Route::get('/sacrements', [SacrementController::class, 'index']);
 Route::get('/sacrements/{slug}', [SacrementController::class, 'show']);
@@ -91,6 +112,42 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::post('/mass-schedule', [MassScheduleController::class, 'store']);
     Route::put('/mass-schedule/{massSchedule}', [MassScheduleController::class, 'update']);
     Route::delete('/mass-schedule/{massSchedule}', [MassScheduleController::class, 'destroy']);
+
+    Route::post('/uploads/image', [UploadController::class, 'image']);
+
+    Route::get('/events', [EventController::class, 'adminIndex']);
+    Route::post('/events', [EventController::class, 'store']);
+    Route::put('/events/{event}', [EventController::class, 'update']);
+    Route::delete('/events/{event}', [EventController::class, 'destroy']);
+    Route::post('/event-categories', [EventController::class, 'storeCategory']);
+    Route::put('/event-categories/{category}', [EventController::class, 'updateCategory']);
+    Route::delete('/event-categories/{category}', [EventController::class, 'destroyCategory']);
+
+    Route::get('/media', [MediaController::class, 'adminIndex']);
+    Route::post('/media', [MediaController::class, 'store']);
+    Route::put('/media/{media}', [MediaController::class, 'update']);
+    Route::delete('/media/{media}', [MediaController::class, 'destroy']);
+    Route::post('/media-categories', [MediaController::class, 'storeCategory']);
+    Route::put('/media-categories/{category}', [MediaController::class, 'updateCategory']);
+    Route::delete('/media-categories/{category}', [MediaController::class, 'destroyCategory']);
+
+    Route::get('/equipe', [TeamMemberController::class, 'adminIndex']);
+    Route::post('/equipe', [TeamMemberController::class, 'store']);
+    Route::put('/equipe/{teamMember}', [TeamMemberController::class, 'update']);
+    Route::delete('/equipe/{teamMember}', [TeamMemberController::class, 'destroy']);
+
+    Route::get('/lectures', [DailyReadingController::class, 'adminIndex']);
+    Route::post('/lectures', [DailyReadingController::class, 'store']);
+    Route::put('/lectures/{dailyReading}', [DailyReadingController::class, 'update']);
+    Route::delete('/lectures/{dailyReading}', [DailyReadingController::class, 'destroy']);
+
+    Route::get('/news', [NewsController::class, 'adminIndex']);
+    Route::post('/news', [NewsController::class, 'store']);
+    Route::put('/news/{news}', [NewsController::class, 'update']);
+    Route::delete('/news/{news}', [NewsController::class, 'destroy']);
+    Route::post('/news-categories', [NewsController::class, 'storeCategory']);
+    Route::put('/news-categories/{category}', [NewsController::class, 'updateCategory']);
+    Route::delete('/news-categories/{category}', [NewsController::class, 'destroyCategory']);
 
     Route::get('/sacrements', [SacrementController::class, 'adminIndex']);
     Route::post('/sacrements', [SacrementController::class, 'store']);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { apiGet } from "@/lib/api";
+import { apiGet, mediaUrl } from "@/lib/api";
 
 interface Projet {
   id: number;
@@ -63,7 +63,7 @@ export default function Projets() {
               return (
                 <Link key={projet.id} to={`/vie-paroissiale/projets/${projet.id}`} className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg hover:border-yellow-200 transition-all block">
                   <div className="relative h-44 overflow-hidden">
-                    <img src={projet.image} alt={projet.titre} className="w-full h-full object-cover" />
+                    <img src={mediaUrl(projet.image) ?? undefined} alt={projet.titre} className="w-full h-full object-cover" />
                     <span style={{ position: "absolute", top: 12, right: 12, background: projet.statut === "termine" ? "#27ae60" : "#D4AF37", borderRadius: 20, padding: "4px 12px", fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "white" }}>
                       {STATUT_LABEL[projet.statut]}
                     </span>

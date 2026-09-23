@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
+import { confirmDialog } from "./ConfirmDialog";
 
 interface Row {
   id: number;
@@ -36,7 +37,7 @@ export default function AdminPriere() {
   }
 
   async function remove(id: number) {
-    if (!confirm("Supprimer ce temps de prière ?")) return;
+    if (!(await confirmDialog("Supprimer ce temps de prière ?"))) return;
     await apiDelete(`/admin/priere/${id}`);
     load();
   }

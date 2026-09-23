@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { apiGet, apiPost, apiDelete } from "@/lib/api";
+import { apiGet, apiPost, apiDelete, mediaUrl } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 
 interface Homelie {
@@ -16,13 +16,6 @@ interface Homelie {
   published_at: string;
   audio_url: string | null;
   pdf_url: string | null;
-}
-
-/** Resolve a stored media path ("audio/x.mp3") to a servable URL. */
-function mediaUrl(path: string | null | undefined): string | null {
-  if (!path) return null;
-  if (/^https?:\/\//.test(path)) return path; // external URL kept as-is
-  return `/storage/${path}`;
 }
 
 const IconArrow = () => (
@@ -103,7 +96,7 @@ export default function Homelies() {
             <div className="mb-10 rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
               <div className="grid grid-cols-1 md:grid-cols-2">
                 <div className="relative min-h-[220px] overflow-hidden">
-                  <img src={homelies[0].img} alt={homelies[0].title} className="w-full h-full object-cover" />
+                  <img src={mediaUrl(homelies[0].img) ?? undefined} alt={homelies[0].title} className="w-full h-full object-cover" />
                   <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(8,45,107,0.7), transparent)" }} />
                   <div className="absolute top-4 left-4">
                     <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.62rem", fontWeight: 700, background: "#D4AF37", color: "white", letterSpacing: "0.08em" }}
@@ -140,7 +133,7 @@ export default function Homelies() {
                 onClick={() => setSelected(h)}>
                 <div className="flex gap-0">
                   <div className="relative w-32 shrink-0 overflow-hidden">
-                    <img src={h.img} alt={h.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <img src={mediaUrl(h.img) ?? undefined} alt={h.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
                   <div className="p-5 flex-1 relative">
                     {user && (
@@ -170,7 +163,7 @@ export default function Homelies() {
           onClick={() => setSelected(null)}>
           <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="relative h-48">
-              <img src={selected.img} alt={selected.title} className="w-full h-full object-cover" />
+              <img src={mediaUrl(selected.img) ?? undefined} alt={selected.title} className="w-full h-full object-cover" />
               <div className="absolute inset-0" style={{ background: "rgba(8,45,107,0.75)" }} />
               <div className="absolute inset-0 flex flex-col justify-end p-6">
                 <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", marginBottom: 4 }}>{selected.sunday.toUpperCase()}</div>

@@ -13,6 +13,11 @@ import AdminIntentions from "@/pages/admin/Intentions";
 import AdminMessages from "@/pages/admin/Messages";
 import AdminBans from "@/pages/admin/Bans";
 import AdminHomelies from "@/pages/admin/Homelies";
+import AdminActualites from "@/pages/admin/Actualites";
+import AdminLectures from "@/pages/admin/Lectures";
+import AdminEquipe from "@/pages/admin/Equipe";
+import AdminMediatheque from "@/pages/admin/Mediatheque";
+import AdminAgenda from "@/pages/admin/Agenda";
 import AdminMouvements from "@/pages/admin/Mouvements";
 import AdminProjets from "@/pages/admin/Projets";
 import AdminRegistre from "@/pages/admin/Registre";
@@ -165,6 +170,11 @@ export const router = createBrowserRouter([
       { path: "messages", Component: AdminMessages },
       { path: "bans", Component: AdminBans },
       { path: "homelies", Component: AdminHomelies },
+      { path: "actualites", Component: AdminActualites },
+      { path: "lectures", Component: AdminLectures },
+      { path: "equipe", Component: AdminEquipe },
+      { path: "mediatheque", Component: AdminMediatheque },
+      { path: "agenda", Component: AdminAgenda },
       { path: "mouvements", Component: AdminMouvements },
       { path: "projets", Component: AdminProjets },
       { path: "registre", Component: AdminRegistre },

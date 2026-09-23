@@ -1,9 +1,26 @@
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
-import { TEAM } from "@/data/content";
+import { apiGet, mediaUrl } from "@/lib/api";
+import type { TeamMember } from "@/lib/content-types";
 
 export default function EquipeDetail() {
   const { id } = useParams<{ id: string }>();
-  const priest = TEAM.find((p) => p.id === id);
+  const [priest, setPriest] = useState<TeamMember | null>(null);
+  const [status, setStatus] = useState<"loading" | "done">("loading");
+
+  useEffect(() => {
+    setStatus("loading");
+    apiGet<TeamMember>(`/equipe/${id}`)
+      .then(setPriest)
+      .catch(() => setPriest(null))
+      .finally(() => setStatus("done"));
+  }, [id]);
+
+  if (status === "loading") {
+    return <div className="min-h-[60vh] flex items-center justify-center" style={{ fontFamily: "Montserrat, sans-serif", color: "#6b7280" }}>Chargement…</div>;
+  }
+
+  const ministries = priest?.ministries ?? [];
 
   if (!priest) {
     return (
@@ -45,7 +62,7 @@ export default function EquipeDetail() {
             <div>
               <div className="rounded-2xl overflow-hidden shadow-lg">
                 <img
-                  src={priest.photo}
+                  src={mediaUrl(priest.photo) ?? undefined}
                   alt={priest.name}
                   className="w-full h-80 object-cover"
                   onError={(e) => {
@@ -59,7 +76,9 @@ export default function EquipeDetail() {
                 {[
                   priest.born && ["Né le", priest.born],
                   priest.ordained && ["Ordonné le", priest.ordained],
-                  priest.ordainedBy && ["Ordonné par", priest.ordainedBy],
+                  priest.ordained_by && ["Ordonné par", priest.ordained_by],
+                  priest.since && ["En poste depuis", priest.since],
+                  priest.origin && ["Origine", priest.origin],
                 ].filter(Boolean).map((item) => {
                   const [label, value] = item as [string, string];
                   return (
@@ -86,24 +105,24 @@ export default function EquipeDetail() {
               <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.5rem", fontWeight: 700, color: "#1c2340", marginBottom: 16 }}>Formation et parcours</h2>
               <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.9rem", color: "#4b5563", lineHeight: 1.85 }}>{priest.bio}</p>
 
-              <div style={{ marginTop: 40 }}>
+              {ministries.length > 0 && <div style={{ marginTop: 40 }}>
                 <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.15em", marginBottom: 16 }}>MINISTÈRES EXERCÉS</div>
                 <div className="relative">
                   <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-blue-100" />
                   <div className="space-y-5">
-                    {priest.ministries.map((ministry, i) => (
+                    {ministries.map((ministry, i) => (
                       <div key={i} className="flex gap-5 items-start">
-                        <div style={{ width: 32, height: 32, background: i === priest.ministries.length - 1 ? "#D4AF37" : "#0B3D91", borderRadius: "50%", flexShrink: 0, zIndex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <div style={{ width: 32, height: 32, background: i === ministries.length - 1 ? "#D4AF37" : "#0B3D91", borderRadius: "50%", flexShrink: 0, zIndex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
                           <span style={{ color: "white", fontSize: "0.7rem", fontWeight: 700 }}>{i + 1}</span>
                         </div>
-                        <div style={{ background: i === priest.ministries.length - 1 ? "#E8F2FF" : "#F5F7FA", borderRadius: 12, padding: "12px 16px", flex: 1, border: i === priest.ministries.length - 1 ? "1px solid #0B3D91" : "1px solid transparent" }}>
-                          <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.85rem", color: "#374151", lineHeight: 1.5, fontWeight: i === priest.ministries.length - 1 ? 700 : 400 }}>{ministry}</p>
+                        <div style={{ background: i === ministries.length - 1 ? "#E8F2FF" : "#F5F7FA", borderRadius: 12, padding: "12px 16px", flex: 1, border: i === ministries.length - 1 ? "1px solid #0B3D91" : "1px solid transparent" }}>
+                          <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.85rem", color: "#374151", lineHeight: 1.5, fontWeight: i === ministries.length - 1 ? 700 : 400 }}>{ministry}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
-              </div>
+              </div>}
             </div>
           </div>
 

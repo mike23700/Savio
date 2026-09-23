@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { apiGet, tzQuery } from "@/lib/api";
+import { apiGet, clientTimeQuery, localDateISO } from "@/lib/api";
+import { readingsList, type DailyReadings } from "@/lib/content-types";
 
 interface ScheduleGroup {
   day: string;
@@ -13,27 +14,17 @@ interface TodayItem {
   note: string | null;
 }
 
-interface LatestHomelie {
-  title: string;
-  sunday: string;
-  readings: string;
-  reading_1: string | null;
-  psalm: string | null;
-  reading_2: string | null;
-  gospel: string | null;
-  published_at: string;
-}
-
 export default function Messes() {
   const [schedule, setSchedule] = useState<ScheduleGroup[]>([]);
   const [todayItems, setTodayItems] = useState<TodayItem[]>([]);
-  const [latestHomelie, setLatestHomelie] = useState<LatestHomelie | null>(null);
+  const [readings, setReadings] = useState<DailyReadings | null>(null);
+  const today = localDateISO();
 
   useEffect(() => {
     apiGet<ScheduleGroup[]>("/mass-schedule").then(setSchedule).catch(() => {});
-    apiGet<TodayItem[]>(`/mass-schedule/today${tzQuery()}`).then(setTodayItems).catch(() => {});
-    apiGet<LatestHomelie | null>("/homelies/latest").then(setLatestHomelie).catch(() => {});
-  }, []);
+    apiGet<TodayItem[]>(`/mass-schedule/today${clientTimeQuery()}`).then(setTodayItems).catch(() => {});
+    apiGet<DailyReadings | null>(`/lectures/jour?date=${today}`).then(setReadings).catch(() => {});
+  }, [today]);
 
   return (
     <>
@@ -83,50 +74,44 @@ export default function Messes() {
             <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 12, padding: "16px 20px" }}>
               <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.1em", marginBottom: 12 }}>LECTURES DU JOUR</div>
               {(() => {
-                if (!latestHomelie) {
+                const refs = readingsList(readings);
+                if (refs.length === 0) {
                   return (
                     <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "rgba(255,255,255,0.7)" }}>
                       Les lectures du jour seront publiées prochainement.
                     </p>
                   );
                 }
-                const structured = [
-                  { label: "1ère lecture", value: latestHomelie?.reading_1 },
-                  { label: "Psaume", value: latestHomelie?.psalm },
-                  { label: "2ème lecture", value: latestHomelie?.reading_2 },
-                  { label: "Évangile", value: latestHomelie?.gospel },
-                ].filter((r) => r.value);
-                const hasAny = structured.length > 0 || !!latestHomelie?.readings;
-
-                return hasAny ? (
+                return (
                   <>
-                    {latestHomelie.sunday && (
+                    {readings?.liturgical_day && (
                       <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.8rem", fontWeight: 700, color: "white", marginBottom: 8 }}>
-                        {latestHomelie.sunday}
+                        {readings.liturgical_day}
                       </div>
                     )}
-                    {structured.length > 0
-                      ? structured.map((r) => (
-                          <div key={r.label} className="flex items-center gap-3 mb-2 last:mb-0">
-                            <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", fontWeight: 700, color: "#D4AF37", minWidth: 92 }}>{r.label}</span>
-                            <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "rgba(255,255,255,0.85)" }}>{r.value}</span>
-                          </div>
-                        ))
-                      : latestHomelie.readings.split("·").map((ref, i) => (
-                          <div key={i} className="flex items-center gap-3 mb-2 last:mb-0">
-                            <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "#D4AF37" }}>📖</span>
-                            <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "rgba(255,255,255,0.85)" }}>{ref.trim()}</span>
-                          </div>
-                        ))}
-                    <Link to="/homelies" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.74rem", fontWeight: 700, color: "#D4AF37" }}
-                      className="inline-flex items-center gap-1 mt-3 hover:underline">
-                      Écouter l'homélie →
-                    </Link>
+                    {refs.map((r) => (
+                      <div key={r.label} className="flex items-center gap-3 mb-2 last:mb-0">
+                        <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", fontWeight: 700, color: "#D4AF37", minWidth: 92 }}>{r.label}</span>
+                        <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "rgba(255,255,255,0.85)" }}>{r.value}</span>
+                      </div>
+                    ))}
+                    {readings?.gospel_title && (
+                      <div style={{ fontFamily: "Playfair Display, serif", fontStyle: "italic", fontSize: "0.85rem", color: "rgba(255,255,255,0.8)", marginTop: 8 }}>
+                        {readings.gospel_title}
+                      </div>
+                    )}
+                    <div className="flex flex-wrap gap-4 mt-3">
+                      <a href={`https://www.aelf.org/${today}/romain/messe`} target="_blank" rel="noreferrer"
+                        style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.74rem", fontWeight: 700, color: "#D4AF37" }}
+                        className="inline-flex items-center gap-1 hover:underline">
+                        Lire les textes →
+                      </a>
+                      <Link to="/homelies" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.74rem", fontWeight: 700, color: "#D4AF37" }}
+                        className="inline-flex items-center gap-1 hover:underline">
+                        Écouter l'homélie →
+                      </Link>
+                    </div>
                   </>
-                ) : (
-                  <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "rgba(255,255,255,0.7)" }}>
-                    Les lectures du jour seront publiées prochainement.
-                  </p>
                 );
               })()}
             </div>

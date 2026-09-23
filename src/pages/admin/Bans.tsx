@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiGet, apiPatch, apiDelete } from "@/lib/api";
+import { confirmDialog } from "./ConfirmDialog";
 
 interface Ban {
   id: number;
@@ -39,7 +40,7 @@ export default function AdminBans() {
   }
 
   async function remove(id: number) {
-    if (!confirm("Supprimer cette demande de bans ?")) return;
+    if (!(await confirmDialog("Supprimer cette demande de bans ?"))) return;
     await apiDelete(`/admin/bans/${id}`);
     load(filter);
   }

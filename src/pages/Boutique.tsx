@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { apiGet, apiPost, ApiError } from "@/lib/api";
+import { apiGet, apiPost, ApiError, mediaUrl } from "@/lib/api";
 
 interface Product {
   id: number;
@@ -116,7 +116,7 @@ export default function Boutique() {
             {filtered.map((product) => (
               <div key={product.id} className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg hover:border-yellow-200 transition-all group">
                 <Link to={`/boutique/${product.slug}`} className="relative h-48 overflow-hidden block">
-                  <img src={product.img} alt={product.nom} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img src={mediaUrl(product.img) ?? undefined} alt={product.nom} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   <span style={{ position: "absolute", top: 12, left: 12, background: product.category === "Livres" ? "#0B3D91" : "#D4AF37", borderRadius: 20, padding: "3px 10px", fontFamily: "Montserrat, sans-serif", fontSize: "0.65rem", fontWeight: 700, color: "white" }}>
                     {product.category}
                   </span>
@@ -172,7 +172,7 @@ export default function Boutique() {
                 <div className="space-y-4">
                   {cartItems.map(({ id, qty, product }) => (
                     <div key={id} className="flex gap-3 items-start p-3 rounded-xl border border-gray-100">
-                      <img src={product.img} alt={product.nom} className="w-14 h-14 object-cover rounded-lg" />
+                      <img src={mediaUrl(product.img) ?? undefined} alt={product.nom} className="w-14 h-14 object-cover rounded-lg" />
                       <div className="flex-1">
                         <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.8rem", fontWeight: 600, color: "#1c2340", lineHeight: 1.3 }}>{product.nom}</p>
                         <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.75rem", color: "#0B3D91", fontWeight: 700, marginTop: 2 }}>{product.prix.toLocaleString("fr-FR")} FCFA</p>

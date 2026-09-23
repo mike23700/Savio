@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useAuth } from "@/lib/auth";
-import { apiGet, apiPost, ApiError } from "@/lib/api";
+import { apiGet, apiPost, ApiError, mediaUrl } from "@/lib/api";
 
 type Mode = "login" | "register";
 type Tab = "profil" | "journal" | "homelies" | "achats" | "donations";
@@ -245,7 +245,7 @@ export default function EspaceMembre() {
               <div className="space-y-4">
                 {favorites.map((h) => (
                   <div key={h.id} className="flex gap-4 items-start p-4 rounded-xl border border-gray-100 hover:border-yellow-200 transition-all">
-                    <img src={h.img} alt={h.title} className="w-20 h-14 object-cover rounded-lg" />
+                    <img src={mediaUrl(h.img) ?? undefined} alt={h.title} className="w-20 h-14 object-cover rounded-lg" />
                     <div>
                       <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.08em" }}>
                         {new Date(h.published_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}

@@ -36,27 +36,46 @@ class MassScheduleController extends Controller
 
     public function today(Request $request, NextMassCalculator $calculator)
     {
-        return response()->json($calculator->today($this->clientNow($request)));
+        $limit = (int) $request->query('limit', 0);
+
+        return response()->json($calculator->today(
+            $this->clientNow($request),
+            $request->boolean('upcoming'),
+            $request->boolean('masses'),
+            $limit > 0 ? $limit : null,
+        ));
     }
 
     /**
-     * Build "now" in the visitor's timezone so "next mass" and "today"
-     * match what the user sees on their device. Falls back to server
-     * time when the tz parameter is missing or invalid.
+     * Build "now" from the visitor's device so "next mass" and "today"
+     * match the date and time shown on their computer:
+     *  - `now` (e.g. "2026-09-23T14:05:00") is the device's local wall-clock time,
+     *  - `tz` (e.g. "Africa/Douala") is the device's IANA timezone.
+     * Falls back to the server clock (in `tz` when valid) when `now` is
+     * missing or malformed.
      */
     private function clientNow(Request $request): Carbon
     {
-        $tz = $request->query('tz');
-
-        if (is_string($tz) && $tz !== '') {
+        $tz = null;
+        $tzParam = $request->query('tz');
+        if (is_string($tzParam) && $tzParam !== '') {
             try {
-                return Carbon::now(new \DateTimeZone($tz));
+                $tz = new \DateTimeZone($tzParam);
             } catch (\Exception) {
-                // invalid timezone identifier → server time
+                // invalid timezone identifier → server timezone
             }
         }
 
-        return Carbon::now();
+        $nowParam = $request->query('now');
+        if (is_string($nowParam) && preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/', $nowParam)) {
+            try {
+                return Carbon::parse($nowParam, $tz);
+            } catch (\Exception) {
+                // unparsable → fall through
+            }
+        }
+
+        return $tz ? Carbon::now($tz) : Carbon::now();
     }
 
     public function adminIndex()

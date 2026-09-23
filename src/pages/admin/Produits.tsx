@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
+import { confirmDialog } from "./ConfirmDialog";
+import ImageUpload, { Thumb } from "./ImageUpload";
 
 interface Row {
   id: number;
@@ -47,7 +49,7 @@ export default function AdminProduits() {
   }
 
   async function remove(id: number) {
-    if (!confirm("Supprimer ce produit ?")) return;
+    if (!(await confirmDialog("Supprimer ce produit ?"))) return;
     await apiDelete(`/admin/products/${id}`);
     load();
   }
@@ -75,7 +77,9 @@ export default function AdminProduits() {
             </Field>
           </div>
           <Field label="Description"><textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} style={{ ...inputStyle, marginTop: 8 }} /></Field>
-          <Field label="Image (URL)"><input value={form.img} onChange={(e) => setForm({ ...form, img: e.target.value })} style={{ ...inputStyle, marginTop: 8 }} /></Field>
+          <div style={{ marginTop: 8 }}>
+            <ImageUpload folder="products" value={form.img} onChange={(img) => setForm({ ...form, img })} />
+          </div>
           <div className="flex gap-3 mt-4">
             <button type="submit" style={{ background: "#0B3D91", color: "#fff", padding: "8px 20px", borderRadius: 8, border: "none", fontWeight: 700, cursor: "pointer" }}>Enregistrer</button>
             <button type="button" onClick={() => setEditingId(null)} style={{ background: "none", border: "1px solid #e5e7eb", padding: "8px 20px", borderRadius: 8, cursor: "pointer" }}>Annuler</button>
@@ -86,12 +90,13 @@ export default function AdminProduits() {
       <table style={{ width: "100%", background: "#fff", borderRadius: 12, overflow: "hidden", borderCollapse: "collapse" }}>
         <thead>
           <tr style={{ background: "#F5F7FA", textAlign: "left", fontSize: "0.75rem", color: "#6b7280" }}>
-            <th style={th}>Produit</th><th style={th}>Catégorie</th><th style={th}>Prix</th><th style={th}></th>
+            <th style={th}>Image</th><th style={th}>Produit</th><th style={th}>Catégorie</th><th style={th}>Prix</th><th style={th}></th>
           </tr>
         </thead>
         <tbody>
           {rows.map((r) => (
             <tr key={r.id} style={{ borderTop: "1px solid #f1f5f9", fontSize: "0.85rem" }}>
+              <td style={td}><Thumb path={r.img} /></td>
               <td style={td}>{r.nom}</td>
               <td style={td}>{r.category}</td>
               <td style={td}>{r.prix.toLocaleString("fr-FR")} FCFA</td>

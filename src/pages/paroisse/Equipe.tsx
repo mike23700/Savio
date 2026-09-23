@@ -1,69 +1,15 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import pretre2 from "@/imports/pretre2.jpg";
-import kamgaPhoto from "@/imports/logo_savio.png";
-import pretre1 from "@/imports/pretre1.jpg";
-import pretre3 from "@/imports/pretre3.jpg";
-import pretre4 from "@/imports/pretre4.jpg";
-
-const REAL_TEAM = [
-  {
-    id: "fankam-ngandjui",
-    name: "Abbé Jean-Robert FANKAM NGANDJUI",
-    role: "Curé de la paroisse",
-    photo: pretre2,
-    since: "2022",
-    origin: "Archidiocèse de Douala",
-    bio: "Abbé Jean-Robert Fankam Ngandjui est le curé en titre de la Paroisse Saint Dominique Savio. Prêtre de l'Archidiocèse de Douala, il assure la direction pastorale de notre communauté avec dévouement. Il coordonne l'ensemble des activités paroissiales, préside les célébrations eucharistiques dominicales et accompagne les fidèles dans leur cheminement spirituel.",
-    motto: "Que ma vie soit un témoignage vivant de l'amour du Christ.",
-    email: "cure@paroissesaintdominiquesavio.com",
-  },
-  {
-    id: "kamga",
-    name: "Abbé Joseph Fotso KAMGA",
-    role: "Vicaire",
-    photo: kamgaPhoto,
-    since: "2021",
-    origin: "Archidiocèse de Douala",
-    bio: "Abbé Joseph Fotso Kamga est vicaire à la Paroisse Saint Dominique Savio. Fort de nombreuses années de ministère presbytéral, il accompagne avec sagesse et expérience les fidèles et les différents groupes paroissiaux. Il est particulièrement engagé dans le soutien spirituel des aînés et des personnes malades.",
-    motto: "Servir avec humilité, aimer sans réserve.",
-    email: "vicariat@paroissesaintdominiquesavio.com",
-  },
-  {
-    id: "pandeu-tatsi",
-    name: "Abbé Achille Hermann PANDEU TATSI",
-    role: "Vicaire",
-    photo: pretre1,
-    since: "2023",
-    origin: "Archidiocèse de Douala",
-    bio: "Abbé Achille Hermann Pandeu Tatsi est vicaire à la paroisse. Dynamique et proche des jeunes, il anime la pastorale des jeunes, la catéchèse et les mouvements de jeunesse. Il s'investit particulièrement dans la formation spirituelle et l'accompagnement des lycéens et des étudiants.",
-    motto: "La jeunesse est le visage de demain ; donnons-lui l'Évangile aujourd'hui.",
-    email: "jeunesse@paroissesaintdominiquesavio.com",
-  },
-  {
-    id: "gwodog-tang",
-    name: "Abbé Simon Rodrigue GWODOG TANG",
-    role: "Vicaire",
-    photo: pretre3,
-    since: "2023",
-    origin: "Archidiocèse de Douala",
-    bio: "Abbé Simon Rodrigue Gwodog Tang est vicaire à la Paroisse Saint Dominique Savio. Il coordonne les célébrations liturgiques hebdomadaires, accompagne les communautés ecclésiales vivantes (CEV) et participe à l'animation des temps forts liturgiques tout au long de l'année.",
-    motto: "Annoncer le Christ ressuscité, voilà ma joie et ma mission.",
-    email: "liturgie@paroissesaintdominiquesavio.com",
-  },
-  {
-    id: "mbekou",
-    name: "Francis Hervé Duclair MBEKOU",
-    role: "Séminariste stagiaire",
-    photo: pretre4,
-    since: "2026",
-    origin: "Grand Séminaire de Yaoundé",
-    bio: "Francis Hervé Duclair Mbekou est séminariste en stage pastoral à la Paroisse Saint Dominique Savio. Dans le cadre de sa formation au sacerdoce, il participe activement à la vie paroissiale, à la catéchèse et aux différentes célébrations. Sa présence est un signe de l'avenir de l'Église.",
-    motto: "Me préparer chaque jour à être un serviteur de Dieu et de son peuple.",
-    email: "stage@paroissesaintdominiquesavio.com",
-  },
-];
+import { apiGet, mediaUrl } from "@/lib/api";
+import type { TeamMember } from "@/lib/content-types";
 
 export default function Equipe() {
+  const [team, setTeam] = useState<TeamMember[]>([]);
+
+  useEffect(() => {
+    apiGet<TeamMember[]>("/equipe").then(setTeam).catch(() => {});
+  }, []);
+
   return (
     <>
       <div className="relative h-64 md:h-80 flex items-end overflow-hidden">
@@ -95,14 +41,14 @@ export default function Equipe() {
           </p>
 
           <div className="space-y-8">
-            {REAL_TEAM.map((priest, idx) => (
+            {team.map((priest, idx) => (
               <div key={priest.id} className="rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 bg-white">
                 <div className={`flex flex-col ${idx % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}`}>
 
                   {/* Photo — full height */}
                   <div className="relative md:w-2/5 min-h-[320px] md:min-h-[360px] overflow-hidden">
                     <img
-                      src={priest.photo}
+                      src={mediaUrl(priest.photo) ?? undefined}
                       alt={priest.name}
                       className="absolute inset-0 w-full h-full object-cover object-top"
                     />
@@ -112,9 +58,11 @@ export default function Equipe() {
                         className="inline-block px-3 py-1 rounded-full mb-2">
                         {priest.role.toUpperCase()}
                       </span>
-                      <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.72)" }}>
-                        En poste depuis {priest.since}
-                      </div>
+                      {priest.since && (
+                        <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.72)" }}>
+                          En poste depuis {priest.since}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -129,22 +77,24 @@ export default function Equipe() {
                     <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.84rem", color: "#4b5563", lineHeight: 1.85, marginBottom: 20 }}>
                       {priest.bio}
                     </p>
-                    <blockquote style={{ fontFamily: "Playfair Display, serif", fontStyle: "italic", fontSize: "0.88rem", color: "#0B3D91", borderLeft: "3px solid #D4AF37", paddingLeft: 14, marginBottom: 24, lineHeight: 1.6 }}>
-                      "{priest.motto}"
-                    </blockquote>
+                    {priest.motto && (
+                      <blockquote style={{ fontFamily: "Playfair Display, serif", fontStyle: "italic", fontSize: "0.88rem", color: "#0B3D91", borderLeft: "3px solid #D4AF37", paddingLeft: 14, marginBottom: 24, lineHeight: 1.6 }}>
+                        "{priest.motto}"
+                      </blockquote>
+                    )}
                     <div className="flex flex-wrap gap-3">
                       <Link
-                        to={`/paroisse/equipe/${priest.id}`}
+                        to={`/paroisse/equipe/${priest.slug}`}
                         style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.78rem" }}
                         className="inline-flex items-center gap-2 text-white px-5 py-2.5 rounded-full hover:opacity-90 transition-opacity">
                         Voir le profil complet →
                       </Link>
-                      <a
+                      {priest.email && <a
                         href={`mailto:${priest.email}`}
                         style={{ border: "1.5px solid #e5e7eb", fontFamily: "Montserrat, sans-serif", fontWeight: 600, fontSize: "0.78rem", color: "#6b7280" }}
                         className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full hover:border-blue-300 hover:text-blue-700 transition-colors">
                         ✉ Contacter
-                      </a>
+                      </a>}
                     </div>
                   </div>
                 </div>

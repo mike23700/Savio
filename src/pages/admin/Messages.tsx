@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiGet, apiPatch, apiDelete } from "@/lib/api";
+import { confirmDialog } from "./ConfirmDialog";
 
 interface Message {
   id: number;
@@ -46,7 +47,7 @@ export default function AdminMessages() {
   }
 
   async function remove(id: number) {
-    if (!confirm("Supprimer ce message ?")) return;
+    if (!(await confirmDialog("Supprimer ce message ?"))) return;
     await apiDelete(`/admin/contact/${id}`);
     load(filter);
   }

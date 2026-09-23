@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
+import { confirmDialog } from "./ConfirmDialog";
+import ImageUpload, { Thumb } from "./ImageUpload";
 
 interface Photo {
   id: number;
@@ -62,7 +64,7 @@ export default function AdminProjets() {
   }
 
   async function remove(id: number) {
-    if (!confirm("Supprimer ce projet ?")) return;
+    if (!(await confirmDialog("Supprimer ce projet ?"))) return;
     await apiDelete(`/admin/projets/${id}`);
     load();
   }
@@ -84,6 +86,7 @@ export default function AdminProjets() {
 
   async function removePhoto(photoId: number) {
     if (!photoManagerId) return;
+    if (!(await confirmDialog("Supprimer cette photo du projet ?"))) return;
     await apiDelete(`/admin/projets/${photoManagerId}/photos/${photoId}`);
     setPhotos(photos.filter((p) => p.id !== photoId));
     load();
@@ -113,7 +116,9 @@ export default function AdminProjets() {
             <Field label="Objectif (FCFA)"><input type="number" value={form.objectif} onChange={(e) => setForm({ ...form, objectif: e.target.value })} style={inputStyle} /></Field>
             <Field label="Collecté (FCFA)"><input type="number" value={form.collecte} onChange={(e) => setForm({ ...form, collecte: e.target.value })} style={inputStyle} /></Field>
           </div>
-          <Field label="Image de couverture (URL)"><input value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} style={{ ...inputStyle, marginTop: 8 }} /></Field>
+          <div style={{ marginTop: 8 }}>
+            <ImageUpload label="Image de couverture" folder="projets" value={form.image} onChange={(image) => setForm({ ...form, image })} />
+          </div>
           <div className="flex gap-3 mt-4">
             <button type="submit" style={{ background: "#0B3D91", color: "#fff", padding: "8px 20px", borderRadius: 8, border: "none", fontWeight: 700, cursor: "pointer" }}>Enregistrer</button>
             <button type="button" onClick={() => setEditingId(null)} style={{ background: "none", border: "1px solid #e5e7eb", padding: "8px 20px", borderRadius: 8, cursor: "pointer" }}>Annuler</button>
@@ -142,12 +147,13 @@ export default function AdminProjets() {
       <table style={{ width: "100%", background: "#fff", borderRadius: 12, overflow: "hidden", borderCollapse: "collapse" }}>
         <thead>
           <tr style={{ background: "#F5F7FA", textAlign: "left", fontSize: "0.75rem", color: "#6b7280" }}>
-            <th style={th}>Titre</th><th style={th}>Statut</th><th style={th}>Collecte / Objectif</th><th style={th}>Photos</th><th style={th}></th>
+            <th style={th}>Image</th><th style={th}>Titre</th><th style={th}>Statut</th><th style={th}>Collecte / Objectif</th><th style={th}>Photos</th><th style={th}></th>
           </tr>
         </thead>
         <tbody>
           {rows.map((r) => (
             <tr key={r.id} style={{ borderTop: "1px solid #f1f5f9", fontSize: "0.85rem" }}>
+              <td style={td}><Thumb path={r.image} /></td>
               <td style={td}>{r.titre}</td>
               <td style={td}>{r.statut === "termine" ? "Terminé" : "En cours"}</td>
               <td style={td}>{r.collecte.toLocaleString("fr-FR")} / {r.objectif.toLocaleString("fr-FR")} FCFA</td>

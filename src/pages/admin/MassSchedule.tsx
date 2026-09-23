@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
+import { confirmDialog } from "./ConfirmDialog";
 
 interface Row {
   id: number;
@@ -85,7 +86,7 @@ export default function AdminMassSchedule() {
   }
 
   async function remove(id: number) {
-    if (!confirm("Supprimer cette ligne d'horaire ?")) return;
+    if (!(await confirmDialog("Supprimer cette ligne d'horaire ?"))) return;
     await apiDelete(`/admin/mass-schedule/${id}`);
     load();
   }

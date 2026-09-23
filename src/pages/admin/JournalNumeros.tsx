@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
+import { confirmDialog } from "./ConfirmDialog";
 
 interface Issue {
   id: number;
@@ -36,7 +37,7 @@ export default function AdminJournalNumeros() {
   }
 
   async function remove(id: number) {
-    if (!confirm("Supprimer ce numéro ?")) return;
+    if (!(await confirmDialog("Supprimer ce numéro ?"))) return;
     await apiDelete(`/admin/journal/issues/${id}`);
     load();
   }

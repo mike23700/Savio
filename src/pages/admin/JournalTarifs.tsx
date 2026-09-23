@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
+import { confirmDialog } from "./ConfirmDialog";
 
 interface Tarif {
   id: number;
@@ -37,7 +38,7 @@ export default function AdminJournalTarifs() {
   }
 
   async function remove(id: number) {
-    if (!confirm("Supprimer ce tarif ?")) return;
+    if (!(await confirmDialog("Supprimer ce tarif ?"))) return;
     await apiDelete(`/admin/journal/tarifs/${id}`);
     load();
   }

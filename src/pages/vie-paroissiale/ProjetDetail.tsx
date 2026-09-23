@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
-import { apiGet } from "@/lib/api";
+import { apiGet, mediaUrl } from "@/lib/api";
 
 interface Photo {
   id: number;
@@ -59,7 +59,7 @@ export default function ProjetDetailPage() {
   return (
     <>
       <div className="relative h-64 md:h-72 flex items-end overflow-hidden">
-        <img src={projet.image} alt={projet.titre} className="absolute inset-0 w-full h-full object-cover" />
+        <img src={mediaUrl(projet.image) ?? undefined} alt={projet.titre} className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,45,107,0.92) 0%, rgba(8,45,107,0.35) 60%, transparent 100%)" }} />
         <div className="relative max-w-7xl mx-auto px-6 py-10 w-full">
           <div className="flex items-center gap-2 mb-2 flex-wrap">

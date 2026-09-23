@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
-import { NEWS } from "@/data/content";
+import { apiGet, mediaUrl } from "@/lib/api";
+import { formatNewsDate, type NewsArticle, type NewsCategory } from "@/lib/content-types";
 
 const IconArrow = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 inline ml-1">
@@ -8,11 +9,23 @@ const IconArrow = () => (
   </svg>
 );
 
-const ALL_TAGS = ["Tous", ...Array.from(new Set(NEWS.map(n => n.tag)))];
-
 export function ActualiteDetail() {
   const { id } = useParams();
-  const article = NEWS.find(n => n.id === Number(id));
+  const [article, setArticle] = useState<NewsArticle | null>(null);
+  const [related, setRelated] = useState<NewsArticle[]>([]);
+  const [status, setStatus] = useState<"loading" | "ok" | "missing">("loading");
+
+  useEffect(() => {
+    setStatus("loading");
+    apiGet<NewsArticle>(`/news/${id}`)
+      .then((a) => { setArticle(a); setStatus("ok"); })
+      .catch(() => setStatus("missing"));
+    apiGet<NewsArticle[]>("/news").then(setRelated).catch(() => {});
+  }, [id]);
+
+  if (status === "loading") {
+    return <div className="max-w-3xl mx-auto px-6 py-20 text-center" style={{ fontFamily: "Montserrat, sans-serif", color: "#6b7280" }}>Chargement…</div>;
+  }
 
   if (!article) {
     return (
@@ -30,7 +43,7 @@ export function ActualiteDetail() {
   return (
     <>
       <div className="relative h-72 md:h-96 overflow-hidden">
-        <img src={article.img} alt={article.title} className="w-full h-full object-cover" />
+        {article.img && <img src={mediaUrl(article.img) ?? undefined} alt={article.title} className="w-full h-full object-cover" />}
         <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,45,107,0.92) 0%, rgba(8,45,107,0.3) 60%, transparent 100%)" }} />
         <div className="absolute bottom-0 left-0 right-0 max-w-3xl mx-auto px-6 pb-10 w-full">
           <div className="flex items-center gap-2 mb-3">
@@ -38,12 +51,14 @@ export function ActualiteDetail() {
             <span style={{ color: "rgba(255,255,255,0.4)" }}>›</span>
             <Link to="/actualites" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>Actualités</Link>
             <span style={{ color: "rgba(255,255,255,0.4)" }}>›</span>
-            <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#D4AF37" }}>{article.tag}</span>
+            <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#D4AF37" }}>{article.category?.name ?? "Article"}</span>
           </div>
-          <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.65rem", fontWeight: 700, background: article.tagColor, color: "white", letterSpacing: "0.08em" }}
-            className="inline-block px-3 py-1 rounded-full mb-3">{article.tag.toUpperCase()}</span>
+          {article.category && (
+            <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.65rem", fontWeight: 700, background: article.category.color, color: "white", letterSpacing: "0.08em" }}
+              className="inline-block px-3 py-1 rounded-full mb-3">{article.category.name.toUpperCase()}</span>
+          )}
           <h1 style={{ fontFamily: "Playfair Display, serif", color: "white", fontSize: "clamp(1.4rem, 3.5vw, 2.2rem)", fontWeight: 700, lineHeight: 1.2 }}>{article.title}</h1>
-          <p style={{ fontFamily: "Montserrat, sans-serif", color: "rgba(255,255,255,0.65)", fontSize: "0.78rem", marginTop: 8 }}>{article.date}</p>
+          <p style={{ fontFamily: "Montserrat, sans-serif", color: "rgba(255,255,255,0.65)", fontSize: "0.78rem", marginTop: 8 }}>{formatNewsDate(article.published_at)}</p>
         </div>
       </div>
 
@@ -71,12 +86,16 @@ export function ActualiteDetail() {
         <div className="mt-14">
           <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.3rem", fontWeight: 700, color: "#1c2340", marginBottom: 20 }}>Articles similaires</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {NEWS.filter(n => n.id !== article.id).slice(0, 2).map(n => (
+            {related
+              .filter(n => n.id !== article.id)
+              .sort((a, b) => Number(b.news_category_id === article.news_category_id) - Number(a.news_category_id === article.news_category_id))
+              .slice(0, 2)
+              .map(n => (
               <Link to={`/actualites/${n.id}`} key={n.id}
                 className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all group border border-gray-100">
-                <img src={n.img} alt={n.title} className="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-500" />
+                {n.img && <img src={mediaUrl(n.img) ?? undefined} alt={n.title} className="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-500" />}
                 <div className="p-4">
-                  <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", color: "#9ca3af" }}>{n.date}</div>
+                  <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", color: "#9ca3af" }}>{formatNewsDate(n.published_at)}</div>
                   <h4 style={{ fontFamily: "Playfair Display, serif", fontSize: "0.9rem", fontWeight: 600, color: "#1c2340", lineHeight: 1.4, marginTop: 4 }}>{n.title}</h4>
                 </div>
               </Link>
@@ -89,12 +108,23 @@ export function ActualiteDetail() {
 }
 
 export default function Actualites() {
+  const [news, setNews] = useState<NewsArticle[]>([]);
+  const [categories, setCategories] = useState<NewsCategory[]>([]);
   const [activeTag, setActiveTag] = useState("Tous");
   const [search, setSearch] = useState("");
 
-  const filtered = NEWS.filter(n => {
-    const matchTag = activeTag === "Tous" || n.tag === activeTag;
-    const matchSearch = !search || n.title.toLowerCase().includes(search.toLowerCase()) || n.excerpt.toLowerCase().includes(search.toLowerCase());
+  useEffect(() => {
+    apiGet<NewsArticle[]>("/news").then(setNews).catch(() => {});
+    apiGet<NewsCategory[]>("/news-categories").then(setCategories).catch(() => {});
+  }, []);
+
+  // Only offer categories that actually have published articles.
+  const ALL_TAGS = ["Tous", ...categories.filter(c => news.some(n => n.news_category_id === c.id)).map(c => c.name)];
+
+  const filtered = news.filter(n => {
+    const matchTag = activeTag === "Tous" || n.category?.name === activeTag;
+    const q = search.toLowerCase();
+    const matchSearch = !q || n.title.toLowerCase().includes(q) || (n.excerpt ?? "").toLowerCase().includes(q);
     return matchTag && matchSearch;
   });
 
@@ -152,14 +182,16 @@ export default function Actualites() {
                 <Link to={`/actualites/${n.id}`} key={n.id}
                   className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all group border border-gray-100 hover:border-yellow-200">
                   <div className="relative h-48 overflow-hidden">
-                    <img src={n.img} alt={n.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.62rem", fontWeight: 700, background: n.tagColor, color: "white", letterSpacing: "0.08em" }}
-                      className="absolute top-3 left-3 px-2.5 py-1 rounded-full">{n.tag.toUpperCase()}</span>
+                    {n.img && <img src={mediaUrl(n.img) ?? undefined} alt={n.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
+                    {n.category && (
+                      <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.62rem", fontWeight: 700, background: n.category.color, color: "white", letterSpacing: "0.08em" }}
+                        className="absolute top-3 left-3 px-2.5 py-1 rounded-full">{n.category.name.toUpperCase()}</span>
+                    )}
                   </div>
                   <div className="p-5">
-                    <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.7rem", color: "#9ca3af", marginBottom: 6 }}>{n.date}</div>
+                    <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.7rem", color: "#9ca3af", marginBottom: 6 }}>{formatNewsDate(n.published_at)}</div>
                     <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1rem", fontWeight: 700, color: "#1c2340", lineHeight: 1.45, marginBottom: 8 }}>{n.title}</h3>
-                    <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "#6b7280", lineHeight: 1.7, marginBottom: 12 }}>{n.excerpt.slice(0, 120)}…</p>
+                    <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "#6b7280", lineHeight: 1.7, marginBottom: 12 }}>{(n.excerpt ?? "").slice(0, 120)}{(n.excerpt ?? "").length > 120 ? "…" : ""}</p>
                     <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.76rem", color: "#0B3D91", fontWeight: 700 }}
                       className="flex items-center gap-1">Lire la suite <IconArrow /></span>
                   </div>

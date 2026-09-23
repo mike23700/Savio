@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiGet, apiPost, apiPut, apiDelete, apiPatch } from "@/lib/api";
+import { confirmDialog } from "./ConfirmDialog";
 
 interface Niveau {
   id: number;
@@ -51,7 +52,7 @@ export default function AdminCatechese() {
   }
 
   async function remove(id: number) {
-    if (!confirm("Supprimer ce niveau ?")) return;
+    if (!(await confirmDialog("Supprimer ce niveau ?"))) return;
     await apiDelete(`/admin/catechese/niveaux/${id}`);
     load();
   }

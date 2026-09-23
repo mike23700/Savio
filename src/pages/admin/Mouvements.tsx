@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
+import { confirmDialog } from "./ConfirmDialog";
 
 interface Row {
   id: number;
@@ -44,7 +45,7 @@ export default function AdminMouvements() {
   }
 
   async function remove(id: number) {
-    if (!confirm("Supprimer cet élément ?")) return;
+    if (!(await confirmDialog("Supprimer cet élément ?"))) return;
     await apiDelete(`/admin/mouvements/${id}`);
     load();
   }

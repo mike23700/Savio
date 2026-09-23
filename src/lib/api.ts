@@ -91,16 +91,36 @@ export const apiPatch = <T,>(path: string, body?: unknown) =>
   request<T>(path, { method: "PATCH", body: JSON.stringify(body ?? {}) });
 export const apiDelete = <T,>(path: string) => request<T>(path, { method: "DELETE" });
 
+/** Local date of the visitor's device as "YYYY-MM-DD". */
+export function localDateISO(d: Date = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 /**
- * Query string carrying the visitor's IANA timezone (e.g. "?tz=Africa/Douala")
- * so time-sensitive endpoints ("next mass", "today's program") are computed
- * with the user's local time. Returns "" when the timezone is unavailable.
+ * Query string carrying the visitor's device clock so time-sensitive
+ * endpoints ("next mass", "today's program") are computed with the date
+ * and time shown on the user's computer:
+ *   ?tz=Africa/Douala&now=2026-09-23T14:05:00[&extra params]
  */
-export function tzQuery(): string {
+export function clientTimeQuery(extra: Record<string, string | number | boolean> = {}): string {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const params = new URLSearchParams();
   try {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    return tz ? `?tz=${encodeURIComponent(tz)}` : "";
+    if (tz) params.set("tz", tz);
   } catch {
-    return "";
+    // timezone unavailable → server falls back to its own
   }
+  params.set("now", `${localDateISO(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`);
+  for (const [k, v] of Object.entries(extra)) params.set(k, String(typeof v === "boolean" ? Number(v) : v));
+  return `?${params.toString()}`;
+}
+
+/** Resolve a stored media path ("news/x.jpg") to a servable URL. */
+export function mediaUrl(path: string | null | undefined): string | null {
+  if (!path) return null;
+  if (/^https?:\/\//.test(path)) return path; // external URL kept as-is
+  return `/storage/${path}`;
 }

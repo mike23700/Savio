@@ -1,91 +1,105 @@
-# Guide d'installation — Site Paroisse Saint Dominique Savio
+# Guide de démarrage — rejoindre le projet Paroisse Saint Dominique Savio
 
-Ce guide couvre tout le nécessaire pour cloner, installer et lancer le projet en local : frontend (React/Vite) + backend (Laravel/MySQL) + panel admin.
+Ce guide t'amène de zéro à un environnement de développement complet (site public + admin + base de données), identique à celui utilisé pour construire le projet.
 
-## 1. Prérequis
+⚠️ **Pré-requis côté dépôt** : ce guide suppose que le dossier `backend/` (API Laravel) et `src/pages/admin/` (panel admin) ont bien été poussés sur le dépôt distant. Si `git pull` ne te remonte pas ces dossiers, tu es sur le mauvais commit/branche — demande avant de continuer, le guide ne fonctionnera pas tant qu'ils ne sont pas là.
 
-- **Node.js 22** (voir `.mise.toml`) + npm
-- **PHP 8.2+** avec les extensions `pdo_mysql`, `mbstring`, `openssl`, `curl`, `fileinfo`, `tokenizer`
-  - Le plus simple : installer **XAMPP** (fournit PHP 8.2+, MySQL/MariaDB et phpMyAdmin)
-- **Composer 2** (si tu n'as que Composer 1 ou pas de Composer du tout, voir §3.1 pour l'installer en local sans droits admin)
-- **MySQL/MariaDB** en cours d'exécution (via XAMPP ou une installation locale)
+## 0. Vue d'ensemble rapide
+
+Le projet a deux parties :
+
+- **Un frontend unique** (`src/`) en React + Vite + TypeScript + Tailwind CSS v4 : le site public et l'admin (route `/admin`) font partie du même projet — un seul `npm install`, un seul serveur de dev.
+- **Un backend PHP + MySQL** (`backend/`) : une API REST **Laravel** (avec Sanctum pour l'auth par token), qui alimente le site public en données (horaires de messe, sacrements, catéchèse, homélies, boutique, etc.) et permet à l'admin de tout modifier.
+
+Pour le détail de l'architecture, voir `README.md` et `AGENTS.md` à la racine. Pour le contrat de l'API, voir `backend/routes/api.php` (toutes les routes y sont listées, groupées par module).
+
+## 1. Pré-requis à installer
+
 - **Git**
+- **Node.js 22** (voir `.mise.toml`) + npm (fourni avec Node)
+- **PHP 8.2+** avec les extensions `pdo_mysql`, `mbstring`, `openssl`, `curl`, `fileinfo`, `tokenizer`, et un serveur **MySQL/MariaDB**. Le plus simple : installer **XAMPP** (Linux/Mac/Windows), qui fournit les deux d'un coup.
+  - Sur Linux, XAMPP s'installe typiquement dans `/opt/lampp/`. Adapte les chemins `/opt/lampp/bin/php` et `/opt/lampp/bin/mysql` ci-dessous si ton installation est différente (ou si `php`/`mysql` sont déjà dans ton PATH, utilise-les directement).
+- **Composer 2** — si `composer --version` affiche autre chose (ou rien), installe-le en local dans le projet, sans droits admin :
+  ```bash
+  php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+  php composer-setup.php --install-dir=. --filename=composer.phar
+  ```
+  Remplace alors `composer` par `php composer.phar` dans les commandes ci-dessous.
 
-## 2. Cloner le dépôt
+## 2. Récupérer le projet
 
 ```bash
 git clone https://github.com/mike23700/Savio.git
 cd Savio
 ```
 
-## 3. Installation du backend (Laravel)
-
-### 3.1. Composer (si besoin)
-
-Si `composer --version` affiche une version < 2.2, installe Composer 2 localement dans le projet (pas besoin de droits admin) :
+Si tu as déjà le dépôt cloné :
 
 ```bash
-php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-php composer-setup.php --install-dir=. --filename=composer.phar
+git pull
 ```
 
-Remplace alors `composer` par `php composer.phar` dans les commandes ci-dessous.
+## 3. Installer les dépendances du frontend
 
-Si tu utilises XAMPP et que ton PHP système est différent de celui de XAMPP (souvent le cas sur Linux), utilise le binaire PHP de XAMPP pour toutes les commandes `php`/`artisan` :
+Depuis la racine du projet (site public et admin sont dans le même `npm install`) :
 
 ```bash
-# adapte le chemin selon ton installation XAMPP
-/opt/lampp/bin/php ...
+npm install
 ```
 
-### 3.2. Dépendances PHP
+## 4. Démarrer MySQL
+
+Avec XAMPP :
+
+```bash
+sudo /opt/lampp/lampp startmysql
+```
+
+(ou via le manager graphique XAMPP si tu préfères)
+
+## 5. Créer la base de données
+
+```bash
+/opt/lampp/bin/mysql -u root -e "CREATE DATABASE IF NOT EXISTS savio_paroisse CHARACTER SET utf8mb4"
+```
+
+Rien d'autre à créer manuellement — les tables sont générées à l'étape 7 par les migrations Laravel.
+
+## 6. Configurer le backend
 
 ```bash
 cd backend
 composer install
-# ou : php ../composer.phar install
-```
-
-### 3.3. Configuration `.env`
-
-```bash
 cp .env.example .env
 php artisan key:generate
 ```
 
-Le `.env.example` est déjà pré-rempli avec les valeurs par défaut du projet :
-- `DB_DATABASE=savio_paroisse`, `DB_USERNAME=root`, `DB_PASSWORD=` (vide) sur `127.0.0.1:3306`
-- `APP_URL=http://127.0.0.1:8001`
-- `FRONTEND_URL=http://localhost:8443`
+Les valeurs par défaut de `.env.example` (host `127.0.0.1:3306`, user `root`, mot de passe vide, base `savio_paroisse`) correspondent à une installation XAMPP standard — normalement rien à changer, sauf si ton MySQL local a un autre utilisateur/mot de passe.
 
-Ajuste ces valeurs si ta config MySQL diffère (mot de passe root, port différent, etc.).
+`backend/.env` ne doit jamais être commité (déjà listé dans `.gitignore`) : il contient — ou contiendra en production — des identifiants.
 
-### 3.4. Créer la base de données
-
-Démarre MySQL (ex. `sudo /opt/lampp/lampp startmysql` avec XAMPP), puis crée la base vide :
-
-```bash
-mysql -u root -e "CREATE DATABASE IF NOT EXISTS savio_paroisse CHARACTER SET utf8mb4"
-```
-
-### 3.5. Migrations + données de départ (seed)
+## 7. Créer les tables + peupler le contenu + créer le compte admin
 
 ```bash
 php artisan migrate:fresh --seed
 ```
 
-Cette commande crée toutes les tables **et** les remplit avec le contenu de départ (horaires de messe, sacrements, catéchèse, prière, homélies, mouvements, projets, produits boutique, tarifs/numéros du journal) ainsi qu'un **compte administrateur**.
-
-Identifiants admin créés par le seed (`backend/database/seeders/AdminUserSeeder.php`) :
+Cette commande crée toutes les tables **et** les remplit avec le contenu de départ (horaires de messe, sacrements, catéchèse, prière, homélies, mouvements & groupes, projets, produits boutique, tarifs/numéros du journal), ainsi qu'un compte administrateur :
 
 ```
-Email    : admin@savio.com
+Email        : admin@savio.com
 Mot de passe : 12345678
 ```
 
-⚠️ **À changer dès la première connexion** (depuis le panel admin ou via `php artisan tinker`).
+⚠️ **`migrate:fresh` efface tout** (tables + données) avant de recréer — à utiliser uniquement pour repartir de zéro. Pour appliquer de nouvelles migrations sans perdre les données existantes (ex. après un `git pull` qui ajoute une table), utilise plutôt :
 
-### 3.6. Lien de stockage (photos uploadées)
+```bash
+php artisan migrate
+```
+
+Le compte admin ci-dessus est partagé par tous les développeurs (seed fixe, pas un script à identifiants personnalisés) — **change le mot de passe dès la première connexion** si tu comptes laisser tourner cette instance au-delà d'un test rapide.
+
+## 8. Lien de stockage (photos uploadées)
 
 Nécessaire pour que les photos de projets uploadées depuis l'admin s'affichent :
 
@@ -93,103 +107,63 @@ Nécessaire pour que les photos de projets uploadées depuis l'admin s'affichent
 php artisan storage:link
 ```
 
-### 3.7. Démarrer le serveur backend
+## 9. Lancer l'API Laravel
+
+Dans un premier terminal, à garder ouvert :
 
 ```bash
-php artisan serve --host=127.0.0.1 --port=8001
+php artisan serve --host=127.0.0.1 --port=8001  ou   /opt/lampp/bin/php artisan serve --host=127.0.0.1 --port=8001
 ```
 
-> Le port 8001 est utilisé par défaut dans ce projet (le 8000 par défaut de Laravel est parfois déjà pris par un autre projet). Si tu changes le port, pense à mettre à jour `VITE_API_PROXY_TARGET` côté frontend (voir §4.2) et `APP_URL`/`SANCTUM_STATEFUL_DOMAINS` dans `.env`.
+Pourquoi le port 8001 et pas le classique 8000 ? Parce que 8000 est parfois déjà pris par un autre projet local (c'était le cas en développant ce projet). Si 8000 est libre chez toi, tu peux l'utiliser à la place — adapte alors `VITE_API_PROXY_TARGET` à l'étape suivante en conséquence.
 
-L'API est maintenant accessible sur `http://127.0.0.1:8001/api/...`. Test rapide :
+## 10. Lancer le site public + l'admin
 
-```bash
-curl http://127.0.0.1:8001/api/settings
-```
-
-## 4. Installation du frontend (React/Vite)
-
-### 4.1. Dépendances
-
-Depuis la racine du projet (pas dans `backend/`) :
-
-```bash
-npm install
-```
-
-### 4.2. Variables d'environnement (optionnel)
-
-Le frontend fonctionne avec les valeurs par défaut (`/api` proxié vers `http://127.0.0.1:8001`). Si besoin de personnaliser :
-
-```bash
-# .env.development à la racine du projet
-VITE_API_URL=/api
-```
-
-Et si le backend tourne sur un autre port que 8001, exporte avant de lancer `npm run dev` :
-
-```bash
-VITE_API_PROXY_TARGET=http://127.0.0.1:XXXX npm run dev
-```
-
-### 4.3. Démarrer le frontend
+Dans un second terminal, depuis la racine du projet (pas `backend/`) :
 
 ```bash
 npm run dev
 ```
 
-Le site est accessible sur **http://localhost:8443**.
+- Site public : http://localhost:8443/
+- Admin : http://localhost:8443/admin — connecte-toi avec les identifiants de l'étape 7.
 
-## 5. Accéder au site
+Le proxy `/api → http://127.0.0.1:8001` est déjà configuré par défaut dans `vite.config.ts`. Si ton backend tourne sur un autre port :
 
-- Site public : http://localhost:8443
-- Panel admin : http://localhost:8443/admin (redirige vers `/admin/login` si non connecté)
-  - Email : `admin@savio.com`
-  - Mot de passe : `12345678`
-- Espace paroissien (comptes membres) : http://localhost:8443/espace-paroissien — créer un compte directement depuis cette page
-
-## 6. Commandes utiles au quotidien
-
-**Frontend**
 ```bash
-npm run dev        # serveur de dev
-npm run build       # build de production
-npm run preview     # prévisualiser le build
-npx tsc --noEmit    # vérifier les types TypeScript
+VITE_API_PROXY_TARGET=http://127.0.0.1:XXXX npm run dev
 ```
 
-**Backend** (depuis `backend/`)
+⚠️ Sans ce réglage si tu as changé de port, le site ne peut plus joindre l'API : les pages publiques restent vides (aucune donnée chargée) et l'admin affiche une erreur de connexion.
+
+## 11. Vérifier que tout fonctionne
+
 ```bash
-php artisan serve --host=127.0.0.1 --port=8001   # démarrer l'API
-php artisan migrate:fresh --seed                  # tout réinitialiser (⚠️ efface les données existantes)
-php artisan migrate                                # appliquer les nouvelles migrations sans tout effacer
-php artisan db:seed --class=NomDuSeeder            # rejouer un seeder précis
-php artisan tinker                                  # console interactive (ex: changer un mot de passe admin)
-php artisan route:list --path=api                   # lister toutes les routes API
+npx tsc --noEmit -p tsconfig.json   # aucune erreur attendue
+npm run build                        # doit se terminer par "✓ built in ...ms"
 ```
 
-## 7. Structure du projet
+Ensuite, en navigateur :
 
-```
-Savio/
-├── src/                    # Frontend React (voir README.md pour le détail)
-│   ├── lib/                # api.ts, auth.tsx, settings.tsx
-│   └── pages/admin/         # Panel d'administration
-└── backend/                # API Laravel
-    ├── app/Http/Controllers/Api/   # Contrôleurs (public + Admin)
-    ├── app/Models/
-    ├── app/Payments/                # Abstraction de paiement
-    ├── database/migrations/
-    ├── database/seeders/            # Données de départ
-    └── routes/api.php               # Toutes les routes API
-```
+1. Va sur http://localhost:8443/admin, connecte-toi.
+2. Modifie un champ (ex. la description du sacrement « Baptême »), enregistre.
+3. Va sur http://localhost:8443/celebrer/sacrements/bapteme, recharge la page : le changement doit apparaître immédiatement.
 
-Voir `README.md` (racine) et `AGENTS.md` pour plus de détails sur l'architecture.
+## 12. Pièges fréquents
 
-## 8. Problèmes fréquents
-
-- **`SQLSTATE[HY000] [2002] Connection refused`** → MySQL n'est pas démarré. Lance-le (ex. `sudo /opt/lampp/lampp startmysql`).
-- **Port 8000/8001/8443 déjà utilisé** → un autre processus l'occupe déjà (`ss -ltnp | grep <port>` pour vérifier). Change de port comme indiqué en §3.7/§4.2.
-- **Les images uploadées depuis l'admin ne s'affichent pas** → as-tu bien lancé `php artisan storage:link` (§3.6) ?
-- **401/403 sur les routes `/admin/*` de l'API** → il faut un token valide d'un compte avec `role = admin` (connecte-toi via `/admin/login`, ou vérifie le compte via `php artisan tinker` → `App\Models\User::where('email', 'admin@savio.com')->first()`).
+- **Erreur de connexion à la connexion admin** → l'API n'est pas joignable depuis le front. Vérifie que le terminal de l'étape 9 tourne toujours, et que le port utilisé correspond bien (étape 10).
+- **Erreur de connexion MySQL au lancement de `artisan serve`** → MySQL n'est pas démarré (retour à l'étape 4).
+- **Les images uploadées depuis l'admin (photos de projets) ne s'affichent pas** → as-tu bien lancé `php artisan storage:link` (étape 8) ?
+- **401/403 sur les routes `/admin/*` de l'API** → il faut un token valide d'un compte avec `role = admin`. Connecte-toi via `/admin/login`, ou vérifie/répare le compte via `php artisan tinker` :
+  ```php
+  App\Models\User::where('email', 'admin@savio.com')->first();
+  ```
 - **`Class "Laravel\Sanctum\..." not found`** → `composer install` n'a pas été lancé ou a échoué, relance-le depuis `backend/`.
+- **`git pull` ne ramène pas `backend/`, `src/pages/admin/` ou `src/lib/`** → ce travail n'a pas encore été poussé sur le dépôt distant, voir l'avertissement en haut de ce fichier.
+- **Modification en admin qui n'apparaît pas sur le site public** → certaines pages restent volontairement statiques et hors périmètre admin : Actualités, Agenda et l'équipe pastorale (`src/data/content.ts`, exports `NEWS`, `EVENTS`, `TEAM`). Si la page que tu modifies est ailleurs, vérifie que le composant fait bien un appel API (`src/lib/api.ts`) plutôt que d'importer des données statiques.
+
+## 13. Pour aller plus loin
+
+- Architecture générale, structure des dossiers, technologies : `README.md`
+- Conventions de développement, workflow backend/frontend : `AGENTS.md`
+- Détail de chaque endpoint de l'API (auth, horaires, sacrements, boutique, dons, journal...) : `backend/routes/api.php`

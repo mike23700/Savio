@@ -1,28 +1,39 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { EVENTS } from "@/data/content";
-
-const CATEGORIES = ["Tous", "Messe", "Sacrement", "Adoration", "Catéchèse", "Communauté", "Spiritualité"];
-
-const CAT_COLORS: Record<string, string> = {
-  Messe: "#0B3D91",
-  Sacrement: "#D4AF37",
-  Adoration: "#7c3aed",
-  Catéchèse: "#059669",
-  Communauté: "#d97706",
-  Spiritualité: "#dc2626",
-};
+import { apiGet, localDateISO } from "@/lib/api";
+import { formatEventTime, type EventCategory, type ParishEvent } from "@/lib/content-types";
 
 export default function Agenda() {
   const [activeCat, setActiveCat] = useState("Tous");
+  const [showPast, setShowPast] = useState(false);
+  const [events, setEvents] = useState<ParishEvent[]>([]);
+  const [categories, setCategories] = useState<EventCategory[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = EVENTS.filter(e => activeCat === "Tous" || e.category === activeCat);
+  useEffect(() => {
+    apiGet<EventCategory[]>("/event-categories").then(setCategories).catch(() => {});
+  }, []);
+
+  // Upcoming events start from the visitor's local date (their computer's clock).
+  useEffect(() => {
+    setLoading(true);
+    apiGet<ParishEvent[]>(`/events?from=${localDateISO()}${showPast ? "&past=1" : ""}`)
+      .then(setEvents)
+      .catch(() => setEvents([]))
+      .finally(() => setLoading(false));
+  }, [showPast]);
+
+  const CATEGORIES = ["Tous", ...categories.map(c => c.name)];
+  const colorOf = (name: string | undefined) => categories.find(c => c.name === name)?.color;
+
+  const filtered = events.filter(e => activeCat === "Tous" || e.category?.name === activeCat);
 
   const grouped = filtered.reduce((acc, ev) => {
-    if (!acc[ev.date]) acc[ev.date] = [];
-    acc[ev.date].push(ev);
+    const key = ev.date.slice(0, 10);
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(ev);
     return acc;
-  }, {} as Record<string, typeof EVENTS>);
+  }, {} as Record<string, ParishEvent[]>);
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr + "T00:00:00");
@@ -56,19 +67,24 @@ export default function Agenda() {
               <button key={cat} onClick={() => setActiveCat(cat)}
                 style={{
                   fontFamily: "Montserrat, sans-serif", fontSize: "0.76rem", fontWeight: 700,
-                  background: activeCat === cat ? (CAT_COLORS[cat] || "#0B3D91") : "white",
+                  background: activeCat === cat ? (colorOf(cat) || "#0B3D91") : "white",
                   color: activeCat === cat ? "white" : "#374151",
-                  border: `1px solid ${activeCat === cat ? (CAT_COLORS[cat] || "#0B3D91") : "#e5e7eb"}`,
+                  border: `1px solid ${activeCat === cat ? (colorOf(cat) || "#0B3D91") : "#e5e7eb"}`,
                 }}
                 className="px-4 py-2 rounded-full hover:opacity-90 transition-all whitespace-nowrap">
                 {cat}
               </button>
             ))}
+            <button onClick={() => setShowPast(p => !p)}
+              style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.76rem", fontWeight: 600, color: "#0B3D91", background: "none", border: "none", marginLeft: "auto" }}
+              className="px-2 py-2 hover:underline whitespace-nowrap">
+              {showPast ? "← Événements à venir" : "Événements passés →"}
+            </button>
           </div>
 
           {/* Events list */}
           <div className="space-y-8">
-            {Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b)).map(([date, events]) => (
+            {Object.entries(grouped).sort(([a], [b]) => showPast ? b.localeCompare(a) : a.localeCompare(b)).map(([date, events]) => (
               <div key={date}>
                 <div className="flex items-center gap-4 mb-4">
                   <div style={{ width: 40, height: 40, background: "#0B3D91", borderRadius: "50%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -90,20 +106,23 @@ export default function Agenda() {
                   {events.map(ev => (
                     <div key={ev.id}
                       className="flex items-start gap-4 bg-white rounded-xl p-4 border border-gray-100 hover:border-yellow-200 hover:shadow-sm transition-all">
-                      <div style={{ minWidth: 56, fontFamily: "Montserrat, sans-serif", fontSize: "0.85rem", fontWeight: 700, color: "#0B3D91" }}>{ev.time}</div>
+                      <div style={{ minWidth: 56, fontFamily: "Montserrat, sans-serif", fontSize: "0.85rem", fontWeight: 700, color: "#0B3D91" }}>{formatEventTime(ev.time)}</div>
                       <div className="flex-1">
                         <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.85rem", fontWeight: 600, color: "#1c2340" }}>{ev.title}</div>
-                        <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.74rem", color: "#9ca3af", marginTop: 2 }}>📍 {ev.location}</div>
+                        {ev.location && <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.74rem", color: "#9ca3af", marginTop: 2 }}>📍 {ev.location}</div>}
+                        {ev.description && <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "#4b5563", marginTop: 6, lineHeight: 1.6, whiteSpace: "pre-line" }}>{ev.description}</div>}
                       </div>
-                      <span style={{
-                        fontFamily: "Montserrat, sans-serif", fontSize: "0.62rem", fontWeight: 700,
-                        background: (CAT_COLORS[ev.category] || "#6b7280") + "18",
-                        color: CAT_COLORS[ev.category] || "#6b7280",
-                        border: `1px solid ${(CAT_COLORS[ev.category] || "#6b7280")}30`,
-                        letterSpacing: "0.06em", flexShrink: 0
-                      }} className="px-2.5 py-1 rounded-full">
-                        {ev.category.toUpperCase()}
-                      </span>
+                      {ev.category && (
+                        <span style={{
+                          fontFamily: "Montserrat, sans-serif", fontSize: "0.62rem", fontWeight: 700,
+                          background: ev.category.color + "18",
+                          color: ev.category.color,
+                          border: `1px solid ${ev.category.color}30`,
+                          letterSpacing: "0.06em", flexShrink: 0
+                        }} className="px-2.5 py-1 rounded-full">
+                          {ev.category.name.toUpperCase()}
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -111,10 +130,12 @@ export default function Agenda() {
             ))}
           </div>
 
-          {filtered.length === 0 && (
+          {!loading && filtered.length === 0 && (
             <div className="text-center py-16">
               <div className="text-4xl mb-4">📅</div>
-              <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.9rem", color: "#6b7280" }}>Aucun événement pour cette catégorie.</p>
+              <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.9rem", color: "#6b7280" }}>
+                {showPast ? "Aucun événement passé." : "Aucun événement à venir pour cette catégorie."}
+              </p>
             </div>
           )}
 
