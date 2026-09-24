@@ -35,4 +35,17 @@ return [
         ],
     ],
 
+    // https://peex-api-docs.peexit.com/ — mobile money collection (Orange Money / MTN MoMo)
+    'peex' => [
+        'base_url' => env('PEEX_BASE_URL', 'https://sandbox.peexit.com/api/v1/'),
+        'secret_key' => env('PEEX_SECRET_KEY'),
+        'country' => env('PEEX_COUNTRY', 'CM'),
+        'dial_code' => env('PEEX_DIAL_CODE', '237'),
+        'currency' => env('PEEX_CURRENCY', 'XAF'),
+        'timeout' => env('PEEX_TIMEOUT', 30),
+        // Basic Auth credentials Peex uses when calling our webhook
+        'callback_username' => env('PEEX_CALLBACK_USERNAME'),
+        'callback_password' => env('PEEX_CALLBACK_PASSWORD'),
+    ],
+
 ];

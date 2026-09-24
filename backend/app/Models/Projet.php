@@ -11,7 +11,7 @@ class Projet extends Model
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return ['is_active' => 'boolean', 'objectif' => 'integer', 'collecte' => 'integer'];
     }
 
     public function photos(): HasMany

@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\MouvementController;
 use App\Http\Controllers\Api\NewsController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PrayerTimeController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProjetController;
@@ -87,6 +88,10 @@ Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{slug}', [ProductController::class, 'show']);
 Route::post('/orders', [OrderController::class, 'store']);
 Route::get('/my-orders', [OrderController::class, 'myOrders'])->middleware('auth:sanctum');
+
+Route::get('/payments/{reference}', [PaymentController::class, 'show'])->middleware('throttle:30,1');
+Route::post('/payments/{reference}/retry', [PaymentController::class, 'retry'])->middleware('throttle:5,1');
+Route::post('/payments/peex/callback', [PaymentController::class, 'peexCallback']);
 
 Route::get('/journal/tarifs', [JournalController::class, 'tarifs']);
 Route::get('/journal/issues', [JournalController::class, 'issues']);

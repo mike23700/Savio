@@ -1,19 +1,43 @@
-import { useState } from "react";
-import { Link } from "react-router";
-import { apiPost, ApiError } from "@/lib/api";
+import { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router";
+import { apiGet, apiPost, ApiError } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
+import PaymentStatus, { type PaymentInfo } from "@/components/PaymentStatus";
 
 const MODE_TO_METHOD: Record<string, string> = { orange: "orange_money", mtn: "mtn_momo", especes: "especes" };
 
+interface ProjetOption {
+  id: number;
+  titre: string;
+  objectif: number;
+  collecte: number;
+}
+
 interface DonationResult {
-  donation: { montant: number };
-  payment: { instructions: string };
+  donation: { montant: number; projet: { titre: string } | null };
+  payment: PaymentInfo;
 }
 
 export default function Don() {
+  const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const [projets, setProjets] = useState<ProjetOption[]>([]);
+  const [projetId, setProjetId] = useState(searchParams.get("projet") ?? "");
   const [montant, setMontant] = useState("");
   const [montantCustom, setMontantCustom] = useState("");
   const [mode, setMode] = useState("orange");
   const [intention, setIntention] = useState("");
+  const [telephone, setTelephone] = useState(user?.phone ?? "");
+
+  useEffect(() => {
+    apiGet<ProjetOption[]>("/projets?statut=en_cours").then(setProjets).catch(() => {});
+  }, []);
+
+  const selectedProjet = projets.find(p => String(p.id) === projetId) ?? null;
+
+  useEffect(() => {
+    if (user?.phone) setTelephone(t => t || user.phone!);
+  }, [user]);
   const [submitted, setSubmitted] = useState(false);
   const [result, setResult] = useState<DonationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -24,11 +48,17 @@ export default function Don() {
     e.preventDefault();
     setError(null);
     const amount = parseInt((montantCustom || montant).replace(/\s/g, ""), 10);
+    if (!amount) {
+      setError("Veuillez choisir ou saisir un montant.");
+      return;
+    }
     try {
       const res = await apiPost<DonationResult>("/donations", {
         montant: amount,
         payment_method: MODE_TO_METHOD[mode],
+        telephone: mode === "especes" ? null : telephone,
         intention: intention || null,
+        projet_id: projetId ? Number(projetId) : null,
       });
       setResult(res);
       setSubmitted(true);
@@ -104,10 +134,11 @@ export default function Don() {
                 <div className="text-6xl mb-5">🙏</div>
                 <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.5rem", fontWeight: 700, color: "#1c2340" }}>Merci pour votre générosité !</h3>
                 <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.9rem", color: "#6b7280", marginTop: 10, lineHeight: 1.7, maxWidth: 420, margin: "10px auto 0" }}>
-                  Votre don de <strong>{result.donation.montant.toLocaleString("fr-FR")} FCFA</strong> a bien été enregistré.
+                  Votre don de <strong>{Number(result.donation.montant).toLocaleString("fr-FR")} FCFA</strong>
+                  {result.donation.projet && <> pour le projet <strong>{result.donation.projet.titre}</strong></>} a bien été enregistré.
                 </p>
-                <div className="bg-blue-50 rounded-xl p-4 mt-5 text-left max-w-md mx-auto">
-                  <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.83rem", color: "#374151", lineHeight: 1.7 }}>{result.payment.instructions}</p>
+                <div className="mt-5 max-w-md mx-auto">
+                  <PaymentStatus initial={result.payment} />
                 </div>
                 <button onClick={() => { setSubmitted(false); setResult(null); }}
                   style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.85rem" }}
@@ -119,6 +150,28 @@ export default function Don() {
               <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
                 <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.2rem", fontWeight: 700, color: "#1c2340", marginBottom: 20 }}>Formulaire de don</h3>
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Destination */}
+                  <div>
+                    <label style={labelStyle} className="block mb-1.5">Destination du don</label>
+                    <select value={projetId} onChange={e => setProjetId(e.target.value)} className={inputClass} style={inputStyle}>
+                      <option value="">La paroisse (don libre)</option>
+                      {projets.map(p => <option key={p.id} value={p.id}>Projet : {p.titre}</option>)}
+                    </select>
+                    {selectedProjet && selectedProjet.objectif > 0 && (() => {
+                      const pct = Math.min(100, Math.round((selectedProjet.collecte / selectedProjet.objectif) * 100));
+                      return (
+                        <div className="mt-3">
+                          <div style={{ background: "#e5e7eb", borderRadius: 20, height: 8, overflow: "hidden" }}>
+                            <div style={{ width: `${pct}%`, height: "100%", background: "#0B3D91", borderRadius: 20 }} />
+                          </div>
+                          <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#6b7280", marginTop: 6 }}>
+                            {Number(selectedProjet.collecte).toLocaleString("fr-FR")} / {Number(selectedProjet.objectif).toLocaleString("fr-FR")} FCFA collectés ({pct}%)
+                          </p>
+                        </div>
+                      );
+                    })()}
+                  </div>
+
                   {/* Amount */}
                   <div>
                     <label style={labelStyle} className="block mb-3">Montant (FCFA) *</label>
@@ -163,10 +216,15 @@ export default function Don() {
                         </button>
                       ))}
                     </div>
-                    {mode === "orange" && (
-                      <div className="mt-3 bg-orange-50 rounded-xl p-4 border border-orange-100">
-                        <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "#92400e" }}>
-                          📱 Numéro Orange Money : <strong>(+237) 655 529 999</strong>
+                    {mode !== "especes" && (
+                      <div className="mt-3">
+                        <label style={labelStyle} className="block mb-1.5">
+                          Numéro {mode === "orange" ? "Orange Money" : "MTN MoMo"} à débiter *
+                        </label>
+                        <input required value={telephone} onChange={e => setTelephone(e.target.value)} type="tel"
+                          placeholder="Ex : 655 52 99 99" className={inputClass} style={inputStyle} />
+                        <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#6b7280", marginTop: 6 }}>
+                          📱 Vous recevrez une demande de paiement à valider avec votre code secret.
                         </p>
                       </div>
                     )}

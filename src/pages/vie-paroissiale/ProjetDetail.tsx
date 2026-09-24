@@ -54,7 +54,7 @@ export default function ProjetDetailPage() {
 
   if (!projet) return null;
 
-  const pct = Math.min(100, Math.round((projet.collecte / projet.objectif) * 100));
+  const pct = projet.objectif > 0 ? Math.min(100, Math.round((projet.collecte / projet.objectif) * 100)) : 0;
 
   return (
     <>
@@ -111,11 +111,13 @@ export default function ProjetDetailPage() {
           )}
 
           <div className="flex gap-3">
-            <Link to="/don"
-              style={{ background: "#D4AF37", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.83rem" }}
-              className="text-white py-3 px-6 rounded-xl hover:opacity-90 transition-opacity">
-              ❤️ Soutenir ce projet
-            </Link>
+            {projet.statut === "en_cours" && (
+              <Link to={`/don?projet=${projet.id}`}
+                style={{ background: "#D4AF37", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.83rem" }}
+                className="text-white py-3 px-6 rounded-xl hover:opacity-90 transition-opacity">
+                ❤️ Soutenir ce projet
+              </Link>
+            )}
             <Link to="/vie-paroissiale/projets"
               style={{ border: "2px solid #0B3D91", color: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.83rem" }}
               className="px-6 py-3 rounded-xl hover:bg-blue-50 transition-colors">

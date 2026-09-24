@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { useAuth } from "@/lib/auth";
 import { apiGet, apiPost, ApiError, mediaUrl } from "@/lib/api";
 
@@ -51,12 +51,16 @@ interface DonationRow {
   montant: number;
   payment_status: string;
   intention: string | null;
+  projet: { id: number; titre: string } | null;
   created_at: string;
 }
 
 export default function EspaceMembre() {
   const { user, loading, login, register, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  // Set by RequireAuth: bring the visitor back where they were going (e.g. /don?projet=3)
+  const redirectFrom = (location.state as { from?: { pathname: string; search: string } } | null)?.from;
   const [mode, setMode] = useState<Mode>("login");
   const [tab, setTab] = useState<Tab>("profil");
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
@@ -101,6 +105,7 @@ export default function EspaceMembre() {
     setAuthError(null);
     try {
       await login(loginForm.email, loginForm.password);
+      if (redirectFrom) navigate(redirectFrom.pathname + redirectFrom.search, { replace: true });
     } catch (err) {
       setAuthError(err instanceof ApiError ? err.message : "Connexion impossible.");
     }
@@ -122,6 +127,7 @@ export default function EspaceMembre() {
         password: registerForm.password,
         password_confirmation: registerForm.confirm,
       });
+      if (redirectFrom) navigate(redirectFrom.pathname + redirectFrom.search, { replace: true });
     } catch (err) {
       setAuthError(err instanceof ApiError ? err.message : "Inscription impossible.");
     }
@@ -296,7 +302,7 @@ export default function EspaceMembre() {
                 {donations.map((don) => (
                   <div key={don.id} className="p-4 rounded-xl border border-gray-100 hover:border-yellow-200 transition-all flex items-center justify-between">
                     <div>
-                      <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.88rem", fontWeight: 600, color: "#1c2340" }}>{don.intention || "Don libre"}</div>
+                      <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.88rem", fontWeight: 600, color: "#1c2340" }}>{don.projet ? `Projet : ${don.projet.titre}` : don.intention || "Don libre"}</div>
                       <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.75rem", color: "#6b7280" }}>{new Date(don.created_at).toLocaleDateString("fr-FR")} · {don.payment_status}</div>
                     </div>
                     <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.95rem", fontWeight: 700, color: "#0B3D91" }}>{don.montant.toLocaleString("fr-FR")} FCFA</span>

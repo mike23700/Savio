@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { apiGet, apiPost, ApiError, mediaUrl } from "@/lib/api";
+import PaymentStatus, { type PaymentInfo } from "@/components/PaymentStatus";
 
 interface Product {
   id: number;
@@ -19,7 +20,7 @@ const CATEGORIES = ["Tous", "Livres", "Accessoires"];
 
 interface OrderResult {
   order: { order_number: string; total: number };
-  payment: { instructions: string };
+  payment: PaymentInfo;
 }
 
 export default function Boutique() {
@@ -215,7 +216,7 @@ export default function Boutique() {
                 <input required placeholder="Nom" value={checkoutForm.nom} onChange={e => setCheckoutForm({ ...checkoutForm, nom: e.target.value })} className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm" />
                 <input required placeholder="Prénom" value={checkoutForm.prenom} onChange={e => setCheckoutForm({ ...checkoutForm, prenom: e.target.value })} className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm" />
               </div>
-              <input required placeholder="Téléphone" value={checkoutForm.telephone} onChange={e => setCheckoutForm({ ...checkoutForm, telephone: e.target.value })} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm" />
+              <input required type="tel" placeholder={checkoutForm.payment_method === "especes" ? "Téléphone" : "Numéro Mobile Money à débiter"} value={checkoutForm.telephone} onChange={e => setCheckoutForm({ ...checkoutForm, telephone: e.target.value })} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm" />
               <input type="email" placeholder="Email (optionnel)" value={checkoutForm.email} onChange={e => setCheckoutForm({ ...checkoutForm, email: e.target.value })} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm" />
               <div>
                 <label style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", fontWeight: 600, color: "#374151" }} className="block mb-1.5">Mode de paiement</label>
@@ -247,8 +248,8 @@ export default function Boutique() {
             <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.85rem", color: "#6b7280", marginTop: 8 }}>
               Total : <strong>{orderResult.order.total.toLocaleString("fr-FR")} FCFA</strong>
             </p>
-            <div className="bg-blue-50 rounded-xl p-4 mt-5 text-left">
-              <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.83rem", color: "#374151", lineHeight: 1.7 }}>{orderResult.payment.instructions}</p>
+            <div className="mt-5">
+              <PaymentStatus initial={orderResult.payment} />
             </div>
             <button onClick={() => { setOrderResult(null); setCheckoutOpen(false); }}
               style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.83rem" }}

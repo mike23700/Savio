@@ -114,7 +114,7 @@ export default function AdminProjets() {
               </select>
             </Field>
             <Field label="Objectif (FCFA)"><input type="number" value={form.objectif} onChange={(e) => setForm({ ...form, objectif: e.target.value })} style={inputStyle} /></Field>
-            <Field label="Collecté (FCFA)"><input type="number" value={form.collecte} onChange={(e) => setForm({ ...form, collecte: e.target.value })} style={inputStyle} /></Field>
+            <Field label="Collecté (FCFA) — augmente seul avec les dons payés ; ajustez pour les dons hors ligne"><input type="number" value={form.collecte} onChange={(e) => setForm({ ...form, collecte: e.target.value })} style={inputStyle} /></Field>
           </div>
           <div style={{ marginTop: 8 }}>
             <ImageUpload label="Image de couverture" folder="projets" value={form.image} onChange={(image) => setForm({ ...form, image })} />

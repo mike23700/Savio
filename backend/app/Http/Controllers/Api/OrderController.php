@@ -65,7 +65,7 @@ class OrderController extends Controller
             return $order;
         });
 
-        $payment = $payments->initiate($order->payment_method, (float) $order->total);
+        $payment = $payments->start($order);
 
         return response()->json([
             'order' => $order->load('items'),
@@ -88,7 +88,7 @@ class OrderController extends Controller
     public function update(Request $request, Order $order)
     {
         $data = $request->validate([
-            'payment_status' => 'nullable|in:en_attente,paye,annule',
+            'payment_status' => 'nullable|in:en_attente,paye,echoue,annule',
             'order_status' => 'nullable|in:en_attente,confirmee,preparee,livree,annulee',
             'notes' => 'nullable|string',
         ]);

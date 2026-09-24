@@ -59,7 +59,7 @@ export default function Projets() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((projet) => {
-              const pct = Math.min(100, Math.round((projet.collecte / projet.objectif) * 100));
+              const pct = projet.objectif > 0 ? Math.min(100, Math.round((projet.collecte / projet.objectif) * 100)) : 0;
               return (
                 <Link key={projet.id} to={`/vie-paroissiale/projets/${projet.id}`} className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg hover:border-yellow-200 transition-all block">
                   <div className="relative h-44 overflow-hidden">

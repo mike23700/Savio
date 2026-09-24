@@ -17,12 +17,17 @@ interface Order {
   total: number;
   payment_method: string;
   payment_status: string;
+  payment_reference: string | null;
+  payment_provider: string | null;
+  payment_provider_status: string | null;
   order_status: string;
   items: Item[];
   created_at: string;
 }
 
 const PAYMENT_LABEL: Record<string, string> = { orange_money: "Orange Money", mtn_momo: "MTN MoMo", especes: "Espèces" };
+
+const STATUS_COLOR: Record<string, string> = { paye: "#16a34a", echoue: "#dc2626", annule: "#6b7280", en_attente: "#D4AF37" };
 
 export default function AdminCommandes() {
   const [rows, setRows] = useState<Order[]>([]);
@@ -61,7 +66,10 @@ export default function AdminCommandes() {
               <td style={td}>{o.total.toLocaleString("fr-FR")} FCFA</td>
               <td style={td}>
                 {PAYMENT_LABEL[o.payment_method]}<br />
-                <span style={{ color: o.payment_status === "paye" ? "#16a34a" : "#D4AF37", fontWeight: 700 }}>{o.payment_status}</span>
+                <span style={{ color: STATUS_COLOR[o.payment_status] ?? "#D4AF37", fontWeight: 700 }}>{o.payment_status}</span>
+                {o.payment_provider === "peex" && (
+                  <><br /><span style={{ color: "#9ca3af", fontSize: "0.72rem" }}>Peex · {o.payment_provider_status ?? "—"} · {o.payment_reference}</span></>
+                )}
               </td>
               <td style={td}>
                 <select value={o.order_status} onChange={(e) => updateOrderStatus(o.id, e.target.value)} style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #e5e7eb", fontSize: "0.78rem" }}>
