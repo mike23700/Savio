@@ -1,6 +1,6 @@
 # figma-make-app
 
-React + Vite + Tailwind CSS project running inside Figma Make, connected to a Laravel/MySQL backend in `backend/` (API only, no Blade views). The frontend fetches content from the API via `src/lib/api.ts` instead of static data: news, agenda, pastoral team, media library (photos + YouTube videos) and daily readings are all managed from the admin. Only `PARISH` (contact info) remains static in `src/data/content.ts`.
+React + Vite + Tailwind CSS project running inside Figma Make, connected to a Laravel/MySQL backend in `backend/` (API only, no Blade views). The frontend fetches content from the API via `src/lib/api.ts` instead of static data: news, agenda, pastoral team, media library (photos + YouTube videos), daily readings and the six presentation pages (Genèse, Histoire, Savio, Organisation, Archidiocèse, Caritas — via `src/lib/pages.tsx`) are all managed from the admin. Only `PARISH` (contact info) remains static in `src/data/content.ts`.
 
 ## Development Server
 
@@ -25,6 +25,7 @@ This is the canonical project structure. Start with task-relevant files below. O
 - `src/lib/settings.tsx` - parish-wide settings (WhatsApp number, social links) fetched from `/api/settings`
 - `src/pages/admin/**` - the admin panel (mounted at `/admin`, gated by `RequireAdmin`); image fields use `src/pages/admin/ImageUpload.tsx`, which uploads to `POST /api/admin/uploads/image` and stores the returned path (served at `/storage/<path>`, resolve with `mediaUrl()` from `src/lib/api.ts`)
 - `src/lib/content-types.ts` - shared types for news, agenda events, team, media and daily readings
+- `src/lib/pages.tsx` - types and loaders for the six editable presentation pages (`GET /api/pages/{key}`): `loadPage()`, `blocksOf()`, `extraOf()`, `introParagraphs()`, `renderInline()` (minimal **bold** / *italic* markdown in intros)
 - `backend/` - Laravel API (PHP 8.2, MySQL via XAMPP, Sanctum token auth); see `backend/routes/api.php` for every endpoint and `backend/database/seeders/` for starter data
 
 ## Dependencies
@@ -43,7 +44,7 @@ The Vite dev server proxies `/api` to `http://127.0.0.1:8001` (configurable via 
 2. `cd backend && php artisan serve --host=127.0.0.1 --port=8001`
 3. `npm run dev` at the repo root (already documented as always-on in this environment).
 
-Admin panel: `/admin`, gated by a `role=admin` user (seeded by `backend/database/seeders/AdminUserSeeder.php`). Time-sensitive endpoints (`/mass-schedule/next`, `/mass-schedule/today`) receive the visitor's device clock via `clientTimeQuery()` (`?tz=…&now=…`). Daily readings (`/api/lectures/jour?date=`) come from the AELF API (zone Afrique, cached) unless an admin entry exists for that date. Payment (boutique orders, donations) goes through `backend/app/Payments/PaymentService.php`: Orange Money / MTN MoMo use the Peex Collect API (`PeexPaymentProvider`, enabled when `PEEX_SECRET_KEY` is set; webhook `POST /api/payments/peex/callback` with Basic Auth, polling `GET /api/payments/{reference}`), cash and unconfigured setups fall back to `ManualPaymentProvider` (instructions + admin confirmation). The frontend shows/polls the status with `src/components/PaymentStatus.tsx`. A donation can target a project (`donations.projet_id`); when it becomes paid, `Donation::booted()` increments `projets.collecte` (and decrements it if the payment is later cancelled), which drives the progress bar on `/vie-paroissiale/projets`.
+Admin panel: `/admin`, gated by a `role=admin` user (seeded by `backend/database/seeders/AdminUserSeeder.php`). Time-sensitive endpoints (`/mass-schedule/next`, `/mass-schedule/today`) receive the visitor's device clock via `clientTimeQuery()` (`?tz=…&now=…`). Daily readings (`/api/lectures/jour?date=`) come from the AELF API (zone Afrique, cached) unless an admin entry exists for that date. Payment (boutique orders, donations) goes through `backend/app/Payments/PaymentService.php`: Orange Money / MTN MoMo use the Peex Collect API (`PeexPaymentProvider`, enabled when `PEEX_SECRET_KEY` is set; webhook `POST /api/payments/peex/callback` with Basic Auth, polling `GET /api/payments/{reference}`), cash and unconfigured setups fall back to `ManualPaymentProvider` (instructions + admin confirmation). The frontend shows/polls the status with `src/components/PaymentStatus.tsx`. A donation can target a project (`donations.projet_id`); when it becomes paid, `Donation::booted()` increments `projets.collecte` (and decrements it if the payment is later cancelled), which drives the progress bar on `/vie-paroissiale/projets`. The six presentation pages (Genèse, Histoire, Savio, Organisation, Archidiocèse, Caritas) live in `page_contents` + `page_blocks` (seeded by `PageContentSeeder`, edited at `/admin/pages`); `PUT /api/admin/pages/{key}` replaces title/subtitle/hero/intro/extra and the full block list (curés, timeline steps, cards… with `sort_order` and `is_highlight`).
 
 ## Styling
 

@@ -84,7 +84,7 @@ Les valeurs par défaut de `.env.example` (host `127.0.0.1:3306`, user `root`, m
 php artisan migrate:fresh --seed
 ```
 
-Cette commande crée toutes les tables **et** les remplit avec le contenu de départ (horaires de messe, sacrements, catéchèse, prière, homélies, mouvements & groupes, projets, produits boutique, tarifs/numéros du journal), ainsi qu'un compte administrateur :
+Cette commande crée toutes les tables **et** les remplit avec le contenu de départ (horaires de messe, sacrements, catéchèse, prière, homélies, mouvements & groupes, projets, produits boutique, tarifs/numéros du journal, pages de présentation Genèse / Histoire / Savio / Organisation / Archidiocèse / Caritas), ainsi qu'un compte administrateur :
 
 ```
 Email        : admin@savio.com
@@ -148,6 +148,7 @@ Ensuite, en navigateur :
 1. Va sur http://localhost:8443/admin, connecte-toi.
 2. Modifie un champ (ex. la description du sacrement « Baptême »), enregistre.
 3. Va sur http://localhost:8443/celebrer/sacrements/bapteme, recharge la page : le changement doit apparaître immédiatement.
+4. Teste aussi les pages de présentation : dans l'admin, menu « Pages de présentation » (onglet « Caritas » → modifie le titre d'une carte → 💾 Enregistrer), puis va sur http://localhost:8443/vie-paroissiale/caritas et recharge : le changement doit apparaître.
 
 ## 12. Pièges fréquents
 
@@ -160,7 +161,8 @@ Ensuite, en navigateur :
   ```
 - **`Class "Laravel\Sanctum\..." not found`** → `composer install` n'a pas été lancé ou a échoué, relance-le depuis `backend/`.
 - **`git pull` ne ramène pas `backend/`, `src/pages/admin/` ou `src/lib/`** → ce travail n'a pas encore été poussé sur le dépôt distant, voir l'avertissement en haut de ce fichier.
-- **Modification en admin qui n'apparaît pas sur le site public** → certaines pages restent volontairement statiques et hors périmètre admin : Actualités, Agenda et l'équipe pastorale (`src/data/content.ts`, exports `NEWS`, `EVENTS`, `TEAM`). Si la page que tu modifies est ailleurs, vérifie que le composant fait bien un appel API (`src/lib/api.ts`) plutôt que d'importer des données statiques.
+- **Modification en admin qui n'apparaît pas sur le site public** → si c'est une page de présentation (Genèse, Histoire, Savio, Organisation, Archidiocèse, Caritas), vérifie que son contenu a été seedé (`php artisan db:seed --class=PageContentSeeder`) et que le contenu s'affiche sans erreur dans l'onglet correspondant de « Pages de présentation ». Pour les autres pages concernées (Actualités, Agenda, équipe pastorale…), vérifie que le composant fait bien un appel API (`src/lib/api.ts`) plutôt que d'importer des données statiques. Seuls `PARISH` (contact) dans `src/data/content.ts` reste statique.
+- **Page de présentation vide ou « contenu momentanément indisponible »** → le seeder `PageContentSeeder` n'a pas tourné sur ta base : `php artisan db:seed --class=PageContentSeeder`.
 
 ## 13. Pour aller plus loin
 
