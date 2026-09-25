@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { apiFormData, mediaUrl, ApiError } from "@/lib/api";
 
-type Folder = "news" | "team" | "homelies" | "products" | "projets" | "sacrements" | "media" | "misc";
+type Folder = "news" | "team" | "homelies" | "products" | "projets" | "sacrements" | "media" | "pages" | "misc";
 
 /**
  * Admin image field: shows the current image as a preview and lets the admin

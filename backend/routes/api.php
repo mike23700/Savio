@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\MouvementController;
 use App\Http\Controllers\Api\NewsController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\PageContentController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PrayerTimeController;
 use App\Http\Controllers\Api\ProductController;
@@ -58,6 +59,9 @@ Route::get('/lectures/jour', [DailyReadingController::class, 'show']);
 Route::get('/news', [NewsController::class, 'index']);
 Route::get('/news/{news}', [NewsController::class, 'show']);
 Route::get('/news-categories', [NewsController::class, 'categories']);
+
+Route::get('/pages', [PageContentController::class, 'index']);
+Route::get('/pages/{key}', [PageContentController::class, 'show']);
 
 Route::get('/sacrements', [SacrementController::class, 'index']);
 Route::get('/sacrements/{slug}', [SacrementController::class, 'show']);
@@ -165,6 +169,9 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::delete('/catechese/niveaux/{niveau}', [CatecheseController::class, 'destroyNiveau']);
     Route::get('/catechese/inscriptions', [CatecheseController::class, 'adminInscriptions']);
     Route::patch('/catechese/inscriptions/{inscription}', [CatecheseController::class, 'updateInscription']);
+
+    Route::get('/pages', [PageContentController::class, 'adminIndex']);
+    Route::put('/pages/{key}', [PageContentController::class, 'update']);
 
     Route::get('/priere', [PrayerTimeController::class, 'adminIndex']);
     Route::post('/priere', [PrayerTimeController::class, 'store']);

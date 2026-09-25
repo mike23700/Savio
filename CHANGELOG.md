@@ -4,6 +4,32 @@ Toutes les évolutions notables du site sont documentées dans ce fichier.
 
 ---
 
+## 25 septembre 2026
+
+### 📄 Pages de présentation éditables depuis l'admin (nouveau)
+
+Six pages étaient encore **entièrement statiques** (contenu codé en dur dans les fichiers TSX) : Genèse, Histoire, Saint Dominique Savio, Organisation, Archidiocèse et Caritas. Elles sont désormais alimentées par l'API et modifiables depuis une nouvelle page admin **« Pages de présentation »** (`/admin/pages`).
+
+**Fonctionnement**
+- Une page = un en-tête (titre, sous-titre, image du bandeau uploadable), un texte d'intro (paragraphes séparés par une ligne vide, **gras** et *italique* acceptés), des titres/textes de sections spécifiques, et des **blocs** répétables : étapes de chronologie, curés successifs (avec photo et encadré « curé actuel »), cartes, lignes, chiffres clés
+- Les blocs se créent, se modifient, se suppriment et se **réordonnent** (↑ ↓) directement dans l'admin ; le tri est conservé côté base
+- Chaque page publique garde son rendu visuel d'origine — seuls les contenus changent ; en cas d'indisponibilité de l'API, la page dégrade proprement
+
+**Backend**
+- Nouvelles tables `page_contents` (hero + intro + `extra` JSON par page) et `page_blocks` (blocs triables par `page_key`)
+- Modèles `PageContent` / `PageBlock`, contrôleur `PageContentController` (lecture publique, liste + `PUT` admin avec remplacement des blocs)
+- Routes : `GET /api/pages`, `GET /api/pages/{key}` (public) ; `GET /api/admin/pages`, `PUT /api/admin/pages/{key}` (admin)
+- `PageContentSeeder` : remplit les 6 pages avec le contenu exact des anciennes pages statiques → après `php artisan db:seed --class=PageContentSeeder`, le site affiche la même chose qu'avant, mais éditable
+- Upload d'images accepté dans le nouveau dossier `pages` (`UploadController`, `ImageUpload`)
+
+**Tests**
+- `backend/tests/Feature/PageContentTest.php` (7 tests) : liste publique, clé inconnue 404, accès refusé sans token / non-admin, mise à jour admin avec blocs (dont `is_highlight`), remplacement des blocs supprimés, non-touchement des blocs des autres pages
+- `npx tsc --noEmit` : 0 erreur ; `npm run build` : OK
+
+> Sur une base existante : `php artisan migrate` puis `php artisan db:seed --class=PageContentSeeder`.
+
+---
+
 ## 24 septembre 2026
 
 ### 💳 Paiement Mobile Money via Peex (nouveau)

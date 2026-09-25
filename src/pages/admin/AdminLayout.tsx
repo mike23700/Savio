@@ -12,6 +12,7 @@ const NAV: NavItem[] = [
   { label: "Actualités", to: "/admin/actualites" },
   { label: "Agenda", to: "/admin/agenda" },
   { label: "Médiathèque", to: "/admin/mediatheque" },
+  { label: "Pages de présentation", to: "/admin/pages" },
   { label: "Horaires des messes", to: "/admin/horaires-messes" },
   { label: "Lectures du jour", to: "/admin/lectures" },
   { label: "Sacrements", to: "/admin/sacrements" },

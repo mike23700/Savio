@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             NewsSeeder::class,
             TeamMemberSeeder::class,
             MediaSeeder::class,
+            PageContentSeeder::class,
             EventSeeder::class,
             ProductSeeder::class,
             JournalTarifSeeder::class,
