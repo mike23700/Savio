@@ -4,6 +4,94 @@ Toutes les évolutions notables du site sont documentées dans ce fichier.
 
 ---
 
+## 24 septembre 2026
+
+### 💳 Paiement Mobile Money via Peex (nouveau)
+
+Jusqu'ici, les dons et les commandes de la boutique affichaient seulement des instructions (« Envoyez X FCFA au numéro… ») et un admin devait marquer le paiement comme reçu à la main. Les paiements **Orange Money** et **MTN MoMo** passent désormais par l'API **Collect** de [Peex](https://peex-api-docs.peexit.com/) : le payeur reçoit une demande de paiement sur son téléphone et la valide avec son code secret.
+
+**Fonctionnement**
+- Le site envoie la demande à Peex (`POST /collection/request_payment`) avec une référence unique par tentative (ex. `CMD-260924-AB12C-X7QZ`, `DON-3-K9P2`), stockée dans `payment_reference`
+- La page de confirmation interroge le statut toutes les 5 s pendant 3 min (`GET /api/payments/{reference}`, qui lui-même interroge Peex) et affiche « Paiement confirmé » ou « Le paiement n'a pas abouti »
+- En cas d'échec (numéro invalide, refus, opérateur indisponible), bouton **« Réessayer le paiement »**, avec possibilité de saisir un autre numéro — sans recréer la commande ou le don
+- **Webhook** `POST /api/payments/peex/callback` : Peex prévient le site dès qu'une transaction est finalisée, même si le payeur a fermé la page. Protégé par Basic Auth (`PEEX_CALLBACK_USERNAME` / `PEEX_CALLBACK_PASSWORD`)
+- Un paiement déjà **payé**, ou **annulé** par un admin, n'est jamais modifié par une notification ultérieure
+- Une commande payée passe automatiquement de « En attente » à « Confirmée »
+- Les numéros sont convertis au format international exigé par Peex (`655 52 99 99` → `+237655529999`)
+- **Espèces** : inchangé (instructions + confirmation admin)
+- **Sans clé Peex configurée** : repli automatique sur les instructions manuelles, le site fonctionne comme avant
+
+**Backend**
+- `app/Payments/PeexPaymentProvider.php` (nouveau) : client de l'API Collect, correspondance des statuts Peex → site (`paid` → `paye` ; `failed` / `canceled` / `rejected` → `echoue` ; `new` / `pending` → `en_attente`)
+- `app/Payments/PaymentService.php` : réécrit — choix du fournisseur, démarrage/relance d'une tentative, mise à jour du statut, normalisation des numéros
+- `app/Payments/PaymentRequest.php` (nouveau), `PaymentProviderInterface.php` et `ManualPaymentProvider.php` adaptés (le message manuel inclut maintenant la référence)
+- `app/Http/Controllers/Api/PaymentController.php` (nouveau) : suivi du statut, relance, webhook Peex
+- Routes publiques : `GET /api/payments/{reference}` (30 req/min), `POST /api/payments/{reference}/retry` (5 req/min), `POST /api/payments/peex/callback`
+- Nouveau statut de paiement **`echoue`** (en plus de `en_attente`, `paye`, `annule`) sur les commandes et les dons
+- Nouvelles colonnes sur `orders` et `donations` : `payment_provider`, `payment_provider_status`, `payment_details` ; `telephone` sur `donations`
+- Le formulaire de don exige un numéro Mobile Money (pré-rempli avec celui du compte)
+- Configuration dans `config/services.php` (clé `peex`) et `.env.example`
+
+**Frontend**
+- `src/components/PaymentStatus.tsx` (nouveau) : affichage des instructions, attente de validation, succès, échec + relance
+- `src/pages/Don.tsx` et `src/pages/Boutique.tsx` utilisent ce composant ; le numéro Orange Money codé en dur sur la page Don est remplacé par un champ « Numéro à débiter »
+- Admin **Dons** et **Commandes** : statut `echoue` en rouge, statut Peex et référence affichés sous le paiement
+
+**Configuration** (`backend/.env`)
+```
+PEEX_BASE_URL=https://sandbox.peexit.com/api/v1/
+PEEX_SECRET_KEY=            # clé fournie par Peex ; vide = paiement manuel
+PEEX_CALLBACK_USERNAME=     # identifiants Basic Auth du webhook
+PEEX_CALLBACK_PASSWORD=
+```
+En production : `PEEX_BASE_URL=https://server.peexit.com/api/v1/` et la clé de production.
+
+> ⚠️ **À faire** : obtenir la clé sandbox auprès de Peex (la clé d'exemple de la documentation est refusée), puis communiquer l'URL de callback `https://<domaine>/api/payments/peex/callback` une fois le site en ligne. En local, le suivi par interrogation suffit. En sandbox, Peex prélève toujours 10 FCFA quel que soit le montant.
+
+### 🏗️ Dons affectés aux projets paroissiaux (nouveau)
+
+Le bouton « Soutenir ce projet » menait au formulaire de don générique, sans lien avec le projet, et le montant « Collecté » devait être saisi à la main.
+
+- Un don peut désormais être affecté à un projet (nouvelle colonne `donations.projet_id`)
+- Quand le don passe à **payé** (Peex, webhook, ou admin), le montant est **ajouté automatiquement** à `projets.collecte` → la barre de progression de `/vie-paroissiale/projets` avance. S'il est annulé ensuite, le montant est retiré. Une notification reçue deux fois n'est comptée qu'une fois (logique centralisée dans `Donation::booted()`)
+- Le champ « Collecté » reste modifiable dans l'admin pour les dons reçus hors ligne
+- Impossible de donner à un projet terminé ou désactivé (« Ce projet n'accepte plus de dons. »)
+- Libellé Peex du paiement : « Don projet : <titre> »
+
+**Frontend**
+- Page projet : « Soutenir ce projet » ouvre `/don?projet=<id>` avec le projet présélectionné ; bouton masqué si le projet est terminé
+- Page Don : nouveau choix **« Destination du don »** (paroisse ou projet en cours) avec la barre de progression du projet ; le message de remerciement mentionne le projet
+- Espace paroissien : après connexion ou inscription, le visiteur revient à la page qu'il voulait ouvrir (ex. le formulaire de don du projet) ; « Mes donations » affiche le projet
+- Admin **Dons** : colonne « Projet / intention »
+
+### 🇫🇷 Messages d'erreur en français (correction)
+
+Le site est configuré en français (`APP_LOCALE=fr`) mais aucune traduction n'existait : les formulaires affichaient des clés brutes comme `validation.required`.
+
+- Nouveau fichier `backend/lang/fr/validation.php` : tous les messages de validation en français, noms de champs lisibles (« Le champ prénom est obligatoire. »), et messages dédiés (« Veuillez choisir ou saisir un montant. », « Veuillez indiquer le numéro Mobile Money à débiter. », « Votre panier est vide. »)
+- Page Don : vérification du montant avant envoi
+
+### 🔢 Montants correctement formatés (correction)
+
+- MySQL renvoyait les montants sous forme de texte (`"9200000"`), d'où un affichage sans séparateurs. Les modèles `Projet` (`objectif`, `collecte`), `Donation` (`montant`) et `Order` (`total`) les convertissent maintenant en nombres → `9 200 000 FCFA`
+- Plus de « NaN % » sur un projet dont l'objectif est 0
+
+### 🧪 Tests
+
+- `backend/tests/Feature/PeexPaymentTest.php` (nouveau, 10 tests, Peex simulé avec `Http::fake()`) : envoi de la demande, espèces, repli sans clé, échec + relance, suivi du statut, sécurité du webhook, non-rétrogradation d'un paiement payé, numéro obligatoire, remplissage de la barre d'un projet, refus d'un projet terminé
+- Suite complète : 12 tests OK
+
+### 🗄️ Nouvelles migrations
+
+| Fichier | Rôle |
+|---|---|
+| `2026_09_24_100000_add_payment_provider_fields.php` | Statut `echoue`, colonnes fournisseur de paiement, téléphone des dons |
+| `2026_09_24_110000_add_projet_id_to_donations.php` | Rattachement d'un don à un projet |
+
+> Sur une base existante : `php artisan migrate` (avec le PHP 8.2 de XAMPP : `/opt/lampp/bin/php artisan migrate`).
+
+---
+
 ## 23 septembre 2026
 
 ### ✉️ Formulaires Contact et Bans connectés à l'API (nouveau)
