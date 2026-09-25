@@ -6,6 +6,13 @@ Toutes les évolutions notables du site sont documentées dans ce fichier.
 
 ## 25 septembre 2026
 
+### ✏️ Éditeur de paires pour les repères bio et les repères diocésains (complément)
+
+Deux contenus stockés en JSON n'avaient pas d'éditeur dédié dans « Pages de présentation » : les **repères biographiques** de la page Savio (`extra.bio` : « Né le / 2 avril 1842 »…) et les **repères** de la page Archidiocèse (`extra.facts` : « Doyenné / Wouri I »…). Un nouveau type de champ **« paires label/valeur »** les rend maintenant modifiables (ajout, édition, suppression de lignes, réordonnancement naturel en éditant les libellés).
+
+- `src/pages/admin/Pages.tsx` : composant `PairsEditor` (champ `type: "pairs"` dans la config des pages Savio et Archidiocèse)
+- Testé bout en bout : `PUT /api/admin/pages/archidiocese` accepte le format paires et le site public affiche les lignes modifiées
+
 ### 📄 Pages de présentation éditables depuis l'admin (nouveau)
 
 Six pages étaient encore **entièrement statiques** (contenu codé en dur dans les fichiers TSX) : Genèse, Histoire, Saint Dominique Savio, Organisation, Archidiocèse et Caritas. Elles sont désormais alimentées par l'API et modifiables depuis une nouvelle page admin **« Pages de présentation »** (`/admin/pages`).

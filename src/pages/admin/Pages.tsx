@@ -43,7 +43,7 @@ const KIND_LABELS: Record<string, string> = {
 };
 
 /** Which block kinds each page uses, and which text fields matter. */
-const PAGES: { key: PageKey; label: string; kinds: string[]; extras: { key: string; label: string; type?: "area" }[] }[] = [
+const PAGES: { key: PageKey; label: string; kinds: string[]; extras: { key: string; label: string; type?: "area" | "pairs" }[] }[] = [
   {
     key: "genese", label: "Genèse",
     kinds: ["timeline", "cure"],
@@ -71,6 +71,7 @@ const PAGES: { key: PageKey; label: string; kinds: string[]; extras: { key: stri
     kinds: ["bullet"],
     extras: [
       { key: "bio_label", label: "Libellé repères biographiques" },
+      { key: "bio", label: "Repères biographiques (label / valeur)", type: "pairs" },
       { key: "section_label", label: "Libellé section vie" },
       { key: "section_title", label: "Titre section vie" },
       { key: "quote", label: "Citation", type: "area" },
@@ -92,7 +93,10 @@ const PAGES: { key: PageKey; label: string; kinds: string[]; extras: { key: stri
   {
     key: "archidiocese", label: "Archidiocèse",
     kinds: ["card"],
-    extras: [{ key: "cameroon_title", label: "Titre Église au Cameroun" }],
+    extras: [
+      { key: "facts", label: "Repères (label / valeur)", type: "pairs" },
+      { key: "cameroon_title", label: "Titre Église au Cameroun" },
+    ],
   },
   {
     key: "caritas", label: "Caritas",
@@ -133,7 +137,7 @@ export default function AdminPages() {
     setPages((old) => old.map((p) => (p.key === activeKey ? { ...p, ...patch } : p)));
   }
 
-  function updateExtra(key: string, value: string) {
+  function updateExtra(key: string, value: unknown) {
     setPages((old) => old.map((p) => (p.key === activeKey ? { ...p, extra: { ...(p.extra ?? {}), [key]: value } } : p)));
   }
 
@@ -251,7 +255,12 @@ export default function AdminPages() {
               <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.1rem", color: "#1c2340", marginBottom: 12 }}>Titres et textes de sections</h2>
               {pageConfig.extras.map((ex) => (
                 <Field key={ex.key} label={ex.label}>
-                  {ex.type === "area" ? (
+                  {ex.type === "pairs" ? (
+                    <PairsEditor
+                      pairs={Array.isArray(page.extra?.[ex.key]) ? (page.extra[ex.key] as [string, string][]) : []}
+                      onChange={(pairs) => updateExtra(ex.key, pairs)}
+                    />
+                  ) : ex.type === "area" ? (
                     <textarea value={String(page.extra?.[ex.key] ?? "")} onChange={(e) => updateExtra(ex.key, e.target.value)} rows={3} style={{ ...inputStyle, marginTop: 8 }} />
                   ) : (
                     <input value={String(page.extra?.[ex.key] ?? "")} onChange={(e) => updateExtra(ex.key, e.target.value)} style={{ ...inputStyle, marginTop: 8 }} />
@@ -338,6 +347,33 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     <div>
       <label style={{ display: "block", fontSize: "0.75rem", color: "#6b7280", marginBottom: 4 }}>{label}</label>
       {children}
+    </div>
+  );
+}
+
+/** Editor for extra fields stored as a list of [label, value] pairs (bio repères, facts…). */
+function PairsEditor({ pairs, onChange }: { pairs: [string, string][]; onChange: (pairs: [string, string][]) => void }) {
+  function update(index: number, which: 0 | 1, value: string) {
+    onChange(pairs.map((pair, i) => (i === index ? (which === 0 ? [value, pair[1]] : [pair[0], value]) : pair)) as [string, string][]);
+  }
+
+  function remove(index: number) {
+    onChange(pairs.filter((_, i) => i !== index));
+  }
+
+  return (
+    <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
+      {pairs.length === 0 && <span style={{ fontSize: "0.78rem", color: "#9ca3af" }}>Aucune ligne.</span>}
+      {pairs.map(([label, value], i) => (
+        <div key={i} style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <input value={label} placeholder="Libellé" onChange={(e) => update(i, 0, e.target.value)} style={inputStyle} />
+          <input value={value} placeholder="Valeur" onChange={(e) => update(i, 1, e.target.value)} style={inputStyle} />
+          <button type="button" onClick={() => remove(i)} style={{ ...linkBtn, color: "#b91c1c", marginRight: 0 }} title="Supprimer la ligne">✕</button>
+        </div>
+      ))}
+      <button type="button" onClick={() => onChange([...pairs, ["", ""]])} style={{ ...btnGhost, alignSelf: "flex-start", marginTop: 4 }}>
+        + Ajouter une ligne
+      </button>
     </div>
   );
 }
