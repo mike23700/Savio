@@ -21,7 +21,10 @@ return [
 
     'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:8443')],
 
-    'allowed_origins_patterns' => [],
+    // Vercel génère un sous-domaine par déploiement (savio-rho.vercel.app,
+    // savio-abc123-takou.vercel.app…) : on les autorise tous par motif
+    // wildcard (Str::is), '*' matchant n'importe quelle suite de caractères.
+    'allowed_origins_patterns' => [env('FRONTEND_ORIGIN_PATTERN', 'https://savio-*.vercel.app')],
 
     'allowed_headers' => ['*'],
 
