@@ -118,9 +118,19 @@ export function clientTimeQuery(extra: Record<string, string | number | boolean>
   return `?${params.toString()}`;
 }
 
+/**
+ * Backend origin the browser can reach in production (e.g. "https://savio-backend.up.railway.app").
+ * In production the API lives on another domain, so /storage/… URLs must be
+ * prefixed with it; in dev the Vite proxy handles /storage natively.
+ */
+export const API_BASE_URL = (import.meta.env.VITE_API_URL || "")
+  .replace(/\/api\/?$/, "")
+  .replace(/\/+$/, "");
+
 /** Resolve a stored media path ("news/x.jpg") to a servable URL. */
 export function mediaUrl(path: string | null | undefined): string | null {
   if (!path) return null;
   if (/^https?:\/\//.test(path)) return path; // external URL kept as-is
+  if (API_BASE_URL) return `${API_BASE_URL}/storage/${path}`;
   return `/storage/${path}`;
 }
