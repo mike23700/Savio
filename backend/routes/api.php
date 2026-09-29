@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ContactMessageController;
 use App\Http\Controllers\Api\DailyReadingController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DonationController;
+use App\Http\Controllers\Api\EspaceController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\JournalController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\Api\PrayerTimeController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProjetController;
 use App\Http\Controllers\Api\RegistreController;
+use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\SacrementController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\TeamMemberController;
@@ -44,6 +46,7 @@ Route::get('/settings', [SettingsController::class, 'index']);
 Route::get('/mass-schedule', [MassScheduleController::class, 'index']);
 Route::get('/mass-schedule/next', [MassScheduleController::class, 'next']);
 Route::get('/mass-schedule/today', [MassScheduleController::class, 'today']);
+Route::get('/mass-schedule/day', [MassScheduleController::class, 'day']);
 
 Route::get('/events', [EventController::class, 'index']);
 Route::get('/event-categories', [EventController::class, 'categories']);
@@ -92,6 +95,12 @@ Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{slug}', [ProductController::class, 'show']);
 Route::post('/orders', [OrderController::class, 'store']);
 Route::get('/my-orders', [OrderController::class, 'myOrders'])->middleware('auth:sanctum');
+
+Route::get('/espaces', [EspaceController::class, 'index']);
+Route::get('/espaces/{slug}', [EspaceController::class, 'show']);
+Route::get('/espaces/{slug}/disponibilite', [EspaceController::class, 'availability'])->middleware('throttle:60,1');
+Route::post('/reservations', [ReservationController::class, 'store'])->middleware('throttle:10,1');
+Route::get('/my-reservations', [ReservationController::class, 'myReservations'])->middleware('auth:sanctum');
 
 Route::get('/payments/{reference}', [PaymentController::class, 'show'])->middleware('throttle:30,1');
 Route::post('/payments/{reference}/retry', [PaymentController::class, 'retry'])->middleware('throttle:5,1');
@@ -217,6 +226,13 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
 
     Route::get('/orders', [OrderController::class, 'adminIndex']);
     Route::patch('/orders/{order}', [OrderController::class, 'update']);
+
+    Route::get('/espaces', [EspaceController::class, 'adminIndex']);
+    Route::post('/espaces', [EspaceController::class, 'store']);
+    Route::put('/espaces/{espace}', [EspaceController::class, 'update']);
+    Route::delete('/espaces/{espace}', [EspaceController::class, 'destroy']);
+    Route::get('/reservations', [ReservationController::class, 'adminIndex']);
+    Route::patch('/reservations/{reservation}', [ReservationController::class, 'update']);
 
     Route::get('/donations', [DonationController::class, 'adminIndex']);
     Route::patch('/donations/{donation}', [DonationController::class, 'update']);

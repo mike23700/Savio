@@ -25,7 +25,7 @@ class DailyReadingController extends Controller
 
         $local = DailyReading::whereDate('date', $date)->first();
         if ($local) {
-            return response()->json([...$local->toArray(), 'color' => null, 'source' => 'paroisse']);
+            return response()->json([...$local->toArray(), 'color' => null, 'texts' => $local->texts(), 'source' => 'paroisse']);
         }
 
         return response()->json($aelf->forDate($date));
@@ -61,9 +61,13 @@ class DailyReadingController extends Controller
             'date' => ['required', 'date_format:Y-m-d', Rule::unique('daily_readings', 'date')->ignore($current?->id)],
             'liturgical_day' => 'nullable|string|max:255',
             'reading_1' => 'nullable|string|max:120',
+            'reading_1_text' => 'nullable|string|max:20000',
             'psalm' => 'nullable|string|max:120',
+            'psalm_text' => 'nullable|string|max:20000',
             'reading_2' => 'nullable|string|max:120',
+            'reading_2_text' => 'nullable|string|max:20000',
             'gospel' => 'nullable|string|max:120',
+            'gospel_text' => 'nullable|string|max:20000',
             'gospel_title' => 'nullable|string|max:255',
         ]);
     }

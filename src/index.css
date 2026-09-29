@@ -34,3 +34,8 @@ h1, h2, h3, h4 {
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #f1f1f1; }
 ::-webkit-scrollbar-thumb { background: #0B3D91; border-radius: 3px; }
+
+/* Full text of the daily readings (HTML from AELF, see src/pages/Lectures.tsx) */
+.reading-text p + p {
+  margin-top: 0.9em;
+}

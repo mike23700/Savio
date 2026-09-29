@@ -50,6 +50,8 @@ const NAV = [
       { label: "Caritas", to: "/vie-paroissiale/caritas" },
       { label: "Projets", to: "/vie-paroissiale/projets" },
       { label: "Registre paroissial", to: "/vie-paroissiale/registre" },
+      { label: "Centre d'accueil (chambres)", to: "/centre-accueil" },
+      { label: "Location de salles", to: "/location-salles" },
     ],
   },
   {
@@ -66,6 +68,7 @@ const NAV = [
   {
     label: "Se nourrir", to: "/se-nourrir",
     sub: [
+      { label: "Lectures du jour", to: "/lectures" },
       { label: "Catéchèse", to: "/se-nourrir/catechese" },
       { label: "Prière & Méditation", to: "/se-nourrir/priere" },
       { label: "Journal paroissial", to: "/se-nourrir/journal" },

@@ -10,12 +10,14 @@ interface Stats {
   catechese_inscriptions_en_attente: number;
   registre_cette_semaine: number;
   registre_total: number;
+  reservations_en_attente: number;
   dernieres_commandes: { id: number; order_number: string; nom: string; prenom: string; total: number; payment_status: string; created_at: string }[];
   dernieres_intentions: { id: number; nom: string; prenom: string; description: string; statut: string; created_at: string }[];
 }
 
 const CARDS: { key: keyof Stats; label: string; icon: string; to: string }[] = [
   { key: "commandes_en_attente", label: "Commandes en attente de paiement", icon: "🛒", to: "/admin/commandes" },
+  { key: "reservations_en_attente", label: "Réservations (chambres & salles) à traiter", icon: "🛏️", to: "/admin/hebergement/reservations" },
   { key: "intentions_en_attente", label: "Intentions de messe en attente", icon: "🙏", to: "/admin/intentions" },
   { key: "messages_non_traites", label: "Messages de contact non traités", icon: "✉️", to: "/admin/messages" },
   { key: "bans_non_traites", label: "Demandes de bans non traitées", icon: "💍", to: "/admin/bans" },

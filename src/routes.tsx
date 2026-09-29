@@ -25,6 +25,8 @@ import AdminRegistre from "@/pages/admin/Registre";
 import AdminProduits from "@/pages/admin/Produits";
 import AdminCommandes from "@/pages/admin/Commandes";
 import AdminDonations from "@/pages/admin/Donations";
+import AdminEspaces from "@/pages/admin/Espaces";
+import AdminReservations from "@/pages/admin/Reservations";
 import AdminJournalAbonnements from "@/pages/admin/JournalAbonnements";
 import AdminJournalNumeros from "@/pages/admin/JournalNumeros";
 import AdminJournalTarifs from "@/pages/admin/JournalTarifs";
@@ -40,6 +42,7 @@ import Actualites, { ActualiteDetail } from "@/pages/Actualites";
 import Agenda from "@/pages/Agenda";
 import Homelies from "@/pages/Homelies";
 import Mediatheque from "@/pages/Mediatheque";
+import Lectures from "@/pages/Lectures";
 import Contact from "@/pages/Contact";
 import Don from "@/pages/Don";
 import Boutique from "@/pages/Boutique";
@@ -61,6 +64,10 @@ import Mouvements from "@/pages/vie-paroissiale/Mouvements";
 import Caritas from "@/pages/vie-paroissiale/Caritas";
 import Projets from "@/pages/vie-paroissiale/Projets";
 import Registre from "@/pages/vie-paroissiale/Registre";
+
+// Centre d'accueil & location de salles
+import Espaces from "@/pages/hebergement/Espaces";
+import EspaceDetail from "@/pages/hebergement/EspaceDetail";
 
 // Celebrer sub-pages
 import Messes from "@/pages/celebrer/Messes";
@@ -116,6 +123,12 @@ export const router = createBrowserRouter([
       { path: "vie-paroissiale/projets/:id", Component: ProjetDetail },
       { path: "vie-paroissiale/registre", Component: Registre },
 
+      // Centre d'accueil (chambres) & location de salles
+      { path: "centre-accueil", Component: () => <Espaces kind="chambre" /> },
+      { path: "centre-accueil/:slug", Component: () => <EspaceDetail kind="chambre" /> },
+      { path: "location-salles", Component: () => <Espaces kind="salle" /> },
+      { path: "location-salles/:slug", Component: () => <EspaceDetail kind="salle" /> },
+
       // Célébrer
       { path: "celebrer", Component: Celebrer },
       { path: "celebrer/messes", Component: Messes },
@@ -129,6 +142,7 @@ export const router = createBrowserRouter([
       { path: "se-nourrir/catechese", Component: Catechese },
       { path: "se-nourrir/priere", Component: Priere },
       { path: "se-nourrir/journal", Component: Journal },
+      { path: "lectures", Component: Lectures },
 
       // Top-level pages
       { path: "actualites", Component: Actualites },
@@ -183,6 +197,8 @@ export const router = createBrowserRouter([
       { path: "produits", Component: AdminProduits },
       { path: "commandes", Component: AdminCommandes },
       { path: "dons", Component: AdminDonations },
+      { path: "hebergement/espaces", Component: AdminEspaces },
+      { path: "hebergement/reservations", Component: AdminReservations },
       { path: "journal/abonnements", Component: AdminJournalAbonnements },
       { path: "journal/numeros", Component: AdminJournalNumeros },
       { path: "journal/tarifs", Component: AdminJournalTarifs },

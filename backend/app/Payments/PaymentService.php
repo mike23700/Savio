@@ -4,10 +4,11 @@ namespace App\Payments;
 
 use App\Models\Donation;
 use App\Models\Order;
+use App\Models\Reservation;
 use Illuminate\Support\Str;
 
 /**
- * Single entry point for the Order/Donation flow. Cash always goes through
+ * Single entry point for the Order/Donation/Reservation flow. Cash always goes through
  * the manual provider; mobile money goes through Peex when it is configured
  * (PEEX_SECRET_KEY), otherwise falls back to manual instructions.
  */
@@ -20,7 +21,7 @@ class PaymentService
     }
 
     /** Start a new payment attempt (first try or retry) and persist its state. */
-    public function start(Order|Donation $payable): array
+    public function start(Order|Donation|Reservation $payable): array
     {
         $provider = $this->providerForMethod($payable->payment_method);
         $reference = $this->newReference($payable);
@@ -48,7 +49,7 @@ class PaymentService
     }
 
     /** Re-check a pending attempt with its provider (used by the polling endpoint). */
-    public function refresh(Order|Donation $payable): void
+    public function refresh(Order|Donation|Reservation $payable): void
     {
         if ($payable->payment_status !== 'en_attente' || ! $payable->payment_reference) {
             return;
@@ -66,7 +67,7 @@ class PaymentService
      * Apply a provider-reported status. Never overrides a final decision
      * (paid, or cancelled by an admin).
      */
-    public function applyStatus(Order|Donation $payable, string $status, ?string $providerStatus, ?string $details): void
+    public function applyStatus(Order|Donation|Reservation $payable, string $status, ?string $providerStatus, ?string $details): void
     {
         if (in_array($payable->payment_status, ['paye', 'annule'], true)) {
             return;
@@ -81,19 +82,23 @@ class PaymentService
             if ($payable instanceof Order && $payable->order_status === 'en_attente') {
                 $payable->order_status = 'confirmee';
             }
+            if ($payable instanceof Reservation && $payable->statut === 'en_attente') {
+                $payable->statut = 'confirmee';
+            }
         }
 
         $payable->save();
     }
 
-    public function findByReference(string $reference): Order|Donation|null
+    public function findByReference(string $reference): Order|Donation|Reservation|null
     {
         return Order::where('payment_reference', $reference)->first()
-            ?? Donation::where('payment_reference', $reference)->first();
+            ?? Donation::where('payment_reference', $reference)->first()
+            ?? Reservation::where('payment_reference', $reference)->first();
     }
 
     /** What the frontend needs to display/poll a payment. */
-    public function payload(Order|Donation $payable, ?string $instructions = null): array
+    public function payload(Order|Donation|Reservation $payable, ?string $instructions = null): array
     {
         return [
             'reference' => $payable->payment_reference,
@@ -140,9 +145,13 @@ class PaymentService
         return number_format($amount, 0, ',', ' ');
     }
 
-    private function newReference(Order|Donation $payable): string
+    private function newReference(Order|Donation|Reservation $payable): string
     {
-        $base = $payable instanceof Order ? $payable->order_number : 'DON-' . $payable->id;
+        $base = match (true) {
+            $payable instanceof Order => $payable->order_number,
+            $payable instanceof Reservation => $payable->reference,
+            default => 'DON-' . $payable->id,
+        };
 
         return $base . '-' . Str::upper(Str::random(4));
     }

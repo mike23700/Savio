@@ -314,8 +314,8 @@ export default function Home() {
                 </div>
               )}
               <div className="mt-auto pt-4">
-                <a href={`https://www.aelf.org/${today}/romain/messe`} target="_blank" rel="noreferrer" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.76rem", color: "#0B3D91", fontWeight: 600 }}
-                  className="flex items-center gap-1 hover:underline">Lire les lectures <IconArrow /></a>
+                <Link to="/lectures" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.76rem", color: "#0B3D91", fontWeight: 600 }}
+                  className="flex items-center gap-1 hover:underline">Lire les lectures <IconArrow /></Link>
               </div>
             </div>
 

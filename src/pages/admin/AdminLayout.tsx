@@ -33,6 +33,13 @@ const NAV: NavItem[] = [
       { label: "Commandes", to: "/admin/commandes" },
     ],
   },
+  {
+    label: "Accueil & salles",
+    children: [
+      { label: "Chambres & salles", to: "/admin/hebergement/espaces" },
+      { label: "Réservations", to: "/admin/hebergement/reservations" },
+    ],
+  },
   { label: "Dons", to: "/admin/dons" },
   {
     label: "Journal",

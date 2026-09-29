@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 
 const SUB_PAGES = [
+  { icon: "📖", title: "Lectures du jour", desc: "Les textes de la messe de chaque jour : première lecture, psaume, deuxième lecture et Évangile.", to: "/lectures" },
   { icon: "📚", title: "Catéchèse", desc: "Formation dans la foi pour tous les âges : éveil à la foi, 1ère, 2e, 3e année, préparation au mariage.", to: "/se-nourrir/catechese" },
   { icon: "🙏", title: "Prière & Méditation", desc: "Adoration eucharistique, chapelet, adoration nocturne, groupes de prière et Lectio Divina.", to: "/se-nourrir/priere" },
   { icon: "📰", title: "Journal paroissial", desc: "La Voix de Dominique Savio : lectures du jour, annonces, résumé des quêtes. Abonnement dès 500 FCFA/mois.", to: "/se-nourrir/journal" },
@@ -30,7 +31,7 @@ export default function SeNourrir() {
           <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.88rem", color: "#6b7280", marginBottom: 40, lineHeight: 1.7 }}>
             Ressources spirituelles, formations et publications pour nourrir votre vie intérieure.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {SUB_PAGES.map((page) => (
               <Link key={page.to} to={page.to}
                 className="bg-white rounded-2xl p-8 border border-gray-100 hover:border-yellow-200 hover:shadow-lg transition-all group">

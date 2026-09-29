@@ -5,6 +5,8 @@ const SUB_PAGES = [
   { icon: "❤️", title: "Caritas", desc: "Actions de solidarité et d'entraide : rentrée scolaire, aide alimentaire, santé et insertion.", to: "/vie-paroissiale/caritas" },
   { icon: "🔨", title: "Projets", desc: "Rénovation de l'église, construction de salles, forage d'eau et autres projets communautaires.", to: "/vie-paroissiale/projets" },
   { icon: "📋", title: "Registre paroissial", desc: "Inscrivez-vous officiellement à notre communauté, rejoignez une CEV ou un groupe.", to: "/vie-paroissiale/registre" },
+  { icon: "🛏️", title: "Centre d'accueil", desc: "Chambres pour pèlerins, retraitants et familles de passage : réservez et payez votre séjour en ligne.", to: "/centre-accueil" },
+  { icon: "🏛️", title: "Location de salles", desc: "Salles pour mariages, réceptions, conférences et réunions : vérifiez les disponibilités et réservez.", to: "/location-salles" },
 ];
 
 export default function VieParoissiale() {

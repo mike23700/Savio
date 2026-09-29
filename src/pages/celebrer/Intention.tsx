@@ -1,15 +1,44 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { apiPost, ApiError } from "@/lib/api";
+import { apiGet, apiPost, ApiError, localDateISO } from "@/lib/api";
+
+interface DayMass {
+  time: string;
+  type: string;
+  note: string | null;
+}
 
 export default function Intention() {
-  const [form, setForm] = useState({ nom: "", prenom: "", email: "", telephone: "", description: "", date: "" });
+  const [form, setForm] = useState({ nom: "", prenom: "", email: "", telephone: "", description: "", date: "", heure: "" });
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // null = not loaded yet (no date chosen or request in flight)
+  const [masses, setMasses] = useState<DayMass[] | null>(null);
+
+  useEffect(() => {
+    setMasses(null);
+    if (!form.date) return;
+    let cancelled = false;
+    apiGet<DayMass[]>(`/mass-schedule/day?date=${form.date}`)
+      .then((list) => {
+        if (cancelled) return;
+        setMasses(list);
+        // keep the previous choice only if it still exists that day
+        setForm((f) => ({ ...f, heure: list.some((m) => m.time === f.heure) ? f.heure : list.length === 1 ? list[0].time : "" }));
+      })
+      .catch(() => !cancelled && setMasses([]));
+    return () => {
+      cancelled = true;
+    };
+  }, [form.date]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    if (form.date && masses && masses.length > 0 && !form.heure) {
+      setError("Veuillez choisir la messe à laquelle votre intention sera portée.");
+      return;
+    }
     try {
       await apiPost("/intentions", {
         nom: form.nom,
@@ -18,7 +47,9 @@ export default function Intention() {
         telephone: form.telephone,
         description: form.description,
         date_souhaitee: form.date || null,
+        heure_souhaitee: form.date ? form.heure || null : null,
       });
+      setForm({ nom: "", prenom: "", email: "", telephone: "", description: "", date: "", heure: "" });
       setSubmitted(true);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Une erreur est survenue, veuillez réessayer.");
@@ -99,8 +130,36 @@ export default function Intention() {
                 </div>
                 <div>
                   <label style={labelStyle} className="block mb-1.5">Date souhaitée</label>
-                  <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className={inputClass} style={inputStyle} />
+                  <input type="date" min={localDateISO()} value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className={inputClass} style={inputStyle} />
                 </div>
+                {form.date && (
+                  <div>
+                    <label style={labelStyle} className="block mb-1.5">Messe souhaitée *</label>
+                    {masses === null ? (
+                      <p style={{ ...inputStyle, color: "#9ca3af" }}>Chargement des messes de ce jour…</p>
+                    ) : masses.length === 0 ? (
+                      <p className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3" style={{ ...inputStyle, color: "#92400e" }}>
+                        Aucune messe n'est programmée ce jour-là. Choisissez une autre date, ou laissez-la telle quelle : le secrétariat vous proposera une messe.
+                      </p>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {masses.map((m) => {
+                          const selected = form.heure === m.time;
+                          return (
+                            <button type="button" key={`${m.time}-${m.type}`} onClick={() => setForm({ ...form, heure: m.time })}
+                              aria-pressed={selected}
+                              className="text-left rounded-xl px-4 py-3 border-2 transition-all"
+                              style={{ borderColor: selected ? "#0B3D91" : "#e5e7eb", background: selected ? "#E8F2FF" : "white" }}>
+                              <span style={{ fontFamily: "Playfair Display, serif", fontSize: "1.1rem", fontWeight: 700, color: "#0B3D91" }}>{m.time}</span>
+                              <span style={{ ...inputStyle, display: "block", fontWeight: 600, fontSize: "0.8rem" }}>{m.type}</span>
+                              {m.note && <span style={{ ...inputStyle, display: "block", fontSize: "0.72rem", color: "#6b7280" }}>{m.note}</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
                 {error && (
                   <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.82rem" }}>
                     {error}

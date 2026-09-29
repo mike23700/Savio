@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { useAuth } from "@/lib/auth";
 import { apiGet, apiPost, ApiError, mediaUrl } from "@/lib/api";
+import { RESERVATION_STATUT, formatFcfa, formatShortDate, type Reservation } from "@/lib/content-types";
 
 type Mode = "login" | "register";
-type Tab = "profil" | "journal" | "homelies" | "achats" | "donations";
+type Tab = "profil" | "journal" | "homelies" | "achats" | "reservations" | "donations";
 
 interface Homelie {
   id: number;
@@ -73,6 +74,7 @@ export default function EspaceMembre() {
   const [issues, setIssues] = useState<JournalIssue[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [donations, setDonations] = useState<DonationRow[]>([]);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [subscribeTarifId, setSubscribeTarifId] = useState("");
   const [subscribeFormat, setSubscribeFormat] = useState("electronique");
 
@@ -86,6 +88,7 @@ export default function EspaceMembre() {
     }
     if (tab === "achats") apiGet<Order[]>("/my-orders").then(setOrders).catch(() => {});
     if (tab === "donations") apiGet<DonationRow[]>("/my-donations").then(setDonations).catch(() => {});
+    if (tab === "reservations") apiGet<Reservation[]>("/my-reservations").then(setReservations).catch(() => {});
   }, [tab, user]);
 
   const inputClass = "w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all";
@@ -97,6 +100,7 @@ export default function EspaceMembre() {
     { id: "journal", label: "Journal paroissial", icon: "📰" },
     { id: "homelies", label: "Homélies favorites", icon: "🎙️" },
     { id: "achats", label: "Mes achats", icon: "🛒" },
+    { id: "reservations", label: "Mes réservations", icon: "🛏️" },
     { id: "donations", label: "Mes donations", icon: "❤️" },
   ];
 
@@ -285,6 +289,38 @@ export default function EspaceMembre() {
                         <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.88rem", fontWeight: 700, color: "#0B3D91" }}>{order.total.toLocaleString("fr-FR")} FCFA</div>
                         <span style={{ background: order.payment_status === "paye" ? "#dcfce7" : "#fef3c7", color: order.payment_status === "paye" ? "#15803d" : "#92400e", borderRadius: 20, padding: "2px 8px", fontFamily: "Montserrat, sans-serif", fontSize: "0.65rem", fontWeight: 700 }}>
                           {order.order_status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {tab === "reservations" && (
+            <div className="bg-white rounded-2xl p-8 border border-gray-100">
+              <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.3rem", fontWeight: 700, color: "#1c2340", marginBottom: 24 }}>Mes réservations</h2>
+              {reservations.length === 0 && (
+                <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.85rem", color: "#9ca3af" }}>
+                  Aucune réservation. Découvrez le <Link to="/centre-accueil" className="underline">centre d'accueil</Link> et nos <Link to="/location-salles" className="underline">salles</Link>.
+                </p>
+              )}
+              <div className="space-y-3">
+                {reservations.map((r) => (
+                  <div key={r.id} className="p-4 rounded-xl border border-gray-100 hover:border-yellow-200 transition-all">
+                    <div className="flex justify-between items-start gap-3">
+                      <div>
+                        <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", fontWeight: 700, color: "#D4AF37" }}>{r.reference}</div>
+                        <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.88rem", fontWeight: 600, color: "#1c2340", marginTop: 2 }}>{r.espace?.nom}</div>
+                        <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.75rem", color: "#6b7280" }}>
+                          {formatShortDate(r.date_debut)}{r.date_fin.slice(0, 10) !== r.date_debut.slice(0, 10) && ` → ${formatShortDate(r.date_fin)}`}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.88rem", fontWeight: 700, color: "#0B3D91" }}>{r.montant ? formatFcfa(r.montant) : "Sur devis"}</div>
+                        <span style={{ background: r.statut === "confirmee" ? "#dcfce7" : r.statut === "annulee" ? "#f3f4f6" : "#fef3c7", color: r.statut === "confirmee" ? "#15803d" : r.statut === "annulee" ? "#6b7280" : "#92400e", borderRadius: 20, padding: "2px 8px", fontFamily: "Montserrat, sans-serif", fontSize: "0.65rem", fontWeight: 700 }}>
+                          {RESERVATION_STATUT[r.statut]}
                         </span>
                       </div>
                     </div>

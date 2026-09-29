@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             PageContentSeeder::class,
             EventSeeder::class,
             ProductSeeder::class,
+            EspaceSeeder::class,
             JournalTarifSeeder::class,
             JournalIssueSeeder::class,
         ]);

@@ -28,7 +28,21 @@ export interface DailyReadings {
   reading_2: string | null;
   gospel: string | null;
   gospel_title: string | null;
+  texts?: ReadingText[];
   source: "paroisse" | "aelf";
+}
+
+/** Full text of one reading. `html` comes sanitized from the API (AELF), `text` is typed by the parish. */
+export interface ReadingText {
+  type: string;
+  label: string;
+  ref: string | null;
+  title: string | null;
+  intro: string | null;
+  refrain: string | null;
+  acclamation: string | null;
+  content: string;
+  format: "html" | "text";
 }
 
 export function readingsList(r: DailyReadings | null): { label: string; value: string }[] {
@@ -110,3 +124,70 @@ export interface ParishEvent {
 
 /** "09:00:00" → "09h00". */
 export const formatEventTime = (t: string | null) => (t ? t.slice(0, 5).replace(":", "h") : "");
+
+/** Guest room of the welcome centre (`chambre`, per night) or hall for rent (`salle`, per day). */
+export interface Espace {
+  id: number;
+  kind: "chambre" | "salle";
+  nom: string;
+  slug: string;
+  resume: string | null;
+  description: string | null;
+  capacite: number | null;
+  quantite: number;
+  /** null = price on request */
+  prix: number | null;
+  equipements: string[] | null;
+  photos: string[] | null;
+  is_active: boolean;
+  sort_order: number;
+  /** only on GET /espaces/{slug}: days with every unit booked (next 6 months) */
+  jours_complets?: string[];
+}
+
+export interface Reservation {
+  id: number;
+  reference: string;
+  espace_id: number;
+  espace?: Pick<Espace, "id" | "nom" | "kind"> & { slug?: string };
+  nom: string;
+  prenom: string;
+  email: string | null;
+  telephone: string;
+  date_debut: string;
+  date_fin: string;
+  nb_unites: number;
+  nb_personnes: number | null;
+  evenement: string | null;
+  message: string | null;
+  montant: number | null;
+  payment_method: "orange_money" | "mtn_momo" | "especes" | null;
+  payment_status: "en_attente" | "paye" | "echoue" | "annule";
+  payment_reference: string | null;
+  payment_provider: string | null;
+  payment_provider_status: string | null;
+  statut: "en_attente" | "confirmee" | "terminee" | "annulee";
+  admin_notes: string | null;
+  created_at: string;
+}
+
+export const ESPACE_KIND = {
+  chambre: { title: "Centre d'accueil", item: "chambre", unit: "nuit", units: "nuits", path: "/centre-accueil" },
+  salle: { title: "Location de salles", item: "salle", unit: "jour", units: "jours", path: "/location-salles" },
+} as const;
+
+export const RESERVATION_STATUT: Record<Reservation["statut"], string> = {
+  en_attente: "En attente",
+  confirmee: "Confirmée",
+  terminee: "Terminée",
+  annulee: "Annulée",
+};
+
+export function formatFcfa(n: number): string {
+  return `${n.toLocaleString("fr-FR")} FCFA`;
+}
+
+/** "2026-10-04" → "dim. 4 oct. 2026" */
+export function formatShortDate(iso: string): string {
+  return new Date(`${iso.slice(0, 10)}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+}

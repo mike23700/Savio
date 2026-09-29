@@ -87,6 +87,15 @@ class NextMassCalculator
         return ($limit ? $items->take($limit) : $items)->all();
     }
 
+    /**
+     * Masses (rows flagged counts_as_mass) celebrated on a given calendar
+     * day, e.g. to let a visitor pick the mass for their intention.
+     */
+    public function massesOn(Carbon $date): array
+    {
+        return $this->today($date->copy()->startOfDay(), false, true);
+    }
+
     private function combine(Carbon $date, ?Carbon $time): Carbon
     {
         $at = $date->copy();

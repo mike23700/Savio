@@ -46,6 +46,15 @@ class MassScheduleController extends Controller
         ));
     }
 
+    /** Masses celebrated on `?date=YYYY-MM-DD` (used by the mass intention form). */
+    public function day(Request $request, NextMassCalculator $calculator)
+    {
+        $date = $request->query('date');
+        abort_unless(is_string($date) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date), 422, 'Date invalide.');
+
+        return response()->json($calculator->massesOn(Carbon::parse($date)));
+    }
+
     /**
      * Build "now" from the visitor's device so "next mass" and "today"
      * match the date and time shown on their computer:

@@ -17,7 +17,7 @@ class AelfReadings
 
     public function forDate(string $date): ?array
     {
-        $key = "aelf:messe:{$date}";
+        $key = "aelf:messe:v2:{$date}";
 
         if (($cached = Cache::get($key)) !== null) {
             return $cached ?: null;
@@ -65,8 +65,76 @@ class AelfReadings
             'reading_2' => $ref('lecture_2'),
             'gospel' => $ref('evangile'),
             'gospel_title' => isset($gospel['titre']) ? $this->clean($gospel['titre']) : null,
+            'texts' => $this->texts($lectures->all()),
             'source' => 'aelf',
         ];
+    }
+
+    private const LABELS = [
+        'lecture_1' => 'Première lecture',
+        'psaume' => 'Psaume',
+        'cantique' => 'Cantique',
+        'lecture_2' => 'Deuxième lecture',
+        'sequence' => 'Séquence',
+        'evangile' => 'Évangile',
+    ];
+
+    /**
+     * Full texts in order. Some days offer a choice between two readings of
+     * the same type: the alternative is labelled "au choix".
+     */
+    private function texts(array $lectures): array
+    {
+        $texts = [];
+        foreach ($lectures as $lecture) {
+            $text = $this->text($lecture);
+            if (! $text) {
+                continue;
+            }
+            $previous = end($texts);
+            if ($previous && $previous['type'] === $text['type']) {
+                $text['label'] .= ' (au choix)';
+            }
+            $texts[] = $text;
+        }
+
+        return $texts;
+    }
+
+    /** Full text of one reading, its HTML reduced to a safe subset. */
+    private function text(mixed $lecture): ?array
+    {
+        if (! is_array($lecture) || empty($lecture['contenu'])) {
+            return null;
+        }
+        $type = (string) ($lecture['type'] ?? '');
+        $str = fn (string $k) => isset($lecture[$k]) && is_string($lecture[$k]) && trim(strip_tags($lecture[$k])) !== ''
+            ? $this->clean($lecture[$k]) : null;
+
+        return [
+            'type' => $type,
+            'label' => self::LABELS[$type] ?? ucfirst(str_replace('_', ' ', $type)),
+            'ref' => $str('ref'),
+            'title' => $str('titre'),
+            'intro' => $str('intro_lue'),
+            'refrain' => $str('refrain_psalmique'),
+            'acclamation' => isset($lecture['verset_evangile']) && is_string($lecture['verset_evangile'])
+                ? $this->safeHtml($lecture['verset_evangile']) : null,
+            'content' => $this->safeHtml((string) $lecture['contenu']),
+            'format' => 'html',
+        ];
+    }
+
+    /**
+     * Keep only formatting tags and drop every attribute, so the frontend
+     * can render the text as HTML without trusting the remote source.
+     */
+    private function safeHtml(string $html): string
+    {
+        $html = strip_tags($html, '<p><br><strong><b><em><i><sup><sub><span>');
+        $html = preg_replace('/<(\/?)(p|br|strong|b|em|i|sup|sub|span)\b[^>]*>/i', '<$1$2>', $html);
+
+        return trim(str_replace("\u{00A0}", ' ', $html));
     }
 
     private function clean(string $value): string

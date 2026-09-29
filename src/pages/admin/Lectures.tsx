@@ -12,9 +12,32 @@ interface Row {
   reading_2: string | null;
   gospel: string | null;
   gospel_title: string | null;
+  reading_1_text: string | null;
+  psalm_text: string | null;
+  reading_2_text: string | null;
+  gospel_text: string | null;
 }
 
-const emptyForm = { date: localDateISO(), liturgical_day: "", reading_1: "", psalm: "", reading_2: "", gospel: "", gospel_title: "" };
+const emptyForm = {
+  date: localDateISO(), liturgical_day: "", reading_1: "", psalm: "", reading_2: "", gospel: "", gospel_title: "",
+  reading_1_text: "", psalm_text: "", reading_2_text: "", gospel_text: "",
+};
+
+type TextKey = "reading_1_text" | "psalm_text" | "reading_2_text" | "gospel_text";
+
+const TEXT_FIELDS: { key: TextKey; label: string; aelfType: string }[] = [
+  { key: "reading_1_text", label: "Texte de la 1ère lecture", aelfType: "lecture_1" },
+  { key: "psalm_text", label: "Texte du psaume", aelfType: "psaume" },
+  { key: "reading_2_text", label: "Texte de la 2ème lecture", aelfType: "lecture_2" },
+  { key: "gospel_text", label: "Texte de l'Évangile", aelfType: "evangile" },
+];
+
+/** AELF HTML → plain text with line breaks, for the admin textareas. */
+function htmlToText(html: string): string {
+  const withBreaks = html.replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>\s*<p>/gi, "\n\n");
+  const doc = new DOMParser().parseFromString(withBreaks, "text/html");
+  return (doc.body.textContent || "").replace(/[ \t]+\n/g, "\n").replace(/\n[ \t]+/g, "\n").trim();
+}
 
 export default function AdminLectures() {
   const [rows, setRows] = useState<Row[]>([]);
@@ -38,6 +61,7 @@ export default function AdminLectures() {
     setForm({
       date: r.date.slice(0, 10), liturgical_day: r.liturgical_day || "", reading_1: r.reading_1 || "", psalm: r.psalm || "",
       reading_2: r.reading_2 || "", gospel: r.gospel || "", gospel_title: r.gospel_title || "",
+      reading_1_text: r.reading_1_text || "", psalm_text: r.psalm_text || "", reading_2_text: r.reading_2_text || "", gospel_text: r.gospel_text || "",
     });
   }
 
@@ -51,6 +75,10 @@ export default function AdminLectures() {
     setForm({
       ...form, liturgical_day: r.liturgical_day || "", reading_1: r.reading_1 || "", psalm: r.psalm || "",
       reading_2: r.reading_2 || "", gospel: r.gospel || "", gospel_title: r.gospel_title || "",
+      ...Object.fromEntries(TEXT_FIELDS.map((f) => {
+        const t = r.texts?.find((x) => x.type === f.aelfType);
+        return [f.key, t ? (t.format === "html" ? htmlToText(t.content) : t.content) : ""];
+      })),
     });
   }
 
@@ -112,6 +140,13 @@ export default function AdminLectures() {
             <Field label="Psaume (ex: Ps 24)"><input value={form.psalm} onChange={(e) => setForm({ ...form, psalm: e.target.value })} style={inputStyle} /></Field>
             <Field label="2ème lecture (ex: Ph 2, 1-11)"><input value={form.reading_2} onChange={(e) => setForm({ ...form, reading_2: e.target.value })} style={inputStyle} /></Field>
             <Field label="Évangile (ex: Mt 21, 28-32)"><input value={form.gospel} onChange={(e) => setForm({ ...form, gospel: e.target.value })} style={inputStyle} /></Field>
+            {TEXT_FIELDS.map((f) => (
+              <div key={f.key} style={{ gridColumn: "1 / -1" }}>
+                <Field label={`${f.label} (facultatif — affiché sur la page Lectures du jour)`}>
+                  <textarea rows={5} value={form[f.key]} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} style={{ ...inputStyle, resize: "vertical" }} />
+                </Field>
+              </div>
+            ))}
             <div style={{ gridColumn: "1 / -1" }}>
               <Field label="Titre de l'Évangile (facultatif)"><input value={form.gospel_title} onChange={(e) => setForm({ ...form, gospel_title: e.target.value })} style={inputStyle} /></Field>
             </div>

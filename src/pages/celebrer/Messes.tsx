@@ -101,11 +101,11 @@ export default function Messes() {
                       </div>
                     )}
                     <div className="flex flex-wrap gap-4 mt-3">
-                      <a href={`https://www.aelf.org/${today}/romain/messe`} target="_blank" rel="noreferrer"
+                      <Link to="/lectures"
                         style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.74rem", fontWeight: 700, color: "#D4AF37" }}
                         className="inline-flex items-center gap-1 hover:underline">
                         Lire les textes →
-                      </a>
+                      </Link>
                       <Link to="/homelies" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.74rem", fontWeight: 700, color: "#D4AF37" }}
                         className="inline-flex items-center gap-1 hover:underline">
                         Écouter l'homélie →
