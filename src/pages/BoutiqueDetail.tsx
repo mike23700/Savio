@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { apiGet, mediaUrl } from "@/lib/api";
+import { useLang } from "@/lib/i18n";
+import Icon from "@/components/Icon";
 
 interface Product {
   id: number;
@@ -14,6 +16,7 @@ interface Product {
 }
 
 export default function BoutiqueDetail() {
+  const { t, lang } = useLang();
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [notFound, setNotFound] = useState(false);
@@ -28,12 +31,12 @@ export default function BoutiqueDetail() {
   if (notFound) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center">
-        <div className="text-6xl mb-4">🛒</div>
-        <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.8rem", fontWeight: 700, color: "#1c2340" }}>Produit introuvable</h1>
+        <div className="mb-4"><Icon name="cart" size={48} style={{ color: "#9ca3af" }} /></div>
+        <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.8rem", fontWeight: 700, color: "#1c2340" }}>{t("top.boutiqueDetail.introuvable")}</h1>
         <Link to="/boutique"
           style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.83rem" }}
           className="inline-flex items-center gap-2 text-white px-6 py-3 rounded-full mt-6 hover:opacity-90 transition-opacity">
-          ← Retour à la boutique
+          <Icon name="arrowLeft" size={16} /> {t("top.boutiqueDetail.retour")}
         </Link>
       </div>
     );
@@ -45,10 +48,10 @@ export default function BoutiqueDetail() {
     <section className="py-12 px-4 bg-white">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-2 mb-6 flex-wrap">
-          <Link to="/" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#6b7280" }}>Accueil</Link>
-          <span style={{ color: "#d1d5db" }}>›</span>
-          <Link to="/boutique" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#6b7280" }}>Boutique</Link>
-          <span style={{ color: "#d1d5db" }}>›</span>
+          <Link to="/" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#6b7280" }}>{t("top.common.accueil")}</Link>
+          <Icon name="chevronRight" size={13} strokeWidth={1.75} style={{ color: "#d1d5db" }} />
+          <Link to="/boutique" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#6b7280" }}>{t("top.boutique.breadcrumb")}</Link>
+          <Icon name="chevronRight" size={13} strokeWidth={1.75} style={{ color: "#d1d5db" }} />
           <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#D4AF37" }}>{product.nom}</span>
         </div>
 
@@ -62,16 +65,16 @@ export default function BoutiqueDetail() {
             </span>
             <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.6rem", fontWeight: 700, color: "#1c2340", marginTop: 12, marginBottom: 12 }}>{product.nom}</h1>
             <div className="flex items-center gap-3 mb-6">
-              <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "1.4rem", fontWeight: 700, color: "#0B3D91" }}>{product.prix.toLocaleString("fr-FR")} FCFA</span>
+              <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "1.4rem", fontWeight: 700, color: "#0B3D91" }}>{product.prix.toLocaleString(lang === "en" ? "en-GB" : "fr-FR")} FCFA</span>
               {product.prix_barre && (
-                <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "1rem", color: "#9ca3af", textDecoration: "line-through" }}>{product.prix_barre.toLocaleString("fr-FR")} FCFA</span>
+                <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "1rem", color: "#9ca3af", textDecoration: "line-through" }}>{product.prix_barre.toLocaleString(lang === "en" ? "en-GB" : "fr-FR")} FCFA</span>
               )}
             </div>
             <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.9rem", color: "#4b5563", lineHeight: 1.8, marginBottom: 28 }}>{product.description}</p>
             <Link to="/boutique"
               style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.85rem" }}
               className="inline-flex items-center gap-2 text-white px-6 py-3 rounded-xl hover:opacity-90 transition-opacity">
-              🛒 Voir la boutique pour commander
+              <Icon name="cart" size={18} strokeWidth={1.75} /> {t("top.boutiqueDetail.voirBoutique")}
             </Link>
           </div>
         </div>

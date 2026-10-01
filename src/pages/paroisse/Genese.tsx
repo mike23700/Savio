@@ -2,10 +2,13 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { mediaUrl } from "@/lib/api";
 import { blocksOf, extraOf, introParagraphs, loadPage, renderInline, type PageContent } from "@/lib/pages";
+import Icon from "@/components/Icon";
+import { useLang } from "@/lib/i18n";
 
 const CURE_FALLBACK_IMG = "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&h=380&fit=crop&auto=format";
 
 export default function Genese() {
+  const { t } = useLang();
   const [page, setPage] = useState<PageContent | null>(null);
   const cures = blocksOf(page, "cure");
   const timeline = blocksOf(page, "timeline");
@@ -22,20 +25,20 @@ export default function Genese() {
       <div className="relative h-64 md:h-80 flex items-end overflow-hidden">
         <img
           src={(page?.hero_image ? mediaUrl(page.hero_image) : null) ?? "https://images.unsplash.com/photo-1516013474378-d6498f0d1434?w=1400&h=600&fit=crop&auto=format"}
-          alt={page?.title ?? "Genèse de la Paroisse"}
+          alt={page?.title ?? t("paroisse.genese.alt")}
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,45,107,0.92) 0%, rgba(8,45,107,0.35) 60%, transparent 100%)" }} />
         <div className="relative max-w-7xl mx-auto px-6 py-10 w-full">
           <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <Link to="/" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>Accueil</Link>
-            <span style={{ color: "rgba(255,255,255,0.4)" }}>›</span>
-            <Link to="/paroisse" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>La Paroisse</Link>
-            <span style={{ color: "rgba(255,255,255,0.4)" }}>›</span>
-            <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#D4AF37" }}>{page?.title ?? "Genèse"}</span>
+            <Link to="/" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>{t("paroisse.accueil")}</Link>
+            <Icon name="chevronRight" size={13} strokeWidth={1.75} style={{ color: "rgba(255,255,255,0.4)" }} />
+            <Link to="/paroisse" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>{t("paroisse.titre")}</Link>
+            <Icon name="chevronRight" size={13} strokeWidth={1.75} style={{ color: "rgba(255,255,255,0.4)" }} />
+            <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#D4AF37" }}>{page?.title ?? t("paroisse.genese.titre")}</span>
           </div>
-          <h1 style={{ fontFamily: "Playfair Display, serif", color: "white", fontSize: "clamp(1.8rem, 4vw, 2.8rem)", fontWeight: 700 }}>{page?.title ?? "Genèse de la Paroisse"}</h1>
-          <p style={{ fontFamily: "Montserrat, sans-serif", color: "rgba(255,255,255,0.8)", fontSize: "0.9rem", marginTop: 6 }}>{page?.subtitle ?? "Les origines et fondements de notre communauté de foi à Douala"}</p>
+          <h1 style={{ fontFamily: "Playfair Display, serif", color: "white", fontSize: "clamp(1.8rem, 4vw, 2.8rem)", fontWeight: 700 }}>{page?.title ?? t("paroisse.genese.alt")}</h1>
+          <p style={{ fontFamily: "Montserrat, sans-serif", color: "rgba(255,255,255,0.8)", fontSize: "0.9rem", marginTop: 6 }}>{page?.subtitle ?? t("paroisse.genese.sousTitre")}</p>
         </div>
       </div>
 
@@ -43,10 +46,10 @@ export default function Genese() {
       <section className="py-20 px-4 bg-white">
         <div className="max-w-4xl mx-auto">
           <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.15em" }} className="mb-3">
-            {String(extra.section_label ?? "LES ORIGINES")}
+            {String(extra.section_label ?? t("paroisse.genese.labelOrigines"))}
           </div>
           <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: "clamp(1.5rem, 3vw, 2.2rem)", fontWeight: 700, color: "#1c2340", marginBottom: 20 }}>
-            {String(extra.section_title ?? "1961 : La naissance d'une communauté")}
+            {String(extra.section_title ?? t("paroisse.genese.titre1961"))}
           </h2>
 
           {paragraphs.length > 0 && (
@@ -78,12 +81,12 @@ export default function Genese() {
 
           {/* Quote */}
           <div className="bg-blue-50 rounded-2xl p-10 border border-blue-100 text-center mb-16">
-            <div style={{ fontSize: "2rem", marginBottom: 12 }}>✝</div>
+            <div style={{ marginBottom: 12 }}><Icon name="cross" size={24} /></div>
             <blockquote style={{ fontFamily: "Playfair Display, serif", fontSize: "1.25rem", fontStyle: "italic", color: "#0B3D91", lineHeight: 1.7 }}>
-              "{String(extra.quote ?? "L'Église naît là où l'on annonce l'Évangile, là où on rassemble les hommes et les femmes au nom du Christ.")}"
+              "{String(extra.quote ?? t("paroisse.genese.quote"))}"
             </blockquote>
             <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "#9ca3af", marginTop: 16 }}>
-              {String(extra.quote_author ?? "— Esprit de la fondation de la Paroisse Saint Dominique Savio, 1961")}
+              {String(extra.quote_author ?? t("paroisse.genese.quoteAuteur"))}
             </div>
           </div>
         </div>
@@ -93,13 +96,13 @@ export default function Genese() {
       <section className="py-20 px-4" style={{ background: "#F5F7FA" }}>
         <div className="max-w-5xl mx-auto">
           <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.15em" }} className="mb-3">
-            {String(extra.timeline_label ?? "SUCCESSION PASTORALE")}
+            {String(extra.timeline_label ?? t("paroisse.genese.labelSuccession"))}
           </div>
           <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: "clamp(1.5rem, 3vw, 2.2rem)", fontWeight: 700, color: "#1c2340", marginBottom: 12 }}>
-            {String(extra.timeline_title ?? "Les curés qui nous ont précédés")}
+            {String(extra.timeline_title ?? t("paroisse.genese.titreCures"))}
           </h2>
           <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.88rem", color: "#6b7280", marginBottom: 48, lineHeight: 1.7, maxWidth: 600 }}>
-            {String(extra.timeline_intro ?? "Depuis 1964, quatorze prêtres ont guidé notre communauté.")}
+            {String(extra.timeline_intro ?? t("paroisse.genese.introCures"))}
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -120,7 +123,7 @@ export default function Genese() {
                       background: cure.is_highlight ? "#D4AF37" : "#0B3D91",
                       color: "white", letterSpacing: "0.06em", borderRadius: 20, padding: "3px 10px"
                     }}>
-                      {cure.is_highlight ? "CURÉ ACTUEL" : `N° ${idx + 1}`}
+                      {cure.is_highlight ? t("paroisse.genese.cureActuel") : t("paroisse.genese.numero").replace("{n}", String(idx + 1))}
                     </span>
                   </div>
                   <div className="absolute bottom-3 left-4">
@@ -143,17 +146,17 @@ export default function Genese() {
           <Link to="/paroisse/histoire"
             style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.83rem" }}
             className="inline-flex items-center gap-2 text-white px-6 py-3 rounded-full hover:opacity-90 transition-opacity">
-            Notre Histoire complète →
+            {t("paroisse.histoire.ctaComplet")}<Icon name="arrowRight" size={16} />
           </Link>
           <Link to="/paroisse/equipe"
             style={{ border: "2px solid #0B3D91", color: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.83rem" }}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full hover:bg-blue-50 transition-colors">
-            L'équipe actuelle
+            {t("paroisse.equipe.ctaActuelle")}
           </Link>
           <Link to="/paroisse"
             style={{ border: "2px solid #e5e7eb", color: "#6b7280", fontFamily: "Montserrat, sans-serif", fontWeight: 600, fontSize: "0.83rem" }}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full hover:border-gray-400 transition-colors">
-            ← La Paroisse
+            <Icon name="arrowLeft" size={16} /> {t("paroisse.titre")}
           </Link>
         </div>
       </section>

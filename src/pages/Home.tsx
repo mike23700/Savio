@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Link } from "react-router";
-import { apiGet, clientTimeQuery, localDateISO, mediaUrl } from "@/lib/api";
+import { apiGet, clientTimeQuery, localDateISO, mediaUrl } from "\@/lib/api";
+import Icon, { type IconName } from "@/components/Icon";
 import { formatNewsDate, readingsList, type DailyReadings, type NewsArticle } from "@/lib/content-types";
+import { useLang } from "@/lib/i18n";
 
 interface MassOccurrence {
   date: string;
@@ -12,140 +14,44 @@ interface MassOccurrence {
 }
 
 /** "Aujourd'hui – 18h30", "Demain – 06h30" or "Dimanche 27 septembre – 09h00". */
-function massLabel(m: MassOccurrence, today: string): string {
+function massLabel(m: MassOccurrence, today: string, t: (key: string) => string, locale: string): string {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   let day: string;
-  if (m.date === today) day = "Aujourd'hui";
-  else if (m.date === localDateISO(tomorrow)) day = "Demain";
+  if (m.date === today) day = t("home.messe.aujourdhui");
+  else if (m.date === localDateISO(tomorrow)) day = t("home.messe.demain");
   else {
-    day = new Date(`${m.date}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+    day = new Date(`${m.date}T12:00:00`).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" });
     day = day.charAt(0).toUpperCase() + day.slice(1);
   }
   return `${day} – ${m.time}`;
 }
-
-const IconArrow = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 inline ml-1">
-    <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
-  </svg>
-);
-
-// ─── Service Icons (light, 1.5 stroke) ───────────────────────────────────────
-const SvgChurch = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-    <path d="M3 21h18M3 10h18M5 21V10M19 21V10M12 3L3 10h18L12 3z" /><path d="M12 3V1M10 6h4" />
-  </svg>
-);
-const SvgCross = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="w-6 h-6">
-    <line x1="12" y1="2" x2="12" y2="22" /><line x1="4" y1="9" x2="20" y2="9" />
-  </svg>
-);
-const SvgBook = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-    <path d="M2 6s1.5-2 5-2 5 2 5 2v14s-1.5-1-5-1-5 1-5 1V6z" />
-    <path d="M12 6s1.5-2 5-2 5 2 5 2v14s-1.5-1-5-1-5 1-5 1V6z" />
-  </svg>
-);
-const SvgHands = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-    <path d="M18 11V7a2 2 0 0 0-4 0v4M14 11V5a2 2 0 0 0-4 0v6M10 11V7a2 2 0 0 0-4 0v4" />
-    <path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.83L8 17V7" />
-  </svg>
-);
-const SvgMic = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-    <rect x="9" y="2" width="6" height="12" rx="3" />
-    <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8" />
-  </svg>
-);
-const SvgCalendar = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-    <rect x="3" y="4" width="18" height="18" rx="2" />
-    <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-  </svg>
-);
-const SvgPeople = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-  </svg>
-);
-const SvgHeart = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-  </svg>
-);
-const SvgBag = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18" />
-    <path d="M16 10a4 4 0 0 1-8 0" />
-  </svg>
-);
-const SvgHome = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
-  </svg>
-);
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
 const SLIDES = [
   {
     img: "https://images.unsplash.com/photo-1637615739656-ca10c4285c88?w=1600&h=700&fit=crop&auto=format",
-    tag: "CONCERTS",
-    date: "28 septembre 2026",
-    title: "Grand concert des chorales paroissiales",
-    desc: "Nos chorales Hosanna, Magnificat et Saint Cécile vous invitent à un soir de louange et de prière.",
-    cta: "Voir le programme",
     to: "/agenda",
   },
   {
     img: "https://images.unsplash.com/photo-1634334639396-b34c80a75ea1?w=1600&h=700&fit=crop&auto=format",
-    tag: "RETRAITE",
-    date: "15–17 octobre 2026",
-    title: "Retraite de préparation à l'Avent",
-    desc: "Trois jours de ressourcement spirituel, de méditation et de confession pour toute la communauté.",
-    cta: "S'inscrire",
     to: "/agenda",
   },
   {
     img: "https://images.unsplash.com/photo-1516013474378-d6498f0d1434?w=1600&h=700&fit=crop&auto=format",
-    tag: "FAMILLE",
-    date: "5 octobre 2026",
-    title: "Journée des familles de la paroisse",
-    desc: "Un après-midi de partage, de jeux et de convivialité pour toutes les familles paroissiales.",
-    cta: "En savoir plus",
     to: "/actualites",
   },
   {
     img: "https://images.unsplash.com/photo-1785355805907-b95663dfb621?w=1600&h=700&fit=crop&auto=format",
-    tag: "SOLIDARITÉ",
-    date: "Novembre 2026",
-    title: "Campagne Caritas : rentrée scolaire solidaire",
-    desc: "Ensemble, aidons les enfants les plus vulnérables de notre quartier à accéder à l'éducation.",
-    cta: "Faire un don",
     to: "/don",
   },
-];
-
-const SERVICES = [
-  { Icon: SvgChurch, label: "Messes", sub: "Horaires et intentions", to: "/celebrer/messes" },
-  { Icon: SvgCross, label: "Sacrements", sub: "Baptême, mariage…", to: "/celebrer/sacrements" },
-  { Icon: SvgBook, label: "Catéchèse", sub: "Enfants, jeunes, adultes", to: "/se-nourrir/catechese" },
-  { Icon: SvgHands, label: "Prière", sub: "Méditations et prières", to: "/se-nourrir/priere" },
-  { Icon: SvgMic, label: "Homélies", sub: "Écouter et télécharger", to: "/homelies" },
-  { Icon: SvgCalendar, label: "Agenda", sub: "Événements paroissiaux", to: "/agenda" },
-  { Icon: SvgPeople, label: "Mouvements", sub: "Conseils et groupes", to: "/vie-paroissiale/mouvements" },
-  { Icon: SvgHeart, label: "Caritas", sub: "Solidarité et entraide", to: "/vie-paroissiale/caritas" },
-  { Icon: SvgBag, label: "Boutique", sub: "Livres et objets religieux", to: "/boutique" },
-  { Icon: SvgHome, label: "Espace paroissial", sub: "Mon espace personnel", to: "/espace-paroissien" },
 ];
 
 // ─── Slideshow ────────────────────────────────────────────────────────────────
 
 function HeroSlideshow() {
+  const { t } = useLang();
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
@@ -153,14 +59,21 @@ function HeroSlideshow() {
     return () => clearInterval(timer);
   }, []);
 
-  const slide = SLIDES[current];
+  const slide = {
+    ...SLIDES[current],
+    tag: t(`home.slide.${current + 1}.tag`),
+    date: t(`home.slide.${current + 1}.date`),
+    title: t(`home.slide.${current + 1}.title`),
+    desc: t(`home.slide.${current + 1}.desc`),
+    cta: t(`home.slide.${current + 1}.cta`),
+  };
 
   return (
     <section className="relative overflow-hidden" style={{ minHeight: 580 }}>
       {SLIDES.map((s, i) => (
         <div key={i} className="absolute inset-0 transition-opacity duration-700"
           style={{ opacity: i === current ? 1 : 0, zIndex: i === current ? 1 : 0 }}>
-          <img src={s.img} alt={s.title} className="w-full h-full object-cover" style={{ minHeight: 580 }} />
+          <img src={s.img} alt={t(`home.slide.${i + 1}.title`)} className="w-full h-full object-cover" style={{ minHeight: 580 }} />
           <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, rgba(8,45,107,0.92) 0%, rgba(8,45,107,0.60) 55%, rgba(8,45,107,0.20) 100%)" }} />
         </div>
       ))}
@@ -174,7 +87,7 @@ function HeroSlideshow() {
             </span>
           </div>
           <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.82rem", color: "rgba(255,255,255,0.75)", marginBottom: 12 }}>
-            📅 {slide.date}
+            <Icon name="calendar" size={15} /> {slide.date}
           </div>
           <h1 key={current} style={{ fontFamily: "Playfair Display, serif", color: "white", fontSize: "clamp(2rem, 5vw, 3.4rem)", fontWeight: 700, lineHeight: 1.12 }}>
             {slide.title}
@@ -186,12 +99,12 @@ function HeroSlideshow() {
             <Link to={slide.to}
               style={{ background: "#D4AF37", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.83rem" }}
               className="flex items-center gap-2 text-white px-6 py-3 rounded-full hover:opacity-90 transition-opacity">
-              {slide.cta} <IconArrow />
+              {slide.cta} <Icon name="arrowRight" size={16} />
             </Link>
             <Link to="/paroisse"
               style={{ border: "2px solid rgba(255,255,255,0.65)", fontFamily: "Montserrat, sans-serif", fontWeight: 600, fontSize: "0.83rem", color: "white" }}
               className="flex items-center gap-2 px-6 py-3 rounded-full hover:bg-white hover:text-blue-900 transition-all">
-              Découvrir la paroisse
+              {t("home.hero.decouvrir")}
             </Link>
           </div>
         </div>
@@ -213,12 +126,12 @@ function HeroSlideshow() {
       <button
         onClick={() => setCurrent((c) => (c - 1 + SLIDES.length) % SLIDES.length)}
         className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/20 hover:bg-white/40 text-white rounded-full w-10 h-10 flex items-center justify-center transition-all">
-        ‹
+        <Icon name="chevronLeft" size={20} strokeWidth={1.75} />
       </button>
       <button
         onClick={() => setCurrent((c) => (c + 1) % SLIDES.length)}
         className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/20 hover:bg-white/40 text-white rounded-full w-10 h-10 flex items-center justify-center transition-all">
-        ›
+        <Icon name="chevronRight" size={20} strokeWidth={1.75} />
       </button>
     </section>
   );
@@ -227,6 +140,8 @@ function HeroSlideshow() {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function Home() {
+  const { t, lang } = useLang();
+  const locale = lang === "en" ? "en-GB" : "fr-FR";
   const [hoveredService, setHoveredService] = useState<string | null>(null);
   const [nextMass, setNextMass] = useState<MassOccurrence | null>(null);
   const [todayItems, setTodayItems] = useState<MassOccurrence[]>([]);
@@ -260,9 +175,22 @@ export default function Home() {
     apiGet<DailyReadings | null>(`/lectures/jour?date=${today}`).then(setReadings).catch(() => {});
   }, [today]);
 
-  const todayLong = new Date(`${today}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-  const todayShort = new Date(`${today}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+  const todayLong = new Date(`${today}T12:00:00`).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const todayShort = new Date(`${today}T12:00:00`).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" });
   const readingRefs = readingsList(readings);
+
+  const SERVICES: { icon: IconName; label: string; sub: string; to: string }[] = [
+    { icon: "church", label: t("home.services.1.label"), sub: t("home.services.1.sub"), to: "/celebrer/messes" },
+    { icon: "cross", label: t("home.services.2.label"), sub: t("home.services.2.sub"), to: "/celebrer/sacrements" },
+    { icon: "bookOpen", label: t("home.services.3.label"), sub: t("home.services.3.sub"), to: "/se-nourrir/catechese" },
+    { icon: "pray", label: t("home.services.4.label"), sub: t("home.services.4.sub"), to: "/se-nourrir/priere" },
+    { icon: "mic", label: t("home.services.5.label"), sub: t("home.services.5.sub"), to: "/homelies" },
+    { icon: "calendar", label: t("home.services.6.label"), sub: t("home.services.6.sub"), to: "/agenda" },
+    { icon: "users", label: t("home.services.7.label"), sub: t("home.services.7.sub"), to: "/vie-paroissiale/mouvements" },
+    { icon: "heart", label: t("home.services.8.label"), sub: t("home.services.8.sub"), to: "/vie-paroissiale/caritas" },
+    { icon: "bag", label: t("home.services.9.label"), sub: t("home.services.9.sub"), to: "/boutique" },
+    { icon: "home", label: t("home.services.10.label"), sub: t("home.services.10.sub"), to: "/espace-paroissien" },
+  ];
 
   return (
     <>
@@ -276,25 +204,25 @@ export default function Home() {
             {/* Prochaine messe */}
             <div className="p-6 flex flex-col">
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg">⛪</span>
-                <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.12em" }}>PROCHAINE MESSE</span>
+                <Icon name="church" size={20} style={{ color: "#0B3D91" }} />
+                <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.12em" }}>{t("home.bandeau.prochaineMesse")}</span>
               </div>
-              <div style={{ fontFamily: "Playfair Display, serif", fontSize: "1.25rem", fontWeight: 700, color: "#0B3D91" }}>{nextMass ? massLabel(nextMass, today) : "—"}</div>
+              <div style={{ fontFamily: "Playfair Display, serif", fontSize: "1.25rem", fontWeight: 700, color: "#0B3D91" }}>{nextMass ? massLabel(nextMass, today, t, locale) : "—"}</div>
               <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.8rem", color: "#4b5563", marginTop: 4 }}>{nextMass?.type} {nextMass?.note ? `· ${nextMass.note}` : ""}</div>
               <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.75rem", color: "#9ca3af", marginTop: 6, lineHeight: 1.5 }}>
-                📍 New-Bell Bonadoumbé, Douala
+                <Icon name="mapPin" size={15} /> {t("home.bandeau.adresse")}
               </div>
               <div className="mt-auto pt-4">
                 <Link to="/celebrer/messes" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.76rem", color: "#0B3D91", fontWeight: 600 }}
-                  className="flex items-center gap-1 hover:underline">Voir le calendrier <IconArrow /></Link>
+                  className="flex items-center gap-1 hover:underline">{t("home.bandeau.voirCalendrier")} <Icon name="arrowRight" size={16} /></Link>
               </div>
             </div>
 
             {/* Lectures du jour */}
             <div className="p-6 flex flex-col">
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg">📖</span>
-                <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.12em" }}>LECTURES DU JOUR</span>
+                <Icon name="bookOpen" size={20} style={{ color: "#0B3D91" }} />
+                <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.12em" }}>{t("home.bandeau.lecturesDuJour")}</span>
               </div>
               <div style={{ fontFamily: "Playfair Display, serif", fontSize: "1rem", fontWeight: 600, color: "#1c2340", lineHeight: 1.3, textTransform: "capitalize" }}>
                 {todayLong}
@@ -310,20 +238,20 @@ export default function Home() {
                 </div>
               ) : (
                 <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.75rem", color: "#9ca3af", marginTop: 6 }}>
-                  {readings === null ? "Chargement des lectures…" : "Lectures indisponibles pour le moment."}
+                  {readings === null ? t("home.lectures.chargement") : t("home.lectures.indisponibles")}
                 </div>
               )}
               <div className="mt-auto pt-4">
                 <Link to="/lectures" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.76rem", color: "#0B3D91", fontWeight: 600 }}
-                  className="flex items-center gap-1 hover:underline">Lire les lectures <IconArrow /></Link>
+                  className="flex items-center gap-1 hover:underline">{t("home.bandeau.lireLesLectures")} <Icon name="arrowRight" size={16} /></Link>
               </div>
             </div>
 
             {/* Aujourd'hui */}
             <div className="p-6 flex flex-col">
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg">📅</span>
-                <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.12em" }}>AUJOURD'HUI</span>
+                <Icon name="calendar" size={20} style={{ color: "#0B3D91" }} />
+                <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.12em" }}>{t("home.bandeau.aujourdhui")}</span>
               </div>
               <div style={{ fontFamily: "Playfair Display, serif", fontSize: "1rem", fontWeight: 600, color: "#1c2340", marginBottom: 10, textTransform: "capitalize" }}>
                 {todayShort}
@@ -331,8 +259,8 @@ export default function Home() {
               <div className="space-y-2 flex-1">
                 {todayItems.length === 0 ? (
                   <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "#6b7280", lineHeight: 1.6 }}>
-                    Plus de messe aujourd'hui.
-                    {nextMass && <> Prochaine : <strong style={{ color: "#0B3D91" }}>{massLabel(nextMass, today)}</strong></>}
+                    {t("home.bandeau.plusDeMesse")}
+                    {nextMass && <> {t("home.bandeau.prochaine")} <strong style={{ color: "#0B3D91" }}>{massLabel(nextMass, today, t, locale)}</strong></>}
                   </div>
                 ) : (
                   todayItems.map(({ time, type }, i) => (
@@ -345,7 +273,7 @@ export default function Home() {
               </div>
               <div className="mt-auto pt-4">
                 <Link to="/celebrer/messes" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.76rem", color: "#0B3D91", fontWeight: 600 }}
-                  className="flex items-center gap-1 hover:underline">Tous les horaires <IconArrow /></Link>
+                  className="flex items-center gap-1 hover:underline">{t("home.bandeau.tousLesHoraires")} <Icon name="arrowRight" size={16} /></Link>
               </div>
             </div>
 
@@ -357,17 +285,17 @@ export default function Home() {
       <section className="py-16 px-4 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="mb-10">
-            <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.15em" }} className="mb-2">NOS SERVICES</div>
+            <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.15em" }} className="mb-2">{t("home.services.surtitre")}</div>
             <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: "clamp(1.6rem, 3vw, 2.2rem)", fontWeight: 700, color: "#1c2340" }}>
-              Nos services aux fidèles
+              {t("home.services.titre")}
             </h2>
             <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.88rem", color: "#6b7280", marginTop: 6 }}>
-              Des outils pour grandir dans la foi et vivre pleinement la vie paroissiale
+              {t("home.services.sousTitre")}
             </p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-5 gap-3">
-              {SERVICES.map(({ Icon, label, sub, to }) => {
+              {SERVICES.map(({ icon, label, sub, to }) => {
                 const isHov = hoveredService === label;
                 return (
                   <Link to={to} key={label}
@@ -385,7 +313,7 @@ export default function Home() {
                       marginBottom: 8, color: isHov ? "white" : "#0B3D91",
                       transition: "all 0.2s",
                     }}>
-                      <Icon />
+                      <Icon name={icon} size={24} />
                     </div>
                     <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.76rem", fontWeight: 700, color: isHov ? "white" : "#1c2340", lineHeight: 1.3, transition: "color 0.2s" }}>{label}</div>
                     <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.64rem", color: isHov ? "rgba(255,255,255,0.72)" : "#9ca3af", marginTop: 2, lineHeight: 1.4, transition: "color 0.2s" }}>{sub}</div>
@@ -395,14 +323,14 @@ export default function Home() {
             </div>
             <div className="relative rounded-2xl overflow-hidden min-h-[280px]">
               <img src="https://images.unsplash.com/photo-1516013474378-d6498f0d1434?w=600&h=500&fit=crop&auto=format"
-                alt="Communauté en prière" className="absolute inset-0 w-full h-full object-cover" />
+                alt={t("home.services.altImage")} className="absolute inset-0 w-full h-full object-cover" />
               <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,45,107,0.92) 0%, rgba(8,45,107,0.35) 100%)" }} />
               <div className="absolute bottom-0 left-0 right-0 p-6">
                 <blockquote style={{ fontFamily: "Playfair Display, serif", fontSize: "1.1rem", fontStyle: "italic", color: "white", lineHeight: 1.5 }}>
-                  « Que votre lumière brille devant les hommes. »
+                  {t("home.citation.lumiere")}
                 </blockquote>
                 <cite style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.75rem", color: "#D4AF37", marginTop: 8, display: "block", fontStyle: "normal", fontWeight: 600 }}>
-                  Matthieu 5,16
+                  {t("home.citation.lumiereRef")}
                 </cite>
               </div>
             </div>
@@ -415,14 +343,14 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-end justify-between mb-10">
             <div>
-              <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.15em" }} className="mb-2">ACTUALITÉS</div>
+              <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.15em" }} className="mb-2">{t("home.actualites.surtitre")}</div>
               <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: "clamp(1.6rem, 3vw, 2.2rem)", fontWeight: 700, color: "#1c2340" }}>
-                Actualités & Annonces
+                {t("home.actualites.titre")}
               </h2>
             </div>
             <Link to="/actualites" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.8rem", color: "#0B3D91", fontWeight: 600 }}
               className="hidden sm:flex items-center gap-1 hover:underline whitespace-nowrap">
-              Voir toutes les annonces <IconArrow />
+              {t("home.actualites.voirToutes")} <Icon name="arrowRight" size={16} />
             </Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -440,7 +368,7 @@ export default function Home() {
                   <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", color: "#9ca3af", marginBottom: 6 }}>{formatNewsDate(n.published_at)}</div>
                   <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "0.92rem", fontWeight: 600, color: "#1c2340", lineHeight: 1.45 }}>{n.title}</h3>
                   <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.74rem", color: "#0B3D91", fontWeight: 600 }}
-                    className="flex items-center gap-1 mt-3">Lire la suite <IconArrow /></span>
+                    className="flex items-center gap-1 mt-3">{t("home.actualites.lireLaSuite")} <Icon name="arrowRight" size={16} /></span>
                 </div>
               </Link>
             ))}
@@ -453,19 +381,19 @@ export default function Home() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div>
             <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.18em" }} className="mb-3">
-              ÉVANGILE DU JOUR
+              {t("home.evangile.surtitre")}
             </div>
             <blockquote style={{ fontFamily: "Playfair Display, serif", fontSize: "clamp(1.1rem, 2.5vw, 1.5rem)", fontStyle: "italic", color: "white", lineHeight: 1.6 }}>
-              « Là où est ton trésor, là aussi sera ton cœur. »
+              {t("home.evangile.texte")}
             </blockquote>
             <cite style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "rgba(255,255,255,0.55)", marginTop: 6, display: "block", fontStyle: "normal" }}>
-              Matthieu 6, 21
+              {t("home.evangile.reference")}
             </cite>
           </div>
           <Link to="/se-nourrir/priere"
             style={{ border: "2px solid #D4AF37", color: "#D4AF37", fontFamily: "Montserrat, sans-serif", fontWeight: 600, fontSize: "0.83rem" }}
             className="shrink-0 px-6 py-3 rounded-full hover:bg-yellow-400 hover:text-blue-900 transition-all whitespace-nowrap">
-            Lire la méditation du jour <IconArrow />
+            {t("home.evangile.lireMeditation")} <Icon name="arrowRight" size={16} />
           </Link>
         </div>
       </section>
@@ -474,10 +402,10 @@ export default function Home() {
       <section className="py-12 px-4 bg-white">
         <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { icon: "⛪", title: "Demander une messe", desc: "Pour un défunt, un malade, une action de grâce...", cta: "Faire une intention", bg: "#0B3D91", to: "/celebrer/intention" },
-            { icon: "❤️", title: "Faire un don", desc: "Votre soutien fait vivre la paroisse", cta: "Soutenir la paroisse", bg: "#D4AF37", to: "/don" },
-            { icon: "👥", title: "Rejoindre la communauté", desc: "Devenez paroissien et engagez-vous", cta: "Je m'inscris", bg: "#0B3D91", to: "/contact" },
-            { img: "https://images.unsplash.com/photo-1634334639396-b34c80a75ea1?w=400&h=300&fit=crop&auto=format", title: "La vie de Saint Dominique Savio", desc: "Un modèle de foi pour les jeunes du monde entier", cta: "Découvrir", bg: "#1c2340", to: "/paroisse/savio" },
+            { icon: "church", title: t("home.action.1.title"), desc: t("home.action.1.desc"), cta: t("home.action.1.cta"), bg: "#0B3D91", to: "/celebrer/intention" },
+            { icon: "heart", title: t("home.action.2.title"), desc: t("home.action.2.desc"), cta: t("home.action.2.cta"), bg: "#D4AF37", to: "/don" },
+            { icon: "users", title: t("home.action.3.title"), desc: t("home.action.3.desc"), cta: t("home.action.3.cta"), bg: "#0B3D91", to: "/contact" },
+            { img: "https://images.unsplash.com/photo-1634334639396-b34c80a75ea1?w=400&h=300&fit=crop&auto=format", title: t("home.action.4.title"), desc: t("home.action.4.desc"), cta: t("home.action.4.cta"), bg: "#1c2340", to: "/paroisse/savio" },
           ].map((a) => (
             <Link to={a.to} key={a.title} className="relative rounded-2xl overflow-hidden min-h-[200px] group">
               {a.img && (
@@ -488,13 +416,13 @@ export default function Home() {
               )}
               {!a.img && <div className="absolute inset-0" style={{ background: a.bg }} />}
               <div className="relative p-6 flex flex-col justify-between h-full min-h-[200px]">
-                {a.icon && <div className="text-3xl mb-3">{a.icon}</div>}
+                {a.icon && <div className="mb-3"><Icon name={a.icon as IconName} size={30} style={{ color: "white" }} /></div>}
                 <div>
                   <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1rem", fontWeight: 700, color: "white", lineHeight: 1.3 }}>{a.title}</h3>
                   <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.74rem", color: "rgba(255,255,255,0.72)", marginTop: 6, lineHeight: 1.55 }}>{a.desc}</p>
                 </div>
                 <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.76rem", fontWeight: 600, color: "#D4AF37" }}
-                  className="flex items-center gap-1 mt-4">{a.cta} <IconArrow /></span>
+                  className="flex items-center gap-1 mt-4">{a.cta} <Icon name="arrowRight" size={16} /></span>
               </div>
             </Link>
           ))}

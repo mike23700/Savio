@@ -28,6 +28,7 @@ use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\SacrementController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\TeamMemberController;
+use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\UploadController;
 use Illuminate\Support\Facades\Route;
 
@@ -236,6 +237,15 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
 
     Route::get('/donations', [DonationController::class, 'adminIndex']);
     Route::patch('/donations/{donation}', [DonationController::class, 'update']);
+
+    Route::get('/transactions', [TransactionController::class, 'index']);
+    Route::post('/transactions', [TransactionController::class, 'store']);
+    Route::put('/transactions/{transaction}', [TransactionController::class, 'update']);
+    Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy']);
+    Route::get('/transaction-categories', [TransactionController::class, 'categories']);
+    Route::post('/transaction-categories', [TransactionController::class, 'storeCategory']);
+    Route::put('/transaction-categories/{category}', [TransactionController::class, 'updateCategory']);
+    Route::delete('/transaction-categories/{category}', [TransactionController::class, 'destroyCategory']);
 
     Route::get('/journal/tarifs', [JournalController::class, 'adminTarifs']);
     Route::post('/journal/tarifs', [JournalController::class, 'storeTarif']);

@@ -30,6 +30,8 @@ class DatabaseSeeder extends Seeder
             EspaceSeeder::class,
             JournalTarifSeeder::class,
             JournalIssueSeeder::class,
+            TransactionCategorySeeder::class,
+            AccountingBackfillSeeder::class,
         ]);
     }
 }

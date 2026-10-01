@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiGet, apiPatch, apiDelete } from "@/lib/api";
 import { confirmDialog } from "./ConfirmDialog";
+import Icon from "@/components/Icon";
 
 interface Message {
   id: number;
@@ -93,12 +94,12 @@ export default function AdminMessages() {
                   </span>
                 </div>
                 <div style={{ fontSize: "0.78rem", color: "#6b7280", marginBottom: 8 }}>
-                  ✉️ {m.email}{m.telephone ? ` · 📞 ${m.telephone}` : ""}
+                  <Icon name="mail" size={13} strokeWidth={1.75} /> {m.email}{m.telephone ? <> · <Icon name="phone" size={13} strokeWidth={1.75} /> {m.telephone}</> : ""}
                 </div>
                 <p style={{ fontSize: "0.85rem", color: "#374151", lineHeight: 1.6, whiteSpace: "pre-line" }}>{m.message}</p>
                 <div className="flex gap-3 mt-3">
                   {m.statut !== "traite" && (
-                    <button onClick={() => setStatus(m.id, "traite")} style={btn("#16a34a")}>✓ Marquer traité</button>
+                    <button onClick={() => setStatus(m.id, "traite")} style={btn("#16a34a")}><Icon name="check" size={14} strokeWidth={2} /> Marquer traité</button>
                   )}
                   {m.statut !== "archive" && (
                     <button onClick={() => setStatus(m.id, "archive")} style={btn("#6b7280")}>Archiver</button>

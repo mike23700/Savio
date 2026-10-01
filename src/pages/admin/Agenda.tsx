@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { apiGet, apiPost, apiPut, apiDelete, ApiError, localDateISO } from "@/lib/api";
 import { confirmDialog } from "./ConfirmDialog";
 import { formatEventTime, type EventCategory, type ParishEvent } from "@/lib/content-types";
+import Icon from "@/components/Icon";
 
 const emptyForm = { event_category_id: "", title: "", date: localDateISO(), time: "", location: "Église principale", description: "", is_published: true };
 const emptyCat = { name: "", color: "#0B3D91" };
@@ -120,8 +121,8 @@ export default function AdminAgenda() {
               <span style={{ width: 10, height: 10, borderRadius: "50%", background: c.color }} />
               <span style={{ fontSize: "0.82rem" }}>{c.name}</span>
               <span style={{ fontSize: "0.72rem", color: "#9ca3af" }}>({rows.filter((r) => r.event_category_id === c.id).length})</span>
-              <button onClick={() => { setCatEditingId(c.id); setCatForm({ name: c.name, color: c.color }); setCatError(null); }} style={{ ...linkBtn, marginRight: 0 }}>✎</button>
-              <button onClick={() => removeCategory(c)} style={{ ...linkBtn, marginRight: 0, color: "#b91c1c" }}>✕</button>
+              <button onClick={() => { setCatEditingId(c.id); setCatForm({ name: c.name, color: c.color }); setCatError(null); }} style={{ ...linkBtn, marginRight: 0 }}><Icon name="edit" size={14} strokeWidth={1.75} /></button>
+              <button onClick={() => removeCategory(c)} style={{ ...linkBtn, marginRight: 0, color: "#b91c1c" }}><Icon name="close" size={14} strokeWidth={1.75} /></button>
             </div>
           ))}
         </div>

@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { apiGet, mediaUrl } from "@/lib/api";
 import type { TeamMember } from "@/lib/content-types";
+import Icon from "@/components/Icon";
+import { useLang } from "@/lib/i18n";
 
 export default function EquipeDetail() {
+  const { t } = useLang();
   const { id } = useParams<{ id: string }>();
   const [priest, setPriest] = useState<TeamMember | null>(null);
   const [status, setStatus] = useState<"loading" | "done">("loading");
@@ -17,7 +20,7 @@ export default function EquipeDetail() {
   }, [id]);
 
   if (status === "loading") {
-    return <div className="min-h-[60vh] flex items-center justify-center" style={{ fontFamily: "Montserrat, sans-serif", color: "#6b7280" }}>Chargement…</div>;
+    return <div className="min-h-[60vh] flex items-center justify-center" style={{ fontFamily: "Montserrat, sans-serif", color: "#6b7280" }}>{t("paroisse.chargement")}</div>;
   }
 
   const ministries = priest?.ministries ?? [];
@@ -25,12 +28,12 @@ export default function EquipeDetail() {
   if (!priest) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center">
-        <div className="text-6xl mb-4">⛪</div>
-        <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.8rem", fontWeight: 700, color: "#1c2340" }}>Profil introuvable</h1>
+        <div className="text-6xl mb-4"><Icon name="church" size={56} /></div>
+        <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.8rem", fontWeight: 700, color: "#1c2340" }}>{t("paroisse.equipe.profilIntrouvable")}</h1>
         <Link to="/paroisse/equipe"
           style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.83rem" }}
           className="inline-flex items-center gap-2 text-white px-6 py-3 rounded-full mt-6 hover:opacity-90 transition-opacity">
-          ← Retour à l'équipe
+          <Icon name="arrowLeft" size={16} /> {t("paroisse.equipe.retourEquipe")}
         </Link>
       </div>
     );
@@ -43,12 +46,12 @@ export default function EquipeDetail() {
         <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,45,107,0.92) 0%, rgba(8,45,107,0.35) 60%, transparent 100%)" }} />
         <div className="relative max-w-7xl mx-auto px-6 py-10 w-full">
           <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <Link to="/" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>Accueil</Link>
-            <span style={{ color: "rgba(255,255,255,0.4)" }}>›</span>
-            <Link to="/paroisse" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>La Paroisse</Link>
-            <span style={{ color: "rgba(255,255,255,0.4)" }}>›</span>
-            <Link to="/paroisse/equipe" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>L'équipe</Link>
-            <span style={{ color: "rgba(255,255,255,0.4)" }}>›</span>
+            <Link to="/" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>{t("paroisse.accueil")}</Link>
+            <Icon name="chevronRight" size={13} strokeWidth={1.75} style={{ color: "rgba(255,255,255,0.4)" }} />
+            <Link to="/paroisse" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>{t("paroisse.titre")}</Link>
+            <Icon name="chevronRight" size={13} strokeWidth={1.75} style={{ color: "rgba(255,255,255,0.4)" }} />
+            <Link to="/paroisse/equipe" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>{t("paroisse.equipe.breadcrumb")}</Link>
+            <Icon name="chevronRight" size={13} strokeWidth={1.75} style={{ color: "rgba(255,255,255,0.4)" }} />
             <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#D4AF37" }}>{priest.name.split(" ").slice(-1)[0]}</span>
           </div>
           <h1 style={{ fontFamily: "Playfair Display, serif", color: "white", fontSize: "clamp(1.4rem, 3vw, 2rem)", fontWeight: 700 }}>{priest.name}</h1>
@@ -72,13 +75,13 @@ export default function EquipeDetail() {
               </div>
 
               <div style={{ background: "#F5F7FA", borderRadius: 16, padding: "20px", marginTop: 20 }}>
-                <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.7rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.1em", marginBottom: 12 }}>INFORMATIONS</div>
+                <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.7rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.1em", marginBottom: 12 }}>{t("paroisse.equipe.labelInformations")}</div>
                 {[
-                  priest.born && ["Né le", priest.born],
-                  priest.ordained && ["Ordonné le", priest.ordained],
-                  priest.ordained_by && ["Ordonné par", priest.ordained_by],
-                  priest.since && ["En poste depuis", priest.since],
-                  priest.origin && ["Origine", priest.origin],
+                  priest.born && [t("paroisse.equipe.neLe"), priest.born],
+                  priest.ordained && [t("paroisse.equipe.ordonneLe"), priest.ordained],
+                  priest.ordained_by && [t("paroisse.equipe.ordonnePar"), priest.ordained_by],
+                  priest.since && [t("paroisse.equipe.enPosteLabel"), priest.since],
+                  priest.origin && [t("paroisse.equipe.origine"), priest.origin],
                 ].filter(Boolean).map((item) => {
                   const [label, value] = item as [string, string];
                   return (
@@ -92,7 +95,7 @@ export default function EquipeDetail() {
 
               {priest.motto && (
                 <div style={{ background: "#E8F2FF", borderRadius: 16, padding: "20px", marginTop: 16, borderLeft: "4px solid #D4AF37" }}>
-                  <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.7rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.1em", marginBottom: 8 }}>DEVISE</div>
+                  <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.7rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.1em", marginBottom: 8 }}>{t("paroisse.equipe.labelDevise")}</div>
                   <p style={{ fontFamily: "Playfair Display, serif", fontStyle: "italic", fontSize: "0.95rem", color: "#0B3D91", lineHeight: 1.6 }}>
                     "{priest.motto}"
                   </p>
@@ -101,12 +104,12 @@ export default function EquipeDetail() {
             </div>
 
             <div className="lg:col-span-2">
-              <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.15em" }} className="mb-2">BIOGRAPHIE</div>
-              <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.5rem", fontWeight: 700, color: "#1c2340", marginBottom: 16 }}>Formation et parcours</h2>
+              <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.15em" }} className="mb-2">{t("paroisse.equipe.labelBiographie")}</div>
+              <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.5rem", fontWeight: 700, color: "#1c2340", marginBottom: 16 }}>{t("paroisse.equipe.titreParcours")}</h2>
               <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.9rem", color: "#4b5563", lineHeight: 1.85 }}>{priest.bio}</p>
 
               {ministries.length > 0 && <div style={{ marginTop: 40 }}>
-                <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.15em", marginBottom: 16 }}>MINISTÈRES EXERCÉS</div>
+                <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.15em", marginBottom: 16 }}>{t("paroisse.equipe.labelMinisteres")}</div>
                 <div className="relative">
                   <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-blue-100" />
                   <div className="space-y-5">
@@ -130,12 +133,12 @@ export default function EquipeDetail() {
             <Link to="/paroisse/equipe"
               style={{ border: "2px solid #0B3D91", color: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.83rem" }}
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full hover:bg-blue-50 transition-colors">
-              ← Retour à l'équipe
+              <Icon name="arrowLeft" size={16} /> {t("paroisse.equipe.retourEquipe")}
             </Link>
             <Link to="/contact"
               style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.83rem" }}
               className="inline-flex items-center gap-2 text-white px-6 py-3 rounded-full hover:opacity-90 transition-opacity">
-              Nous contacter →
+              {t("paroisse.contact.nousContacter")}<Icon name="arrowRight" size={16} />
             </Link>
           </div>
         </div>

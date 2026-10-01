@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { apiGet, localDateISO } from "@/lib/api";
 import { readingsList, type DailyReadings, type ReadingText } from "@/lib/content-types";
+import Icon from "@/components/Icon";
+import { useLang } from "@/lib/i18n";
 
 const font = { fontFamily: "Montserrat, sans-serif" };
 
@@ -49,6 +51,7 @@ function ReadingBlock({ text }: { text: ReadingText }) {
 }
 
 export default function Lectures() {
+  const { t, lang } = useLang();
   const [params, setParams] = useSearchParams();
   const today = localDateISO();
   const dateParam = params.get("date");
@@ -61,25 +64,25 @@ export default function Lectures() {
   }, [date]);
 
   const goTo = (iso: string) => setParams(iso === today ? {} : { date: iso });
-  const dateLong = new Date(`${date}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const dateLong = new Date(`${date}T12:00:00`).toLocaleDateString(lang === "en" ? "en-GB" : "fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   const texts = readings?.texts ?? [];
   const refs = readingsList(readings ?? null);
 
   return (
     <>
       <div className="relative h-64 md:h-72 flex items-end overflow-hidden">
-        <img src="https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=1400&h=500&fit=crop&auto=format" alt="Lectures du jour" className="absolute inset-0 w-full h-full object-cover" />
+        <img src="https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=1400&h=500&fit=crop&auto=format" alt={t("nourrir.lectures.titre")} className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,45,107,0.92) 0%, rgba(8,45,107,0.35) 60%, transparent 100%)" }} />
         <div className="relative max-w-7xl mx-auto px-6 py-10 w-full">
           <div className="flex items-center gap-2 mb-2">
-            <Link to="/" style={{ ...font, fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>Accueil</Link>
-            <span style={{ color: "rgba(255,255,255,0.4)" }}>›</span>
-            <Link to="/se-nourrir" style={{ ...font, fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>Se nourrir</Link>
-            <span style={{ color: "rgba(255,255,255,0.4)" }}>›</span>
-            <span style={{ ...font, fontSize: "0.72rem", color: "#D4AF37" }}>Lectures du jour</span>
+            <Link to="/" style={{ ...font, fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>{t("nav.accueil")}</Link>
+            <Icon name="chevronRight" size={13} strokeWidth={1.75} style={{ color: "rgba(255,255,255,0.4)" }} />
+            <Link to="/se-nourrir" style={{ ...font, fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>{t("nav.nourrir")}</Link>
+            <Icon name="chevronRight" size={13} strokeWidth={1.75} style={{ color: "rgba(255,255,255,0.4)" }} />
+            <span style={{ ...font, fontSize: "0.72rem", color: "#D4AF37" }}>{t("nourrir.lectures.titre")}</span>
           </div>
-          <h1 style={{ fontFamily: "Playfair Display, serif", color: "white", fontSize: "clamp(1.8rem, 4vw, 2.8rem)", fontWeight: 700 }}>Lectures du jour</h1>
-          <p style={{ ...font, color: "rgba(255,255,255,0.8)", fontSize: "0.9rem", marginTop: 6 }}>La Parole de Dieu proclamée à la messe</p>
+          <h1 style={{ fontFamily: "Playfair Display, serif", color: "white", fontSize: "clamp(1.8rem, 4vw, 2.8rem)", fontWeight: 700 }}>{t("nourrir.lectures.titre")}</h1>
+          <p style={{ ...font, color: "rgba(255,255,255,0.8)", fontSize: "0.9rem", marginTop: 6 }}>{t("nourrir.lectures.sousTitre")}</p>
         </div>
       </div>
 
@@ -88,19 +91,19 @@ export default function Lectures() {
           {/* Day navigation */}
           <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-wrap items-center justify-between gap-3 mb-6">
             <button onClick={() => goTo(shiftDate(date, -1))} style={{ ...font, fontSize: "0.8rem", fontWeight: 700, color: "#0B3D91" }}
-              className="px-3 py-2 rounded-full hover:bg-blue-50">← Veille</button>
+              className="px-3 py-2 rounded-full hover:bg-blue-50 inline-flex items-center gap-1"><Icon name="arrowLeft" size={14} strokeWidth={1.75} /> {t("nourrir.lectures.veille")}</button>
             <div className="flex items-center gap-2 flex-wrap justify-center">
               <input type="date" value={date} onChange={(e) => e.target.value && goTo(e.target.value)}
-                aria-label="Choisir une date"
+                aria-label={t("nourrir.lectures.choisirDate")}
                 className="border border-gray-200 rounded-xl px-3 py-2" style={{ ...font, fontSize: "0.82rem", color: "#1c2340" }} />
               {date !== today && (
                 <button onClick={() => goTo(today)} style={{ ...font, fontSize: "0.75rem", fontWeight: 700, color: "#D4AF37" }} className="hover:underline">
-                  Aujourd'hui
+                  {t("nourrir.lectures.aujourdhui")}
                 </button>
               )}
             </div>
             <button onClick={() => goTo(shiftDate(date, 1))} style={{ ...font, fontSize: "0.8rem", fontWeight: 700, color: "#0B3D91" }}
-              className="px-3 py-2 rounded-full hover:bg-blue-50">Lendemain →</button>
+              className="px-3 py-2 rounded-full hover:bg-blue-50 inline-flex items-center gap-1">{t("nourrir.lectures.lendemain")} <Icon name="arrowRight" size={14} strokeWidth={1.75} /></button>
           </div>
 
           <div className="mb-6">
@@ -108,7 +111,7 @@ export default function Lectures() {
             {readings?.liturgical_day && (
               <div className="flex items-center gap-2 mt-1">
                 {readings.color && (
-                  <span title={`Couleur liturgique : ${readings.color}`} className="inline-block w-3 h-3 rounded-full border border-gray-200"
+                  <span title={t("nourrir.lectures.couleurLiturgique").replace("{color}", readings.color)} className="inline-block w-3 h-3 rounded-full border border-gray-200"
                     style={{ background: COLOR[readings.color.toLowerCase()] ?? "#9ca3af" }} />
                 )}
                 <span style={{ ...font, fontSize: "0.88rem", color: "#4b5563" }}>{readings.liturgical_day}</span>
@@ -117,11 +120,11 @@ export default function Lectures() {
           </div>
 
           {readings === undefined ? (
-            <p style={{ ...font, fontSize: "0.85rem", color: "#9ca3af" }}>Chargement des lectures…</p>
+            <p style={{ ...font, fontSize: "0.85rem", color: "#9ca3af" }}>{t("nourrir.lectures.chargement")}</p>
           ) : texts.length > 0 ? (
             <div className="space-y-5">
-              {texts.map((t, i) => (
-                <ReadingBlock key={`${t.type}-${i}`} text={t} />
+              {texts.map((text, i) => (
+                <ReadingBlock key={`${text.type}-${i}`} text={text} />
               ))}
             </div>
           ) : refs.length > 0 ? (
@@ -135,20 +138,20 @@ export default function Lectures() {
               {readings?.gospel_title && (
                 <p style={{ fontFamily: "Playfair Display, serif", fontStyle: "italic", color: "#4b5563", marginTop: 10 }}>{readings.gospel_title}</p>
               )}
-              <p style={{ ...font, fontSize: "0.78rem", color: "#9ca3af", marginTop: 14 }}>Le texte intégral de ces lectures n'est pas encore disponible.</p>
+              <p style={{ ...font, fontSize: "0.78rem", color: "#9ca3af", marginTop: 14 }}>{t("nourrir.lectures.texteIndisponible")}</p>
             </div>
           ) : (
-            <p style={{ ...font, fontSize: "0.85rem", color: "#6b7280" }}>Lectures indisponibles pour ce jour pour le moment.</p>
+            <p style={{ ...font, fontSize: "0.85rem", color: "#6b7280" }}>{t("nourrir.lectures.indisponibles")}</p>
           )}
 
           <div className="flex flex-wrap gap-4 mt-8">
             <Link to="/homelies" style={{ background: "#0B3D91", ...font, fontWeight: 700, fontSize: "0.8rem" }}
-              className="text-white px-5 py-2.5 rounded-full hover:opacity-90">Écouter l'homélie</Link>
+              className="text-white px-5 py-2.5 rounded-full hover:opacity-90">{t("nourrir.lectures.ecouterHomelie")}</Link>
             <Link to="/celebrer/messes" style={{ border: "2px solid #0B3D91", color: "#0B3D91", ...font, fontWeight: 700, fontSize: "0.8rem" }}
-              className="px-5 py-2.5 rounded-full hover:bg-blue-50">Horaires des messes</Link>
+              className="px-5 py-2.5 rounded-full hover:bg-blue-50">{t("nourrir.lectures.messes")}</Link>
           </div>
           {readings?.source === "aelf" && (
-            <p style={{ ...font, fontSize: "0.7rem", color: "#9ca3af", marginTop: 16 }}>Textes liturgiques © AELF — calendrier liturgique d'Afrique.</p>
+            <p style={{ ...font, fontSize: "0.7rem", color: "#9ca3af", marginTop: 16 }}>{t("nourrir.lectures.sourceAelf")}</p>
           )}
         </div>
       </section>

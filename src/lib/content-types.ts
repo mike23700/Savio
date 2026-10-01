@@ -183,6 +183,52 @@ export const RESERVATION_STATUT: Record<Reservation["statut"], string> = {
   annulee: "Annulée",
 };
 
+export type TransactionType = "entree" | "sortie";
+
+export const TRANSACTION_TYPE: Record<TransactionType, { label: string; short: string; color: string; sign: string }> = {
+  entree: { label: "Entrée (recette)", short: "Entrée", color: "#16a34a", sign: "+" },
+  sortie: { label: "Sortie (dépense)", short: "Sortie", color: "#dc2626", sign: "−" },
+};
+
+export interface TransactionCategory {
+  id: number;
+  name: string;
+  type: TransactionType;
+  color: string;
+  sort_order: number;
+  transactions_count?: number;
+}
+
+export interface Transaction {
+  id: number;
+  transaction_category_id: number | null;
+  type: TransactionType;
+  libelle: string;
+  montant: number;
+  /** "YYYY-MM-DD" */
+  date: string;
+  reference: string | null;
+  notes: string | null;
+  /** "donation" | "order" | "reservation" when the line was recorded from a validated payment. */
+  source_type: string | null;
+  source_id: number | null;
+  category: TransactionCategory | null;
+  created_at: string;
+}
+
+/** Human label for transactions.source_type. */
+export const TRANSACTION_SOURCE: Record<string, string> = {
+  donation: "Don validé",
+  order: "Commande validée",
+  reservation: "Réservation validée",
+};
+
+export interface TransactionTotaux {
+  entrees: number;
+  sorties: number;
+  solde: number;
+}
+
 export function formatFcfa(n: number): string {
   return `${n.toLocaleString("fr-FR")} FCFA`;
 }

@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { apiGet, apiPost, apiDelete, mediaUrl } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import Icon, { type IconName } from "@/components/Icon";
+import { useLang } from "@/lib/i18n";
 
 interface Homelie {
   id: number;
@@ -18,18 +20,14 @@ interface Homelie {
   pdf_url: string | null;
 }
 
-const IconArrow = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 inline ml-1">
-    <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
-  </svg>
-);
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+function formatDate(iso: string, locale: string) {
+  return new Date(iso).toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" });
 }
 
 export default function Homelies() {
+  const { t, lang } = useLang();
   const { user } = useAuth();
+  const locale = lang === "en" ? "en-GB" : "fr-FR";
   const [homelies, setHomelies] = useState<Homelie[]>([]);
   const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
   const [search, setSearch] = useState("");
@@ -67,17 +65,17 @@ export default function Homelies() {
     <>
       <div className="relative h-64 flex items-end overflow-hidden">
         <img src="https://images.unsplash.com/photo-1573591013318-b942d6ea1092?w=1400&h=500&fit=crop&auto=format"
-          alt="Homélies" className="absolute inset-0 w-full h-full object-cover" />
+          alt={t("nourrir.homelies.titre")} className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,45,107,0.92) 0%, rgba(8,45,107,0.35) 60%, transparent 100%)" }} />
         <div className="relative max-w-7xl mx-auto px-6 pb-10 w-full">
           <div className="flex items-center gap-2 mb-2">
-            <Link to="/" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>Accueil</Link>
-            <span style={{ color: "rgba(255,255,255,0.4)" }}>›</span>
-            <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#D4AF37" }}>Homélies</span>
+            <Link to="/" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>{t("nav.accueil")}</Link>
+            <Icon name="chevronRight" size={13} strokeWidth={1.75} style={{ color: "rgba(255,255,255,0.4)" }} />
+            <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#D4AF37" }}>{t("nourrir.homelies.titre")}</span>
           </div>
-          <h1 style={{ fontFamily: "Playfair Display, serif", color: "white", fontSize: "clamp(1.8rem, 4vw, 2.8rem)", fontWeight: 700 }}>Homélies</h1>
+          <h1 style={{ fontFamily: "Playfair Display, serif", color: "white", fontSize: "clamp(1.8rem, 4vw, 2.8rem)", fontWeight: 700 }}>{t("nourrir.homelies.titre")}</h1>
           <p style={{ fontFamily: "Montserrat, sans-serif", color: "rgba(255,255,255,0.8)", fontSize: "0.9rem", marginTop: 6 }}>
-            Retrouvez les homélies dominicales de notre paroisse
+            {t("nourrir.homelies.sousTitre")}
           </p>
         </div>
       </div>
@@ -86,7 +84,7 @@ export default function Homelies() {
         <div className="max-w-5xl mx-auto">
           <div className="mb-8">
             <input value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Rechercher une homélie..."
+              placeholder={t("nourrir.homelies.rechercherPlaceholder")}
               style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.85rem", color: "#1c2340" }}
               className="w-full max-w-md border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all" />
           </div>
@@ -100,25 +98,28 @@ export default function Homelies() {
                   <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(8,45,107,0.7), transparent)" }} />
                   <div className="absolute top-4 left-4">
                     <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.62rem", fontWeight: 700, background: "#D4AF37", color: "white", letterSpacing: "0.08em" }}
-                      className="px-2.5 py-1 rounded-full">DERNIÈRE HOMÉLIE</span>
+                      className="px-2.5 py-1 rounded-full">{t("nourrir.homelies.derniere")}</span>
                   </div>
                   {user && (
-                    <button onClick={(e) => toggleFavorite(homelies[0].id, e)}
+                    <button onClick={(e) => toggleFavorite(homelies[0].id, e)} aria-label={t("nourrir.homelies.favori")}
                       className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 rounded-full w-9 h-9 flex items-center justify-center transition-all text-lg">
-                      {favoriteIds.has(homelies[0].id) ? "❤️" : "🤍"}
+                      <Icon name="heart" size={18}
+                        style={favoriteIds.has(homelies[0].id) ? { color: "#e11d48", fill: "#e11d48" } : { color: "#ffffff" }} />
                     </button>
                   )}
                 </div>
                 <div className="p-8 bg-blue-50">
-                  <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.7rem", color: "#9ca3af" }} className="mb-2">{formatDate(homelies[0].published_at)}</div>
+                  <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.7rem", color: "#9ca3af" }} className="mb-2">{formatDate(homelies[0].published_at, locale)}</div>
                   <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", fontWeight: 700, color: "#D4AF37" }} className="mb-2">{homelies[0].sunday.toUpperCase()}</div>
                   <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.3rem", fontWeight: 700, color: "#1c2340", lineHeight: 1.3, marginBottom: 8 }}>{homelies[0].title}</h2>
-                  <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.76rem", color: "#6b7280", marginBottom: 12 }}>📖 {homelies[0].readings}</div>
+                  <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.76rem", color: "#6b7280", marginBottom: 12 }}>
+                    <Icon name="bookOpen" size={15} strokeWidth={1.75} /> {homelies[0].readings}
+                  </div>
                   <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.83rem", color: "#4b5563", lineHeight: 1.75, marginBottom: 16 }}>{homelies[0].excerpt}</p>
                   <button onClick={() => setSelected(homelies[0])}
                     style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.8rem" }}
                     className="flex items-center gap-2 text-white px-5 py-2.5 rounded-full hover:opacity-90 transition-opacity">
-                    🎙️ Écouter l'homélie
+                    <Icon name="mic" size={16} strokeWidth={1.75} /> {t("nourrir.homelies.ecouter")}
                   </button>
                 </div>
               </div>
@@ -137,18 +138,21 @@ export default function Homelies() {
                   </div>
                   <div className="p-5 flex-1 relative">
                     {user && (
-                      <button onClick={(e) => toggleFavorite(h.id, e)} className="absolute top-3 right-3 text-base">
-                        {favoriteIds.has(h.id) ? "❤️" : "🤍"}
+                      <button onClick={(e) => toggleFavorite(h.id, e)} aria-label={t("nourrir.homelies.favori")} className="absolute top-3 right-3 text-base">
+                        <Icon name="heart" size={18}
+                          style={favoriteIds.has(h.id) ? { color: "#e11d48", fill: "#e11d48" } : undefined} />
                       </button>
                     )}
-                    <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", color: "#9ca3af" }}>{formatDate(h.published_at)}</div>
+                    <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", color: "#9ca3af" }}>{formatDate(h.published_at, locale)}</div>
                     <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", marginTop: 2, marginBottom: 4 }}>
                       {h.sunday.length > 30 ? h.sunday.slice(0, 30) + "…" : h.sunday}
                     </div>
                     <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "0.9rem", fontWeight: 700, color: "#1c2340", lineHeight: 1.3, marginBottom: 6 }}>{h.title}</h3>
-                    <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.7rem", color: "#9ca3af" }}>⏱ {h.duration}</div>
+                    <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.7rem", color: "#9ca3af" }}>
+                      <Icon name="timer" size={15} strokeWidth={1.75} /> {h.duration}
+                    </div>
                     <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.74rem", color: "#0B3D91", fontWeight: 700 }}
-                      className="flex items-center gap-1 mt-3">🎙️ Écouter <IconArrow /></span>
+                      className="flex items-center gap-1 mt-3"><Icon name="mic" size={15} strokeWidth={1.75} /> {t("nourrir.homelies.ecouterCourt")} <Icon name="arrowRight" size={16} /></span>
                   </div>
                 </div>
               </div>
@@ -169,18 +173,26 @@ export default function Homelies() {
                 <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", marginBottom: 4 }}>{selected.sunday.toUpperCase()}</div>
                 <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.3rem", fontWeight: 700, color: "white" }}>{selected.title}</h2>
               </div>
-              <button onClick={() => setSelected(null)} className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 text-white rounded-full w-8 h-8 flex items-center justify-center transition-all text-sm">✕</button>
+              <button onClick={() => setSelected(null)} className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 text-white rounded-full w-8 h-8 flex items-center justify-center transition-all text-sm">
+                <Icon name="close" size={16} strokeWidth={1.75} />
+              </button>
               {user && (
-                <button onClick={(e) => toggleFavorite(selected.id, e)} className="absolute top-4 right-14 bg-white/20 hover:bg-white/40 rounded-full w-8 h-8 flex items-center justify-center transition-all text-sm">
-                  {favoriteIds.has(selected.id) ? "❤️" : "🤍"}
+                <button onClick={(e) => toggleFavorite(selected.id, e)} aria-label={t("nourrir.homelies.favori")} className="absolute top-4 right-14 bg-white/20 hover:bg-white/40 rounded-full w-8 h-8 flex items-center justify-center transition-all text-sm">
+                  <Icon name="heart" size={16} strokeWidth={1.75}
+                    style={favoriteIds.has(selected.id) ? { color: "#e11d48", fill: "#e11d48" } : { color: "#ffffff" }} />
                 </button>
               )}
             </div>
             <div className="p-6">
               <div className="flex flex-wrap gap-4 mb-5 text-sm">
-                {[["📅", formatDate(selected.published_at)], ["👤", selected.priest], ["📖", selected.readings], ["⏱", selected.duration]].map(([icon, val]) => (
+                {([
+                  ["calendar", formatDate(selected.published_at, locale)],
+                  ["user", selected.priest],
+                  ["bookOpen", selected.readings],
+                  ["timer", selected.duration],
+                ] as [IconName, string][]).map(([icon, val]) => (
                   <div key={val} className="flex items-center gap-1.5">
-                    <span>{icon}</span>
+                    <Icon name={icon} size={16} style={{ color: "#6b7280" }} />
                     <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.76rem", color: "#6b7280" }}>{val}</span>
                   </div>
                 ))}
@@ -188,7 +200,7 @@ export default function Homelies() {
               <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.87rem", color: "#4b5563", lineHeight: 1.8, marginBottom: 20 }}>{selected.excerpt}</p>
               {mediaUrl(selected.audio_url) && (
                 <audio controls src={mediaUrl(selected.audio_url)!} className="w-full mb-4" preload="none">
-                  Votre navigateur ne supporte pas la lecture audio.
+                  {t("nourrir.homelies.audioNonSupporte")}
                 </audio>
               )}
               <div className="flex gap-3">
@@ -196,12 +208,12 @@ export default function Homelies() {
                   <a href={mediaUrl(selected.pdf_url)!} target="_blank" rel="noreferrer"
                     style={{ border: "2px solid #0B3D91", color: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.8rem" }}
                     className="px-4 py-3 rounded-xl hover:bg-blue-50 transition-all">
-                    ⬇️ Télécharger le PDF
+                    <Icon name="download" size={15} strokeWidth={1.75} /> {t("nourrir.homelies.telechargerPdf")}
                   </a>
                 ) : (
                   <button disabled style={{ border: "2px solid #e5e7eb", color: "#9ca3af", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.8rem", cursor: "not-allowed" }}
                     className="px-4 py-3 rounded-xl">
-                    PDF indisponible
+                    {t("nourrir.homelies.pdfIndisponible")}
                   </button>
                 )}
               </div>

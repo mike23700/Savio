@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { apiGet } from "@/lib/api";
+import { apiGet } from "\@/lib/api";
+import Icon, { type IconName } from "@/components/Icon";
 
 interface Stats {
   intentions_en_attente: number;
@@ -15,14 +16,14 @@ interface Stats {
   dernieres_intentions: { id: number; nom: string; prenom: string; description: string; statut: string; created_at: string }[];
 }
 
-const CARDS: { key: keyof Stats; label: string; icon: string; to: string }[] = [
-  { key: "commandes_en_attente", label: "Commandes en attente de paiement", icon: "🛒", to: "/admin/commandes" },
-  { key: "reservations_en_attente", label: "Réservations (chambres & salles) à traiter", icon: "🛏️", to: "/admin/hebergement/reservations" },
-  { key: "intentions_en_attente", label: "Intentions de messe en attente", icon: "🙏", to: "/admin/intentions" },
-  { key: "messages_non_traites", label: "Messages de contact non traités", icon: "✉️", to: "/admin/messages" },
-  { key: "bans_non_traites", label: "Demandes de bans non traitées", icon: "💍", to: "/admin/bans" },
-  { key: "catechese_inscriptions_en_attente", label: "Inscriptions catéchèse en attente", icon: "📖", to: "/admin/catechese" },
-  { key: "registre_cette_semaine", label: "Nouvelles inscriptions au registre (7 jours)", icon: "📋", to: "/admin/registre" },
+const CARDS: { key: keyof Stats; label: string; icon: IconName; to: string }[] = [
+  { key: "commandes_en_attente", label: "Commandes en attente de paiement", icon: "cart", to: "/admin/commandes" },
+  { key: "reservations_en_attente", label: "Réservations (chambres & salles) à traiter", icon: "bed", to: "/admin/hebergement/reservations" },
+  { key: "intentions_en_attente", label: "Intentions de messe en attente", icon: "pray", to: "/admin/intentions" },
+  { key: "messages_non_traites", label: "Messages de contact non traités", icon: "mail", to: "/admin/messages" },
+  { key: "bans_non_traites", label: "Demandes de bans non traitées", icon: "ring", to: "/admin/bans" },
+  { key: "catechese_inscriptions_en_attente", label: "Inscriptions catéchèse en attente", icon: "bookOpen", to: "/admin/catechese" },
+  { key: "registre_cette_semaine", label: "Nouvelles inscriptions au registre (7 jours)", icon: "clipboard", to: "/admin/registre" },
 ];
 
 export default function Dashboard() {
@@ -48,7 +49,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
             {CARDS.map((c) => (
               <Link key={c.key} to={c.to} style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 12, padding: 20, textDecoration: "none", display: "block" }}>
-                <div style={{ fontSize: "1.6rem", marginBottom: 8 }}>{c.icon}</div>
+                <div style={{ marginBottom: 8, color: "#0B3D91" }}><Icon name={c.icon} size={26} /></div>
                 <div style={{ fontFamily: "Playfair Display, serif", fontSize: "1.6rem", fontWeight: 700, color: "#0B3D91" }}>{stats[c.key] as number}</div>
                 <div style={{ fontSize: "0.78rem", color: "#6b7280", marginTop: 4 }}>{c.label}</div>
               </Link>

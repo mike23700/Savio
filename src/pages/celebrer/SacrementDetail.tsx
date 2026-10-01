@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { apiGet, mediaUrl } from "@/lib/api";
+import Icon from "@/components/Icon";
+import { useLang } from "@/lib/i18n";
 
 interface SacrementDetail {
   id: number;
@@ -14,6 +16,7 @@ interface SacrementDetail {
 }
 
 export default function SacrementDetailPage() {
+  const { t } = useLang();
   const { id } = useParams<{ id: string }>();
   const [sacrement, setSacrement] = useState<SacrementDetail | null>(null);
   const [notFound, setNotFound] = useState(false);
@@ -30,12 +33,12 @@ export default function SacrementDetailPage() {
   if (notFound) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center">
-        <div className="text-6xl mb-4">⛪</div>
-        <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.8rem", fontWeight: 700, color: "#1c2340" }}>Sacrement introuvable</h1>
+        <div className="text-6xl mb-4"><Icon name="church" size={56} /></div>
+        <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.8rem", fontWeight: 700, color: "#1c2340" }}>{t("celebrer.sacrements.introuvable")}</h1>
         <Link to="/celebrer/sacrements"
           style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.83rem" }}
           className="inline-flex items-center gap-2 text-white px-6 py-3 rounded-full mt-6 hover:opacity-90 transition-opacity">
-          ← Retour aux sacrements
+          <Icon name="arrowLeft" size={16} /> {t("celebrer.sacrements.retour")}
         </Link>
       </div>
     );
@@ -50,10 +53,10 @@ export default function SacrementDetailPage() {
         <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,45,107,0.92) 0%, rgba(8,45,107,0.35) 60%, transparent 100%)" }} />
         <div className="relative max-w-7xl mx-auto px-6 py-10 w-full">
           <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <Link to="/" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>Accueil</Link>
-            <span style={{ color: "rgba(255,255,255,0.4)" }}>›</span>
-            <Link to="/celebrer/sacrements" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>Sacrements</Link>
-            <span style={{ color: "rgba(255,255,255,0.4)" }}>›</span>
+            <Link to="/" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>{t("nav.accueil")}</Link>
+            <Icon name="chevronRight" size={13} strokeWidth={1.75} style={{ color: "rgba(255,255,255,0.4)" }} />
+            <Link to="/celebrer/sacrements" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>{t("celebrer.sacrements.titre")}</Link>
+            <Icon name="chevronRight" size={13} strokeWidth={1.75} style={{ color: "rgba(255,255,255,0.4)" }} />
             <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#D4AF37" }}>{sacrement.title}</span>
           </div>
           <div className="flex items-center gap-3">
@@ -73,7 +76,7 @@ export default function SacrementDetailPage() {
           </p>
 
           <div style={{ background: "#F5F7FA", borderRadius: 16, padding: "24px 28px" }}>
-            <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.1em", marginBottom: 16 }}>INFORMATIONS PRATIQUES</div>
+            <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.1em", marginBottom: 16 }}>{t("celebrer.sacrements.informations")}</div>
             {sacrement.details.map((d) => (
               <div key={d.id} className="flex items-start gap-3 mb-3 last:mb-0">
                 <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#0B3D91", flexShrink: 0, marginTop: 7 }} />
@@ -86,12 +89,12 @@ export default function SacrementDetailPage() {
             <Link to="/celebrer/sacrements"
               style={{ border: "2px solid #0B3D91", color: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.83rem" }}
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full hover:bg-blue-50 transition-colors">
-              ← Retour aux sacrements
+              <Icon name="arrowLeft" size={16} /> {t("celebrer.sacrements.retour")}
             </Link>
             <Link to="/contact"
               style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.83rem" }}
               className="inline-flex items-center gap-2 text-white px-6 py-3 rounded-full hover:opacity-90 transition-opacity">
-              Contacter le secrétariat →
+              {t("celebrer.sacrements.contacterSecretariat")}<Icon name="arrowRight" size={16} />
             </Link>
           </div>
         </div>

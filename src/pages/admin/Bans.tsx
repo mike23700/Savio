@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiGet, apiPatch, apiDelete } from "@/lib/api";
 import { confirmDialog } from "./ConfirmDialog";
+import Icon from "@/components/Icon";
 
 interface Ban {
   id: number;
@@ -87,7 +88,7 @@ export default function AdminBans() {
                   <td style={td}>
                     <strong>{b.prenom} {b.nom}</strong>
                     {b.mariage_date && (
-                      <div style={{ fontSize: "0.72rem", color: "#9ca3af" }}>💍 Mariage : {new Date(b.mariage_date + "T00:00:00").toLocaleDateString("fr-FR")}</div>
+                      <div style={{ fontSize: "0.72rem", color: "#9ca3af" }}><Icon name="ring" size={13} strokeWidth={1.75} /> Mariage : {new Date(b.mariage_date + "T00:00:00").toLocaleDateString("fr-FR")}</div>
                     )}
                   </td>
                   <td style={td}>

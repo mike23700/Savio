@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { apiGet, apiDelete, apiFormData } from "@/lib/api";
 import { confirmDialog } from "./ConfirmDialog";
 import ImageUpload, { Thumb } from "./ImageUpload";
+import Icon from "@/components/Icon";
 
 interface Homelie {
   id: number;
@@ -135,9 +136,9 @@ export default function AdminHomelies() {
           </div>
           {editingId !== "new" && typeof editingId === "number" && (
             <div style={{ fontSize: "0.75rem", color: "#6b7280", marginTop: 8 }}>
-              🎙️ {homelieMediaUrl(rows.find((r) => r.id === editingId)?.audio_url) || "aucun audio"}
+              <Icon name="mic" size={13} strokeWidth={1.75} /> {homelieMediaUrl(rows.find((r) => r.id === editingId)?.audio_url) || "aucun audio"}
               {" · "}
-              📄 {homelieMediaUrl(rows.find((r) => r.id === editingId)?.pdf_url) || "aucun PDF"}
+              <Icon name="fileText" size={13} strokeWidth={1.75} /> {homelieMediaUrl(rows.find((r) => r.id === editingId)?.pdf_url) || "aucun PDF"}
             </div>
           )}
           <label className="flex items-center gap-2 mt-3" style={{ fontSize: "0.85rem" }}>

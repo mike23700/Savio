@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\RecordsAccountingEntry;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Donation extends Model
 {
+    use RecordsAccountingEntry;
+
     protected $fillable = [
         'user_id', 'projet_id', 'montant', 'payment_method', 'telephone', 'payment_status', 'intention',
         'payment_reference', 'payment_provider', 'payment_provider_status', 'payment_details',
@@ -40,6 +43,30 @@ class Donation extends Model
                 Projet::whereKey($donation->projet_id)->decrement('collecte', $donation->montant);
             }
         });
+    }
+
+    protected function accountingAmount(): ?int
+    {
+        return (int) $this->montant;
+    }
+
+    protected function accountingLibelle(): string
+    {
+        $this->loadMissing('user:id,nom,prenom');
+
+        return 'Don — ' . $this->paymentCustomerName() . ($this->intention ? " ({$this->intention})" : '');
+    }
+
+    protected function accountingCategoryNames(): array
+    {
+        return ['Dons et offrandes', 'Quêtes'];
+    }
+
+    protected function accountingNotes(): ?string
+    {
+        $this->loadMissing('projet:id,titre');
+
+        return $this->projet ? "Projet : {$this->projet->titre}" : null;
     }
 
     public function projet(): BelongsTo

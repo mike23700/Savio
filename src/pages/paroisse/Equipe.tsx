@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { apiGet, mediaUrl } from "@/lib/api";
 import type { TeamMember } from "@/lib/content-types";
+import Icon from "@/components/Icon";
+import { useLang } from "@/lib/i18n";
 
 export default function Equipe() {
+  const { t } = useLang();
   const [team, setTeam] = useState<TeamMember[]>([]);
 
   useEffect(() => {
@@ -15,29 +18,29 @@ export default function Equipe() {
       <div className="relative h-64 md:h-80 flex items-end overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1634334639396-b34c80a75ea1?w=1400&h=600&fit=crop&auto=format"
-          alt="Notre équipe pastorale"
+          alt={t("paroisse.equipe.alt")}
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,45,107,0.92) 0%, rgba(8,45,107,0.35) 60%, transparent 100%)" }} />
         <div className="relative max-w-7xl mx-auto px-6 py-10 w-full">
           <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <Link to="/" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>Accueil</Link>
-            <span style={{ color: "rgba(255,255,255,0.4)" }}>›</span>
-            <Link to="/paroisse" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>La Paroisse</Link>
-            <span style={{ color: "rgba(255,255,255,0.4)" }}>›</span>
-            <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#D4AF37" }}>Le Curé & l'équipe</span>
+            <Link to="/" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>{t("paroisse.accueil")}</Link>
+            <Icon name="chevronRight" size={13} strokeWidth={1.75} style={{ color: "rgba(255,255,255,0.4)" }} />
+            <Link to="/paroisse" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>{t("paroisse.titre")}</Link>
+            <Icon name="chevronRight" size={13} strokeWidth={1.75} style={{ color: "rgba(255,255,255,0.4)" }} />
+            <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#D4AF37" }}>{t("paroisse.equipe.titre")}</span>
           </div>
-          <h1 style={{ fontFamily: "Playfair Display, serif", color: "white", fontSize: "clamp(1.8rem, 4vw, 2.8rem)", fontWeight: 700 }}>Le Curé & l'équipe pastorale</h1>
-          <p style={{ fontFamily: "Montserrat, sans-serif", color: "rgba(255,255,255,0.8)", fontSize: "0.9rem", marginTop: 6 }}>Les prêtres au service de notre communauté</p>
+          <h1 style={{ fontFamily: "Playfair Display, serif", color: "white", fontSize: "clamp(1.8rem, 4vw, 2.8rem)", fontWeight: 700 }}>{t("paroisse.equipe.titreComplet")}</h1>
+          <p style={{ fontFamily: "Montserrat, sans-serif", color: "rgba(255,255,255,0.8)", fontSize: "0.9rem", marginTop: 6 }}>{t("paroisse.equipe.sousTitre")}</p>
         </div>
       </div>
 
       <section className="py-16 px-4 bg-white">
         <div className="max-w-5xl mx-auto">
-          <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.15em" }} className="mb-2">NOTRE ÉQUIPE</div>
-          <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 700, color: "#1c2340", marginBottom: 8 }}>Les prêtres de la paroisse</h2>
+          <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.15em" }} className="mb-2">{t("paroisse.equipe.labelEquipe")}</div>
+          <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 700, color: "#1c2340", marginBottom: 8 }}>{t("paroisse.equipe.titrePretres")}</h2>
           <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.88rem", color: "#6b7280", marginBottom: 48, lineHeight: 1.7 }}>
-            Une équipe pastorale unie dans le service de Dieu et de notre communauté paroissiale.
+            {t("paroisse.equipe.intro")}
           </p>
 
           <div className="space-y-8">
@@ -60,7 +63,7 @@ export default function Equipe() {
                       </span>
                       {priest.since && (
                         <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.72)" }}>
-                          En poste depuis {priest.since}
+                          {t("paroisse.equipe.enPoste").replace("{date}", String(priest.since))}
                         </div>
                       )}
                     </div>
@@ -87,13 +90,13 @@ export default function Equipe() {
                         to={`/paroisse/equipe/${priest.slug}`}
                         style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.78rem" }}
                         className="inline-flex items-center gap-2 text-white px-5 py-2.5 rounded-full hover:opacity-90 transition-opacity">
-                        Voir le profil complet →
+                        {t("paroisse.equipe.voirProfil")}<Icon name="arrowRight" size={16} />
                       </Link>
                       {priest.email && <a
                         href={`mailto:${priest.email}`}
                         style={{ border: "1.5px solid #e5e7eb", fontFamily: "Montserrat, sans-serif", fontWeight: 600, fontSize: "0.78rem", color: "#6b7280" }}
                         className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full hover:border-blue-300 hover:text-blue-700 transition-colors">
-                        ✉ Contacter
+                        <Icon name="mail" size={16} /> {t("paroisse.equipe.contacter")}
                       </a>}
                     </div>
                   </div>
@@ -103,20 +106,20 @@ export default function Equipe() {
           </div>
 
           <div className="mt-12 bg-blue-50 rounded-2xl p-8 text-center border border-blue-100">
-            <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.2rem", fontWeight: 700, color: "#1c2340", marginBottom: 8 }}>Contacter la paroisse</h3>
+            <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.2rem", fontWeight: 700, color: "#1c2340", marginBottom: 8 }}>{t("paroisse.equipe.titreContact")}</h3>
             <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.85rem", color: "#6b7280", marginBottom: 20, lineHeight: 1.7 }}>
-              Pour toute demande pastorale, vous pouvez contacter le secrétariat ou nous écrire directement.
+              {t("paroisse.equipe.introContact")}
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <Link to="/contact"
                 style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.83rem" }}
                 className="inline-flex items-center gap-2 text-white px-6 py-3 rounded-full hover:opacity-90 transition-opacity">
-                📞 Nous contacter
+                <Icon name="phone" size={16} /> {t("paroisse.contact.nousContacter")}
               </Link>
               <Link to="/celebrer/intention"
                 style={{ border: "2px solid #0B3D91", color: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.83rem" }}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full hover:bg-blue-50 transition-colors">
-                🙏 Demander une intention de messe
+                <Icon name="pray" size={16} /> {t("paroisse.equipe.ctaIntention")}
               </Link>
             </div>
           </div>

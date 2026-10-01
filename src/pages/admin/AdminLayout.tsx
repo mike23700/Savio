@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+﻿
+import Icon from "@/components/Icon";import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router";
 import { useAuth } from "@/lib/auth";
 import ConfirmHost from "./ConfirmDialog";
@@ -41,6 +42,7 @@ const NAV: NavItem[] = [
     ],
   },
   { label: "Dons", to: "/admin/dons" },
+  { label: "Comptabilité", to: "/admin/comptabilite" },
   {
     label: "Journal",
     children: [
@@ -86,10 +88,8 @@ function NavSection({ group }: { group: NavGroup }) {
         }}
       >
         {group.label}
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-          style={{ transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "none", opacity: 0.8 }}>
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
+        <Icon name="chevronDown" size={14} strokeWidth={1.75}
+          style={{ transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "none", opacity: 0.8 }} />
       </button>
       {open && (
         <div style={{ display: "flex", flexDirection: "column", gap: 2, marginTop: 2 }}>
@@ -145,7 +145,7 @@ export default function AdminLayout() {
           }}
         >
           <Link to="/" style={{ fontSize: "0.85rem", color: "#6b7280", textDecoration: "none" }}>
-            ← Retour au site public
+            <Icon name="arrowLeft" size={14} strokeWidth={1.75} /> Retour au site public
           </Link>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <span style={{ fontSize: "0.85rem", color: "#1c2340" }}>

@@ -1,6 +1,8 @@
-import { createBrowserRouter } from "react-router";
+﻿
+import Icon from "@/components/Icon";import { createBrowserRouter } from "react-router";
 import Layout from "@/components/Layout";
 import { RequireAdmin, RequireAuth } from "@/lib/auth";
+import { useLang } from "@/lib/i18n";
 import AdminLayout from "@/pages/admin/AdminLayout";
 import AdminLogin from "@/pages/admin/AdminLogin";
 import AdminDashboard from "@/pages/admin/Dashboard";
@@ -25,6 +27,7 @@ import AdminRegistre from "@/pages/admin/Registre";
 import AdminProduits from "@/pages/admin/Produits";
 import AdminCommandes from "@/pages/admin/Commandes";
 import AdminDonations from "@/pages/admin/Donations";
+import AdminComptabilite from "@/pages/admin/Comptabilite";
 import AdminEspaces from "@/pages/admin/Espaces";
 import AdminReservations from "@/pages/admin/Reservations";
 import AdminJournalAbonnements from "@/pages/admin/JournalAbonnements";
@@ -81,16 +84,17 @@ import Priere from "@/pages/se-nourrir/Priere";
 import Journal from "@/pages/se-nourrir/Journal";
 
 function NotFound() {
+  const { t } = useLang();
   return (
     <div className="min-h-[60vh] flex items-center justify-center flex-col text-center px-6">
-      <div className="text-7xl mb-6">⛪</div>
-      <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: "2rem", fontWeight: 700, color: "#1c2340" }}>Page introuvable</h1>
+      <div className="mb-6" style={{ color: "#0B3D91" }}><Icon name="church" size={72} strokeWidth={1} /></div>
+      <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: "2rem", fontWeight: 700, color: "#1c2340" }}>{t("404.titre")}</h1>
       <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.9rem", color: "#6b7280", marginTop: 8 }}>
-        La page que vous cherchez n'existe pas ou a été déplacée.
+        {t("404.texte")}
       </p>
       <a href="/" style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.85rem" }}
         className="inline-flex items-center gap-2 text-white px-6 py-3 rounded-full mt-8 hover:opacity-90 transition-opacity">
-        Retour à l'accueil
+        {t("404.retour")}
       </a>
     </div>
   );
@@ -197,6 +201,7 @@ export const router = createBrowserRouter([
       { path: "produits", Component: AdminProduits },
       { path: "commandes", Component: AdminCommandes },
       { path: "dons", Component: AdminDonations },
+      { path: "comptabilite", Component: AdminComptabilite },
       { path: "hebergement/espaces", Component: AdminEspaces },
       { path: "hebergement/reservations", Component: AdminReservations },
       { path: "journal/abonnements", Component: AdminJournalAbonnements },

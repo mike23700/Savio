@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { apiGet, apiPatch, localDateISO } from "@/lib/api";
 import { ESPACE_KIND, RESERVATION_STATUT, formatFcfa, formatShortDate, type Reservation } from "@/lib/content-types";
+import Icon from "@/components/Icon";
 
 const PAYMENT_LABEL: Record<string, string> = { orange_money: "Orange Money", mtn_momo: "MTN MoMo", especes: "Espèces" };
 const PAYMENT_STATUS_LABEL: Record<string, string> = { en_attente: "en attente", paye: "payé", echoue: "échoué", annule: "annulé" };
@@ -69,8 +70,8 @@ export default function AdminReservations() {
                   </td>
                   <td style={td}>
                     {formatShortDate(r.date_debut)}
-                    {(kind === "chambre" || r.date_fin.slice(0, 10) !== r.date_debut.slice(0, 10)) && <><br />→ {formatShortDate(r.date_fin)}</>}
-                    {kind === "chambre" && <><br /><span style={{ color: "#9ca3af", fontSize: "0.72rem" }}>arrivée → départ</span></>}
+                    {(kind === "chambre" || r.date_fin.slice(0, 10) !== r.date_debut.slice(0, 10)) && <><br /><Icon name="arrowRight" size={12} strokeWidth={1.75} /> {formatShortDate(r.date_fin)}</>}
+                    {kind === "chambre" && <><br /><span style={{ color: "#9ca3af", fontSize: "0.72rem" }}>arrivée <Icon name="arrowRight" size={12} strokeWidth={1.75} /> départ</span></>}
                   </td>
                   <td style={td}>
                     {r.prenom} {r.nom}<br />

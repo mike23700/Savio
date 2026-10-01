@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+﻿
+import Icon from "@/components/Icon";import { useEffect, useRef, useState } from "react";
 
 export interface ConfirmOptions {
   title?: string;
@@ -101,15 +102,7 @@ export default function ConfirmHost() {
             width: 44, height: 44, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
             background: danger ? "#fee2e2" : "#E8F2FF", color: accent,
           }}>
-            {danger ? (
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-            )}
+            <Icon name={danger ? "trash" : "info"} size={22} strokeWidth={1.75} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <h2 id="cd-title" style={{ fontFamily: "Playfair Display, serif", fontSize: "1.15rem", fontWeight: 700, color: "#1c2340", margin: 0 }}>

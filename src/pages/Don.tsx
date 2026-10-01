@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { apiGet, apiPost, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { useLang } from "@/lib/i18n";
 import PaymentStatus, { type PaymentInfo } from "@/components/PaymentStatus";
+import Icon, { type IconName } from "@/components/Icon";
 
 const MODE_TO_METHOD: Record<string, string> = { orange: "orange_money", mtn: "mtn_momo", especes: "especes" };
 
@@ -19,6 +21,7 @@ interface DonationResult {
 }
 
 export default function Don() {
+  const { t, lang } = useLang();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const [projets, setProjets] = useState<ProjetOption[]>([]);
@@ -49,7 +52,7 @@ export default function Don() {
     setError(null);
     const amount = parseInt((montantCustom || montant).replace(/\s/g, ""), 10);
     if (!amount) {
-      setError("Veuillez choisir ou saisir un montant.");
+      setError(t("top.don.erreurMontant"));
       return;
     }
     try {
@@ -63,7 +66,7 @@ export default function Don() {
       setResult(res);
       setSubmitted(true);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Une erreur est survenue, veuillez réessayer.");
+      setError(err instanceof ApiError ? err.message : t("top.common.erreurGenerique"));
     }
   };
 
@@ -75,17 +78,17 @@ export default function Don() {
     <>
       <div className="relative h-64 flex items-end overflow-hidden">
         <img src="https://images.unsplash.com/photo-1515657241610-a6b33f0f6c5a?w=1400&h=500&fit=crop&auto=format"
-          alt="Faire un don" className="absolute inset-0 w-full h-full object-cover" />
+          alt={t("top.don.alt")} className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,45,107,0.92) 0%, rgba(8,45,107,0.35) 60%, transparent 100%)" }} />
         <div className="relative max-w-7xl mx-auto px-6 pb-10 w-full">
           <div className="flex items-center gap-2 mb-2">
-            <Link to="/" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>Accueil</Link>
-            <span style={{ color: "rgba(255,255,255,0.4)" }}>›</span>
-            <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#D4AF37" }}>Faire un don</span>
+            <Link to="/" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>{t("top.common.accueil")}</Link>
+            <Icon name="chevronRight" size={13} strokeWidth={1.75} style={{ color: "rgba(255,255,255,0.4)" }} />
+            <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#D4AF37" }}>{t("top.don.breadcrumb")}</span>
           </div>
-          <h1 style={{ fontFamily: "Playfair Display, serif", color: "white", fontSize: "clamp(1.8rem, 4vw, 2.8rem)", fontWeight: 700 }}>Soutenir la paroisse</h1>
+          <h1 style={{ fontFamily: "Playfair Display, serif", color: "white", fontSize: "clamp(1.8rem, 4vw, 2.8rem)", fontWeight: 700 }}>{t("top.don.titre")}</h1>
           <p style={{ fontFamily: "Montserrat, sans-serif", color: "rgba(255,255,255,0.8)", fontSize: "0.9rem", marginTop: 6 }}>
-            Votre générosité permet à la paroisse de vivre et de grandir
+            {t("top.don.sousTitre")}
           </p>
         </div>
       </div>
@@ -94,23 +97,23 @@ export default function Don() {
         <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-10">
           {/* Why give */}
           <div className="lg:col-span-2">
-            <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.15em" }} className="mb-2">ENSEMBLE</div>
+            <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.15em" }} className="mb-2">{t("top.don.surtitre")}</div>
             <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.5rem", fontWeight: 700, color: "#1c2340", marginBottom: 16 }}>
-              Pourquoi faire un don ?
+              {t("top.don.pourquoi")}
             </h2>
             <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.88rem", color: "#4b5563", lineHeight: 1.85, marginBottom: 24 }}>
-              Vos dons permettent à la paroisse de mener à bien sa mission d'évangélisation, de célébration des sacrements et de service aux plus démunis à travers la Caritas.
+              {t("top.don.pourquoiTexte")}
             </p>
             <div className="space-y-4">
-              {[
-                { icon: "⛪", titre: "Entretien de l'église", desc: "Maintenance et rénovation des locaux paroissiaux" },
-                { icon: "📚", titre: "Formation & catéchèse", desc: "Matériel pédagogique et formation des catéchistes" },
-                { icon: "❤️", titre: "Caritas & solidarité", desc: "Aide aux familles défavorisées de la paroisse" },
-                { icon: "🎙️", titre: "Pastorale & célébrations", desc: "Organisation des célébrations et activités pastorales" },
-              ].map((r) => (
+              {([
+                { icon: "church", titre: t("top.don.motif1Titre"), desc: t("top.don.motif1Desc") },
+                { icon: "books", titre: t("top.don.motif2Titre"), desc: t("top.don.motif2Desc") },
+                { icon: "heart", titre: t("top.don.motif3Titre"), desc: t("top.don.motif3Desc") },
+                { icon: "mic", titre: t("top.don.motif4Titre"), desc: t("top.don.motif4Desc") },
+              ] as { icon: IconName; titre: string; desc: string }[]).map((r) => (
                 <div key={r.titre} className="flex gap-3">
                   <div style={{ width: 36, height: 36, background: "#E8F2FF", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem", flexShrink: 0 }}>
-                    {r.icon}
+                    <Icon name={r.icon} size={18} />
                   </div>
                   <div>
                     <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.8rem", fontWeight: 700, color: "#1c2340" }}>{r.titre}</div>
@@ -121,9 +124,9 @@ export default function Don() {
             </div>
             <div className="mt-8 bg-blue-50 rounded-xl p-5 border border-blue-100">
               <blockquote style={{ fontFamily: "Playfair Display, serif", fontSize: "0.95rem", fontStyle: "italic", color: "#0B3D91", lineHeight: 1.6 }}>
-                « Que chacun donne comme il l'a résolu en son cœur, sans tristesse ni contrainte, car Dieu aime celui qui donne avec joie. »
+                {t("top.don.citation")}
               </blockquote>
-              <cite style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#D4AF37", marginTop: 8, display: "block", fontStyle: "normal", fontWeight: 600 }}>2 Corinthiens 9, 7</cite>
+              <cite style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#D4AF37", marginTop: 8, display: "block", fontStyle: "normal", fontWeight: 600 }}>{t("top.don.citationRef")}</cite>
             </div>
           </div>
 
@@ -131,11 +134,11 @@ export default function Don() {
           <div className="lg:col-span-3">
             {submitted && result ? (
               <div className="text-center py-12">
-                <div className="text-6xl mb-5">🙏</div>
-                <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.5rem", fontWeight: 700, color: "#1c2340" }}>Merci pour votre générosité !</h3>
+                <div className="text-6xl mb-5"><Icon name="pray" size={48} /></div>
+                <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.5rem", fontWeight: 700, color: "#1c2340" }}>{t("top.don.merciTitre")}</h3>
                 <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.9rem", color: "#6b7280", marginTop: 10, lineHeight: 1.7, maxWidth: 420, margin: "10px auto 0" }}>
-                  Votre don de <strong>{Number(result.donation.montant).toLocaleString("fr-FR")} FCFA</strong>
-                  {result.donation.projet && <> pour le projet <strong>{result.donation.projet.titre}</strong></>} a bien été enregistré.
+                  {t("top.don.merciAvant")} <strong>{Number(result.donation.montant).toLocaleString(lang === "en" ? "en-GB" : "fr-FR")} FCFA</strong>
+                  {result.donation.projet && <> {t("top.don.merciProjet")} <strong>{result.donation.projet.titre}</strong></>} {t("top.don.merciApres")}
                 </p>
                 <div className="mt-5 max-w-md mx-auto">
                   <PaymentStatus initial={result.payment} />
@@ -143,19 +146,19 @@ export default function Don() {
                 <button onClick={() => { setSubmitted(false); setResult(null); }}
                   style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.85rem" }}
                   className="inline-flex items-center gap-2 text-white px-6 py-3 rounded-full mt-6 hover:opacity-90">
-                  Faire un autre don
+                  {t("top.don.autreDon")}
                 </button>
               </div>
             ) : (
               <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-                <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.2rem", fontWeight: 700, color: "#1c2340", marginBottom: 20 }}>Formulaire de don</h3>
+                <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.2rem", fontWeight: 700, color: "#1c2340", marginBottom: 20 }}>{t("top.don.formulaireTitre")}</h3>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Destination */}
                   <div>
-                    <label style={labelStyle} className="block mb-1.5">Destination du don</label>
+                    <label style={labelStyle} className="block mb-1.5">{t("top.don.destination")}</label>
                     <select value={projetId} onChange={e => setProjetId(e.target.value)} className={inputClass} style={inputStyle}>
-                      <option value="">La paroisse (don libre)</option>
-                      {projets.map(p => <option key={p.id} value={p.id}>Projet : {p.titre}</option>)}
+                      <option value="">{t("top.don.destinationLibre")}</option>
+                      {projets.map(p => <option key={p.id} value={p.id}>{t("top.don.destinationProjet").replace("{titre}", p.titre)}</option>)}
                     </select>
                     {selectedProjet && selectedProjet.objectif > 0 && (() => {
                       const pct = Math.min(100, Math.round((selectedProjet.collecte / selectedProjet.objectif) * 100));
@@ -165,7 +168,7 @@ export default function Don() {
                             <div style={{ width: `${pct}%`, height: "100%", background: "#0B3D91", borderRadius: 20 }} />
                           </div>
                           <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#6b7280", marginTop: 6 }}>
-                            {Number(selectedProjet.collecte).toLocaleString("fr-FR")} / {Number(selectedProjet.objectif).toLocaleString("fr-FR")} FCFA collectés ({pct}%)
+                            {t("top.don.collecte").replace("{collecte}", Number(selectedProjet.collecte).toLocaleString(lang === "en" ? "en-GB" : "fr-FR")).replace("{objectif}", Number(selectedProjet.objectif).toLocaleString(lang === "en" ? "en-GB" : "fr-FR")).replace("{pct}", String(pct))}
                           </p>
                         </div>
                       );
@@ -174,7 +177,7 @@ export default function Don() {
 
                   {/* Amount */}
                   <div>
-                    <label style={labelStyle} className="block mb-3">Montant (FCFA) *</label>
+                    <label style={labelStyle} className="block mb-3">{t("top.don.montantLabel")}</label>
                     <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-3">
                       {MONTANTS.map(m => (
                         <button type="button" key={m} onClick={() => { setMontant(m); setMontantCustom(""); }}
@@ -190,19 +193,19 @@ export default function Don() {
                       ))}
                     </div>
                     <input value={montantCustom} onChange={e => { setMontantCustom(e.target.value); setMontant(""); }}
-                      placeholder="Autre montant (FCFA)" type="number" min="500"
+                      placeholder={t("top.don.montantAutre")} type="number" min="500"
                       className={inputClass} style={inputStyle} />
                   </div>
 
                   {/* Mode de paiement */}
                   <div>
-                    <label style={labelStyle} className="block mb-3">Mode de paiement *</label>
+                    <label style={labelStyle} className="block mb-3">{t("top.don.modeLabel")}</label>
                     <div className="grid grid-cols-3 gap-3">
-                      {[
-                        { id: "orange", label: "Orange Money", icon: "🟠" },
-                        { id: "mtn", label: "MTN MoMo", icon: "🟡" },
-                        { id: "especes", label: "Espèces", icon: "💵" },
-                      ].map(p => (
+                      {([
+                        { id: "orange", label: "Orange Money", dot: "#FF7900" },
+                        { id: "mtn", label: "MTN MoMo", dot: "#FFCC00" },
+                        { id: "especes", label: t("top.common.especes"), icon: "banknote" },
+                      ] as { id: string; label: string; dot?: string; icon?: IconName }[]).map(p => (
                         <button type="button" key={p.id} onClick={() => setMode(p.id)}
                           style={{
                             fontFamily: "Montserrat, sans-serif", fontSize: "0.76rem", fontWeight: 600,
@@ -211,7 +214,11 @@ export default function Don() {
                             border: mode === p.id ? "2px solid #0B3D91" : "2px solid transparent",
                           }}
                           className="py-3 rounded-xl flex flex-col items-center gap-1 hover:opacity-90 transition-all">
-                          <span className="text-xl">{p.icon}</span>
+                          {p.dot ? (
+                            <span style={{ width: 12, height: 12, borderRadius: "50%", background: p.dot }} />
+                          ) : (
+                            <Icon name={p.icon as IconName} size={20} />
+                          )}
                           <span>{p.label}</span>
                         </button>
                       ))}
@@ -219,27 +226,27 @@ export default function Don() {
                     {mode !== "especes" && (
                       <div className="mt-3">
                         <label style={labelStyle} className="block mb-1.5">
-                          Numéro {mode === "orange" ? "Orange Money" : "MTN MoMo"} à débiter *
+                          {mode === "orange" ? t("top.don.numeroOrange") : t("top.don.numeroMtn")}
                         </label>
                         <input required value={telephone} onChange={e => setTelephone(e.target.value)} type="tel"
-                          placeholder="Ex : 655 52 99 99" className={inputClass} style={inputStyle} />
+                          placeholder={t("top.don.telPlaceholder")} className={inputClass} style={inputStyle} />
                         <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#6b7280", marginTop: 6 }}>
-                          📱 Vous recevrez une demande de paiement à valider avec votre code secret.
+                          <Icon name="smartphone" size={15} strokeWidth={1.75} /> {t("top.don.validationMmo")}
                         </p>
                       </div>
                     )}
                     {mode === "especes" && (
                       <div className="mt-3 bg-gray-50 rounded-xl p-4 border border-gray-200">
                         <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "#374151" }}>
-                          💵 Les dons en espèces sont reçus au secrétariat paroissial, lun–ven de 8h à 13h et de 15h30 à 18h30.
+                          <Icon name="banknote" size={16} strokeWidth={1.75} /> {t("top.don.especesTexte")}
                         </p>
                       </div>
                     )}
                   </div>
 
                   <div>
-                    <label style={labelStyle} className="block mb-1.5">Intention particulière (optionnel)</label>
-                    <input value={intention} onChange={e => setIntention(e.target.value)} placeholder="Ex : pour les travaux, pour la Caritas..." className={inputClass} style={inputStyle} />
+                    <label style={labelStyle} className="block mb-1.5">{t("top.don.intentionLabel")}</label>
+                    <input value={intention} onChange={e => setIntention(e.target.value)} placeholder={t("top.don.intentionPlaceholder")} className={inputClass} style={inputStyle} />
                   </div>
                   {error && (
                     <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.82rem" }}>
@@ -249,7 +256,7 @@ export default function Don() {
                   <button type="submit"
                     style={{ background: "#D4AF37", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.9rem" }}
                     className="w-full text-white py-4 rounded-xl hover:opacity-90 transition-opacity">
-                    ❤️ Confirmer mon don
+                    <Icon name="heart" size={18} /> {t("top.don.confirmer")}
                   </button>
                 </form>
               </div>

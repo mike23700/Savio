@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
 import { confirmDialog } from "./ConfirmDialog";
 import ImageUpload, { Thumb } from "./ImageUpload";
+import Icon from "@/components/Icon";
 
 interface Photo {
   id: number;
@@ -136,7 +137,7 @@ export default function AdminProjets() {
             {photos.map((p) => (
               <div key={p.id} className="relative">
                 <img src={p.url} alt="" style={{ width: 90, height: 70, objectFit: "cover", borderRadius: 8 }} />
-                <button onClick={() => removePhoto(p.id)} style={{ position: "absolute", top: -6, right: -6, background: "#b91c1c", color: "#fff", borderRadius: "50%", width: 20, height: 20, border: "none", cursor: "pointer", fontSize: "0.7rem" }}>✕</button>
+                <button onClick={() => removePhoto(p.id)} style={{ position: "absolute", top: -6, right: -6, background: "#b91c1c", color: "#fff", borderRadius: "50%", width: 20, height: 20, border: "none", cursor: "pointer" }}><Icon name="close" size={11} strokeWidth={2} /></button>
               </div>
             ))}
           </div>

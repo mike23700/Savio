@@ -1,108 +1,98 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router";
 import { PARISH } from "@/data/content";
 import logoImg from "@/imports/logo.png";
 import { useSettings } from "@/lib/settings";
+import { useLang } from "@/lib/i18n";
+import Icon, { type IconName } from "@/components/Icon";
+import LangSwitch from "@/components/LangSwitch";
 
-// ─── Icons ───────────────────────────────────────────────────────────────────
+/** Accessible names for the social round buttons, which now hold a bare icon. */
+const SOCIAL_LABELS: Partial<Record<IconName, string>> = {
+  whatsapp: "WhatsApp",
+  facebook: "Facebook",
+  youtube: "YouTube",
+  instagram: "Instagram",
+};
 
-const IconMenu = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
-    <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
-  </svg>
-);
-const IconClose = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
-    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-  </svg>
-);
-const IconChevronDown = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-    <polyline points="6 9 12 15 18 9" />
-  </svg>
-);
-const IconArrow = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 inline ml-1">
-    <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
-  </svg>
-);
-
-// ─── Nav Config ──────────────────────────────────────────────────────────────
 
 const NAV = [
-  { label: "Accueil", to: "/" },
+  { labelKey: "nav.accueil", to: "/" },
   {
-    label: "La Paroisse", to: "/paroisse",
+    labelKey: "nav.paroisse", to: "/paroisse",
     sub: [
-      { label: "Notre Histoire", to: "/paroisse/histoire" },
-      { label: "Genèse", to: "/paroisse/genese" },
-      { label: "Saint Dominique Savio", to: "/paroisse/savio" },
-      { label: "Le Curé & l'équipe", to: "/paroisse/equipe" },
-      { label: "Organisation", to: "/paroisse/organisation" },
-      { label: "Archidiocèse", to: "/paroisse/archidiocese" },
-      { label: "Médiathèque", to: "/paroisse/mediatheque" },
+      { labelKey: "nav.paroisse.histoire", to: "/paroisse/histoire" },
+      { labelKey: "nav.paroisse.genese", to: "/paroisse/genese" },
+      { labelKey: "nav.paroisse.savio", to: "/paroisse/savio" },
+      { labelKey: "nav.paroisse.equipe", to: "/paroisse/equipe" },
+      { labelKey: "nav.paroisse.organisation", to: "/paroisse/organisation" },
+      { labelKey: "nav.paroisse.archidiocese", to: "/paroisse/archidiocese" },
+      { labelKey: "nav.paroisse.mediatheque", to: "/paroisse/mediatheque" },
     ],
   },
   {
-    label: "Vie paroissiale", to: "/vie-paroissiale",
+    labelKey: "nav.vie", to: "/vie-paroissiale",
     sub: [
-      { label: "Mouvements & Groupes", to: "/vie-paroissiale/mouvements" },
-      { label: "Caritas", to: "/vie-paroissiale/caritas" },
-      { label: "Projets", to: "/vie-paroissiale/projets" },
-      { label: "Registre paroissial", to: "/vie-paroissiale/registre" },
-      { label: "Centre d'accueil (chambres)", to: "/centre-accueil" },
-      { label: "Location de salles", to: "/location-salles" },
+      { labelKey: "nav.vie.mouvements", to: "/vie-paroissiale/mouvements" },
+      { labelKey: "nav.vie.caritas", to: "/vie-paroissiale/caritas" },
+      { labelKey: "nav.vie.projets", to: "/vie-paroissiale/projets" },
+      { labelKey: "nav.vie.registre", to: "/vie-paroissiale/registre" },
     ],
   },
   {
-    label: "Célébrer", to: "/celebrer",
+    labelKey: "nav.celebrer", to: "/celebrer",
     sub: [
-      { label: "Horaires des messes", to: "/celebrer/messes" },
-      { label: "Sacrements", to: "/celebrer/sacrements" },
-      { label: "Intention de messe", to: "/celebrer/intention" },
-      { label: "Publication des bans", to: "/celebrer/bans" },
-      { label: "Homélies", to: "/homelies" },
-      { label: "Agenda liturgique", to: "/agenda" },
+      { labelKey: "nav.celebrer.messes", to: "/celebrer/messes" },
+      { labelKey: "nav.celebrer.sacrements", to: "/celebrer/sacrements" },
+      { labelKey: "nav.celebrer.intention", to: "/celebrer/intention" },
+      { labelKey: "nav.celebrer.bans", to: "/celebrer/bans" },
+      { labelKey: "nav.celebrer.homelies", to: "/homelies" },
+      { labelKey: "nav.celebrer.agenda", to: "/agenda" },
     ],
   },
   {
-    label: "Se nourrir", to: "/se-nourrir",
+    labelKey: "nav.nourrir", to: "/se-nourrir",
     sub: [
-      { label: "Lectures du jour", to: "/lectures" },
-      { label: "Catéchèse", to: "/se-nourrir/catechese" },
-      { label: "Prière & Méditation", to: "/se-nourrir/priere" },
-      { label: "Journal paroissial", to: "/se-nourrir/journal" },
+      { labelKey: "nav.nourrir.lectures", to: "/lectures" },
+      { labelKey: "nav.nourrir.catechese", to: "/se-nourrir/catechese" },
+      { labelKey: "nav.nourrir.priere", to: "/se-nourrir/priere" },
+      { labelKey: "nav.nourrir.journal", to: "/se-nourrir/journal" },
     ],
   },
-  { label: "Actualités", to: "/actualites" },
-  { label: "Agenda", to: "/agenda" },
-  { label: "Boutique", to: "/boutique" },
+  {
+    labelKey: "nav.louer", to: "/centre-accueil",
+    sub: [
+      { labelKey: "nav.louer.chambre", to: "/centre-accueil" },
+      { labelKey: "nav.louer.salle", to: "/location-salles" },
+    ],
+  },
+  { labelKey: "nav.actualites", to: "/actualites" },
+  { labelKey: "nav.agenda", to: "/agenda" },
+  { labelKey: "nav.boutique", to: "/boutique" },
 ];
 
 // ─── Top Bar ─────────────────────────────────────────────────────────────────
 
 function TopBar() {
   const settings = useSettings();
-  const whatsapp = settings["parish.whatsapp_number"] || "237655529999";
+  const { t } = useLang();
   return (
     <div className="hidden sm:block" style={{ background: "#0B3D91" }}>
-      <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
         <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.85)", letterSpacing: "0.04em" }}>
           {settings["parish.tagline"] || PARISH.tagline}
         </span>
-        <div className="flex items-center gap-4">
-          {[
-            { icon: "💬", label: "WhatsApp", href: `https://wa.me/${whatsapp}` },
-            { icon: "📘", label: "Facebook", href: settings["social.facebook_url"] || "#" },
-            { icon: "▶️", label: "YouTube", href: settings["social.youtube_url"] || "#" },
-            { icon: "📷", label: "Instagram", href: settings["social.instagram_url"] || "#" },
-          ].map(({ icon, label, href }) => (
-            <a key={label} href={href} target="_blank" rel="noreferrer"
-              style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.85)" }}
-              className="flex items-center gap-1 hover:text-yellow-300 transition-colors">
-              <span>{icon}</span> {label}
-            </a>
-          ))}
+        <div className="flex items-center gap-2 shrink-0">
+          <Link to="/espace-paroissien"
+            style={{ border: "1px solid rgba(255,255,255,0.5)", color: "#fff", fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", fontWeight: 700 }}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full hover:bg-white/10 transition-colors whitespace-nowrap">
+            <Icon name="user" size={15} strokeWidth={1.75} /> {t("topbar.espace")}
+          </Link>
+          <Link to="/don"
+            style={{ background: "#D4AF37", fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", fontWeight: 700 }}
+            className="flex items-center gap-1.5 text-white px-3.5 py-1.5 rounded-full hover:opacity-90 transition-opacity whitespace-nowrap">
+            <Icon name="heart" size={15} strokeWidth={1.75} /> {t("topbar.don")}
+          </Link>
         </div>
       </div>
     </div>
@@ -117,6 +107,7 @@ function Header() {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useLang();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -143,8 +134,8 @@ function Header() {
         {/* Desktop Nav */}
         <nav className="hidden lg:flex items-center gap-0.5 flex-1 justify-center">
           {NAV.map((item) => (
-            <div key={item.label} className="relative"
-              onMouseEnter={() => item.sub && setDropdown(item.label)}
+            <div key={item.to} className="relative"
+              onMouseEnter={() => item.sub && setDropdown(item.labelKey)}
               onMouseLeave={() => setDropdown(null)}>
               <Link to={item.to}
                 style={{
@@ -155,14 +146,14 @@ function Header() {
                   borderBottom: (isActive(item.to) && item.to !== "/") || (location.pathname === "/" && item.to === "/") ? "2px solid #D4AF37" : "2px solid transparent",
                 }}
                 className="flex items-center gap-1 px-2.5 py-2.5 hover:text-blue-800 transition-colors whitespace-nowrap">
-                {item.label}
-                {item.sub && <IconChevronDown />}
+                {t(item.labelKey)}
+                {item.sub && <Icon name="chevronDown" size={16} strokeWidth={1.75} />}
               </Link>
-              {item.sub && dropdown === item.label && (
+              {item.sub && dropdown === item.labelKey && (
                 <div className="absolute top-full left-0 bg-white rounded-xl py-2 min-w-[200px] z-50 border border-gray-100"
                   style={{ boxShadow: "0 10px 40px rgba(0,0,0,0.12)" }}>
                   {item.sub.map((s) => (
-                    <Link key={s.label} to={s.to}
+                    <Link key={s.to} to={s.to}
                       onClick={() => {
                         setDropdown(null);
                         if (s.to.includes("#")) {
@@ -175,7 +166,7 @@ function Header() {
                       }}
                       style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.76rem", color: "#374151" }}
                       className="flex items-center px-4 py-2.5 hover:bg-blue-50 hover:text-blue-800 transition-colors gap-2">
-                      {s.label}
+                      {t(s.labelKey)}
                     </Link>
                   ))}
                 </div>
@@ -184,20 +175,11 @@ function Header() {
           ))}
         </nav>
 
-        {/* CTA */}
-        <div className="flex items-center gap-2 shrink-0">
-          <Link to="/don"
-            style={{ background: "#D4AF37", fontFamily: "Montserrat, sans-serif", fontSize: "0.75rem", fontWeight: 700 }}
-            className="hidden md:flex items-center gap-1.5 text-white px-4 py-2 rounded-full hover:opacity-90 transition-opacity whitespace-nowrap">
-            ❤️ Faire un don
-          </Link>
-          <Link to="/espace-paroissien"
-            style={{ border: "2px solid #0B3D91", color: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontSize: "0.75rem", fontWeight: 700 }}
-            className="hidden lg:flex items-center gap-1.5 px-4 py-2 rounded-full hover:bg-blue-50 transition-colors whitespace-nowrap">
-            👤 Espace paroissien
-          </Link>
+        {/* Sélecteur de langue + menu mobile */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <LangSwitch />
           <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden p-2 text-gray-600 hover:text-blue-800 rounded-lg hover:bg-gray-50">
-            {mobileOpen ? <IconClose /> : <IconMenu />}
+            {mobileOpen ? <Icon name="close" size={24} strokeWidth={1.75} /> : <Icon name="menu" size={24} strokeWidth={1.75} />}
           </button>
         </div>
       </div>
@@ -206,31 +188,36 @@ function Header() {
       {mobileOpen && (
         <div className="lg:hidden bg-white border-t border-gray-100 max-h-[80vh] overflow-y-auto">
           {NAV.map((item) => (
-            <div key={item.label}>
+            <div key={item.to}>
               <Link to={item.to}
                 style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.88rem", fontWeight: 600, color: isActive(item.to) ? "#0B3D91" : "#374151" }}
                 className="flex items-center justify-between px-5 py-3 border-b border-gray-50">
-                {item.label}
-                {item.sub && <IconChevronDown />}
+                {t(item.labelKey)}
+                {item.sub && <Icon name="chevronDown" size={16} strokeWidth={1.75} />}
               </Link>
               {item.sub && (
                 <div style={{ background: "#F5F7FA" }}>
                   {item.sub.map((s) => (
-                    <Link key={s.label} to={s.to}
+                    <Link key={s.to} to={s.to}
                       style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.8rem", color: "#6b7280" }}
                       className="block px-8 py-2.5 border-b border-gray-100 hover:text-blue-800">
-                      {s.label}
+                      {t(s.labelKey)}
                     </Link>
                   ))}
                 </div>
               )}
             </div>
           ))}
-          <div className="p-4">
+          <div className="p-4 space-y-2.5">
             <Link to="/don"
               style={{ background: "#D4AF37", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.85rem" }}
               className="block text-center text-white px-4 py-3 rounded-full">
-              ❤️ Faire un don
+              <Icon name="heart" size={15} strokeWidth={1.75} /> {t("topbar.don")}
+            </Link>
+            <Link to="/espace-paroissien"
+              style={{ border: "2px solid #0B3D91", color: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.85rem" }}
+              className="block text-center px-4 py-3 rounded-full">
+              <Icon name="user" size={15} strokeWidth={1.75} /> {t("topbar.espace")}
             </Link>
           </div>
         </div>
@@ -243,7 +230,10 @@ function Header() {
 
 function Footer() {
   const settings = useSettings();
+  const { t } = useLang();
   const whatsapp = settings["parish.whatsapp_number"] || "237655529999";
+  const founded = settings["parish.founded"] || PARISH.founded;
+  const presentation = t("footer.presentation").replace("{date}", founded);
   return (
     <footer style={{ background: "#0B3D91" }} className="text-white pt-14 pb-6 px-4">
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 pb-10 border-b border-white/10">
@@ -252,19 +242,19 @@ function Footer() {
             <img src={logoImg} alt="Paroisse Saint Dominique Savio" style={{ height: 44, width: "auto", objectFit: "contain", filter: "brightness(0) invert(1)" }} />
           </div>
           <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "rgba(255,255,255,0.65)", lineHeight: 1.8 }}>
-            Fondée le {settings["parish.founded"] || PARISH.founded}, notre paroisse est un lieu de rencontre, de prière et de fraternité au cœur de Douala.
+            {presentation}
           </p>
           <div className="flex items-center gap-2 mt-5">
-            {[
-              ["💬", `https://wa.me/${whatsapp}`],
-              ["📘", settings["social.facebook_url"] || "#"],
-              ["▶️", settings["social.youtube_url"] || "#"],
-              ["📷", settings["social.instagram_url"] || "#"],
-            ].map(([icon, href], i) => (
-              <a key={i} href={href} target="_blank" rel="noreferrer"
-                style={{ width: 34, height: 34, background: "rgba(255,255,255,0.1)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.9rem" }}
+            {([
+              ["whatsapp", `https://wa.me/${whatsapp}`],
+              ["facebook", settings["social.facebook_url"] || "#"],
+              ["youtube", settings["social.youtube_url"] || "#"],
+              ["instagram", settings["social.instagram_url"] || "#"],
+            ] as [IconName, string][]).map(([icon, href], i) => (
+              <a key={i} href={href} target="_blank" rel="noreferrer" title={SOCIAL_LABELS[icon]}
+                style={{ width: 34, height: 34, background: "rgba(255,255,255,0.1)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
                 className="hover:bg-yellow-400 transition-colors">
-                {icon}
+                <Icon name={icon} size={17} strokeWidth={1.75} />
               </a>
             ))}
           </div>
@@ -272,37 +262,37 @@ function Footer() {
 
         <div>
           <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.72rem", color: "#D4AF37", letterSpacing: "0.12em" }} className="mb-5">
-            LIENS UTILES
+            {t("footer.liensUtiles")}
           </div>
-          {[["La Paroisse", "/paroisse"], ["Vie paroissiale", "/vie-paroissiale"], ["Célébrer", "/celebrer"], ["Sacrements", "/celebrer#sacrements"], ["Homélies", "/homelies"], ["Agenda", "/agenda"]].map(([l, to]) => (
-            <Link key={l} to={to} style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "rgba(255,255,255,0.65)" }}
-              className="block mb-2.5 hover:text-yellow-300 transition-colors">{l}</Link>
+          {[["footer.paroisse", "/paroisse"], ["footer.vie", "/vie-paroissiale"], ["footer.celebrer", "/celebrer"], ["footer.sacrements", "/celebrer#sacrements"], ["footer.homelies", "/homelies"], ["footer.agenda", "/agenda"]].map(([k, to]) => (
+            <Link key={k} to={to} style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "rgba(255,255,255,0.65)" }}
+              className="block mb-2.5 hover:text-yellow-300 transition-colors">{t(k)}</Link>
           ))}
         </div>
 
         <div>
           <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.72rem", color: "#D4AF37", letterSpacing: "0.12em" }} className="mb-5">
-            RESSOURCES
+            {t("footer.ressources")}
           </div>
-          {[["Médiathèque", "/mediatheque"], ["Actualités", "/actualites"], ["Catéchèse", "/se-nourrir#catechese"], ["Boutique", "/mediatheque#boutique"], ["Contact", "/contact"]].map(([l, to]) => (
-            <Link key={l} to={to} style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "rgba(255,255,255,0.65)" }}
-              className="block mb-2.5 hover:text-yellow-300 transition-colors">{l}</Link>
+          {[["footer.mediatheque", "/mediatheque"], ["footer.actualites", "/actualites"], ["footer.catechese", "/se-nourrir#catechese"], ["footer.boutique", "/mediatheque#boutique"], ["footer.contact", "/contact"]].map(([k, to]) => (
+            <Link key={k} to={to} style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "rgba(255,255,255,0.65)" }}
+              className="block mb-2.5 hover:text-yellow-300 transition-colors">{t(k)}</Link>
           ))}
         </div>
 
         <div>
           <div style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.72rem", color: "#D4AF37", letterSpacing: "0.12em" }} className="mb-5">
-            NOUS CONTACTER
+            {t("footer.contacter")}
           </div>
           <div className="space-y-3">
-            {[
-              ["📍", PARISH.address],
-              ["📞", PARISH.phone],
-              ["✉️", PARISH.email],
-              ["🕐", PARISH.hours],
-            ].map(([icon, text]) => (
+            {([
+              ["mapPin", PARISH.address],
+              ["phone", PARISH.phone],
+              ["mail", PARISH.email],
+              ["clock", PARISH.hours],
+            ] as [IconName, string][]).map(([icon, text]) => (
               <div key={text} className="flex gap-2.5">
-                <span className="shrink-0">{icon}</span>
+                <Icon name={icon} size={16} strokeWidth={1.75} className="mt-0.5 text-white/70" />
                 <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.76rem", color: "rgba(255,255,255,0.65)", lineHeight: 1.6 }}>{text}</span>
               </div>
             ))}
@@ -310,19 +300,19 @@ function Footer() {
           <Link to="/don"
             style={{ background: "#D4AF37", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.78rem" }}
             className="block text-center text-white px-4 py-2.5 rounded-full mt-5 hover:opacity-90 transition-opacity">
-            ❤️ Faire un don
+            <Icon name="heart" size={15} strokeWidth={1.75} /> {t("footer.don")}
           </Link>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 pt-6">
         <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", color: "rgba(255,255,255,0.35)" }}>
-          © 2026 Paroisse Saint Dominique Savio. Tous droits réservés.
+          {t("footer.droits")}
         </p>
         <div className="flex gap-5">
-          {["Mentions légales", "Politique de confidentialité"].map((l) => (
-            <Link key={l} to="/contact" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", color: "rgba(255,255,255,0.35)" }}
-              className="hover:text-white transition-colors">{l}</Link>
+          {["footer.mentions", "footer.confidentialite"].map((k) => (
+            <Link key={k} to="/contact" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", color: "rgba(255,255,255,0.35)" }}
+              className="hover:text-white transition-colors">{t(k)}</Link>
           ))}
         </div>
       </div>

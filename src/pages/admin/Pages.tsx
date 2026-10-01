@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiFormData, apiGet, apiPut, mediaUrl } from "@/lib/api";
 import ImageUpload from "./ImageUpload";
+import Icon from "@/components/Icon";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -212,7 +213,7 @@ export default function AdminPages() {
         <div className="flex items-center gap-3">
           {savedAt && <span style={{ fontSize: "0.78rem", color: "#059669" }}>Enregistré à {savedAt}</span>}
           <button onClick={save} disabled={saving} style={{ ...btn, opacity: saving ? 0.6 : 1 }}>
-            {saving ? "Enregistrement…" : "💾 Enregistrer"}
+            {saving ? "Enregistrement…" : <><Icon name="save" size={14} strokeWidth={1.75} /> Enregistrer</>}
           </button>
         </div>
       </div>
@@ -295,8 +296,8 @@ export default function AdminPages() {
                             {b.is_highlight && <span style={{ color: "#D4AF37" }}> · mis en avant</span>}
                           </span>
                           <div>
-                            <button onClick={() => moveBlock(idx, -1)} style={linkBtn} title="Monter">↑</button>
-                            <button onClick={() => moveBlock(idx, 1)} style={{ ...linkBtn, marginRight: 8 }} title="Descendre">↓</button>
+                            <button onClick={() => moveBlock(idx, -1)} style={linkBtn} title="Monter"><Icon name="arrowUp" size={14} strokeWidth={1.75} /></button>
+                            <button onClick={() => moveBlock(idx, 1)} style={{ ...linkBtn, marginRight: 8 }} title="Descendre"><Icon name="arrowDown" size={14} strokeWidth={1.75} /></button>
                             <button onClick={() => removeBlock(idx)} style={{ ...linkBtn, color: "#b91c1c" }}>Supprimer</button>
                           </div>
                         </div>
@@ -368,7 +369,7 @@ function PairsEditor({ pairs, onChange }: { pairs: [string, string][]; onChange:
         <div key={i} style={{ display: "flex", gap: 6, alignItems: "center" }}>
           <input value={label} placeholder="Libellé" onChange={(e) => update(i, 0, e.target.value)} style={inputStyle} />
           <input value={value} placeholder="Valeur" onChange={(e) => update(i, 1, e.target.value)} style={inputStyle} />
-          <button type="button" onClick={() => remove(i)} style={{ ...linkBtn, color: "#b91c1c", marginRight: 0 }} title="Supprimer la ligne">✕</button>
+          <button type="button" onClick={() => remove(i)} style={{ ...linkBtn, color: "#b91c1c", marginRight: 0 }} title="Supprimer la ligne"><Icon name="close" size={14} strokeWidth={1.75} /></button>
         </div>
       ))}
       <button type="button" onClick={() => onChange([...pairs, ["", ""]])} style={{ ...btnGhost, alignSelf: "flex-start", marginTop: 4 }}>

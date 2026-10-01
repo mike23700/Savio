@@ -3,6 +3,7 @@ import { apiGet, apiPost, apiPut, apiDelete, apiFormData, ApiError, mediaUrl } f
 import { confirmDialog } from "./ConfirmDialog";
 import { youtubeThumb, type MediaCategory, type MediaItem } from "@/lib/content-types";
 import ImageUpload from "./ImageUpload";
+import Icon from "@/components/Icon";
 
 type Tab = "photo" | "video";
 
@@ -133,7 +134,7 @@ export default function AdminMediatheque() {
         <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.6rem", color: "#1c2340" }}>Médiathèque</h1>
         <div className="flex items-center gap-4">
           <a href={tab === "photo" ? "/paroisse/mediatheque" : "/paroisse/mediatheque?onglet=videos"} target="_blank" rel="noreferrer" style={{ ...linkBtn, marginRight: 0 }}>
-            Voir sur le site ↗
+            Voir sur le site <Icon name="arrowUpRight" size={13} strokeWidth={1.75} />
           </a>
           <button onClick={startNew} style={primaryBtn}>{tab === "photo" ? "+ Ajouter une photo" : "+ Ajouter une vidéo YouTube"}</button>
         </div>
@@ -149,11 +150,11 @@ export default function AdminMediatheque() {
           {categories.map((c) => (
             <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 6, border: "1px solid #e5e7eb", borderRadius: 999, padding: "4px 6px 4px 12px" }}>
               <span style={{ fontSize: "0.82rem" }}>{c.name}</span>
-              <span style={{ fontSize: "0.72rem", color: "#9ca3af" }}>
-                ({rows.filter((r) => r.media_category_id === c.id && r.type === "photo").length} 📷 · {rows.filter((r) => r.media_category_id === c.id && r.type === "video").length} ▶)
+              <span style={{ fontSize: "0.72rem", color: "#9ca3af", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                ({rows.filter((r) => r.media_category_id === c.id && r.type === "photo").length} <Icon name="camera" size={12} strokeWidth={1.75} /> · {rows.filter((r) => r.media_category_id === c.id && r.type === "video").length} <Icon name="play" size={12} strokeWidth={1.75} />)
               </span>
-              <button onClick={() => { setCatEditingId(c.id); setCatName(c.name); setCatError(null); }} style={{ ...linkBtn, marginRight: 0 }}>✎</button>
-              <button onClick={() => removeCategory(c)} style={{ ...linkBtn, marginRight: 0, color: "#b91c1c" }}>✕</button>
+              <button onClick={() => { setCatEditingId(c.id); setCatName(c.name); setCatError(null); }} style={{ ...linkBtn, marginRight: 0 }}><Icon name="edit" size={14} strokeWidth={1.75} /></button>
+              <button onClick={() => removeCategory(c)} style={{ ...linkBtn, marginRight: 0, color: "#b91c1c" }}><Icon name="close" size={14} strokeWidth={1.75} /></button>
             </div>
           ))}
         </div>
@@ -173,7 +174,10 @@ export default function AdminMediatheque() {
           <button key={t} onClick={() => { setTab(t); setEditingId(null); }}
             style={{ padding: "8px 18px", borderRadius: 999, fontWeight: 700, fontSize: "0.85rem", cursor: "pointer",
               background: tab === t ? "#0B3D91" : "#fff", color: tab === t ? "#fff" : "#374151", border: `1px solid ${tab === t ? "#0B3D91" : "#e5e7eb"}` }}>
-            {t === "photo" ? `📷 Photos (${rows.filter((r) => r.type === "photo").length})` : `▶ Vidéos (${rows.filter((r) => r.type === "video").length})`}
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <Icon name={t === "photo" ? "camera" : "play"} size={15} strokeWidth={1.75} />
+              {t === "photo" ? `Photos (${rows.filter((r) => r.type === "photo").length})` : `Vidéos (${rows.filter((r) => r.type === "video").length})`}
+            </span>
           </button>
         ))}
       </div>

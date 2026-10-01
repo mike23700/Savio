@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\RecordsAccountingEntry;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Database\Eloquent\Builder;
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Reservation extends Model
 {
+    use RecordsAccountingEntry;
+
     /** A mobile money attempt left unvalidated this long stops holding the dates. */
     public const PENDING_HOLD_MINUTES = 60;
 
@@ -86,5 +89,37 @@ class Reservation extends Model
     public function paymentDescription(): string
     {
         return 'Réservation ' . ($this->espace?->nom ?? '') . " ({$this->reference})";
+    }
+
+    protected function accountingLibelle(): string
+    {
+        $this->loadMissing('espace:id,nom,kind');
+
+        $espace = $this->espace?->nom ?? 'Espace';
+        $stay = $this->date_debut->equalTo($this->date_fin)
+            ? $this->date_debut->format('d/m/Y')
+            : $this->date_debut->format('d/m/Y') . ' → ' . $this->date_fin->format('d/m/Y');
+
+        return "Location {$espace} — {$stay} ({$this->reference})";
+    }
+
+    /** A quote with no price is not money in, so it files no line at all. */
+    protected function accountingAmount(): ?int
+    {
+        return $this->montant === null ? null : (int) $this->montant;
+    }
+
+    protected function accountingCategoryNames(): array
+    {
+        return $this->espace?->kind === 'chambre'
+            ? ['Centre d\'accueil', 'Location de salles']
+            : ['Location de salles'];
+    }
+
+    protected function accountingNotes(): ?string
+    {
+        $this->loadMissing('espace:id,nom,kind');
+
+        return $this->evenement ? "Événement : {$this->evenement}" : null;
     }
 }
