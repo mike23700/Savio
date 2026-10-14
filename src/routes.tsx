@@ -24,6 +24,7 @@ import AdminAgenda from "@/pages/admin/Agenda";
 import AdminMouvements from "@/pages/admin/Mouvements";
 import AdminProjets from "@/pages/admin/Projets";
 import AdminRegistre from "@/pages/admin/Registre";
+import AdminRegistreDemandes from "@/pages/admin/RegistreDemandes";
 import AdminProduits from "@/pages/admin/Produits";
 import AdminCommandes from "@/pages/admin/Commandes";
 import AdminDonations from "@/pages/admin/Donations";
@@ -198,6 +199,7 @@ export const router = createBrowserRouter([
       { path: "mouvements", Component: AdminMouvements },
       { path: "projets", Component: AdminProjets },
       { path: "registre", Component: AdminRegistre },
+      { path: "registre-demandes", Component: AdminRegistreDemandes },
       { path: "produits", Component: AdminProduits },
       { path: "commandes", Component: AdminCommandes },
       { path: "dons", Component: AdminDonations },

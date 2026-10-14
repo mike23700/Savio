@@ -151,6 +151,32 @@ export interface RegistreInscription {
   sacrements: RegistreSacrement[];
 }
 
+/** A member's request to have their fiche printed as an A4 PDF. */
+export type RegistrePrintStatut = "en_attente" | "en_traitement" | "prete" | "livree" | "refusee";
+
+export interface RegistrePrintRequest {
+  id: number;
+  reference: string;
+  registre_inscription_id: number;
+  user_id: number | null;
+  statut: RegistrePrintStatut;
+  message: string | null;
+  admin_notes: string | null;
+  processed_at: string | null;
+  created_at: string;
+  inscription?: RegistreInscription;
+  user?: { id: number; nom: string; prenom: string; email: string | null } | null;
+}
+
+/** French label for each print request status. */
+export const PRINT_STATUT_LABELS: Record<RegistrePrintStatut, string> = {
+  en_attente: "En attente",
+  en_traitement: "En traitement",
+  prete: "Prête",
+  livree: "Livrée",
+  refusee: "Refusée",
+};
+
 /** i18n key of the "are you …?" question for each sacrament. */
 export const SACREMENT_QUESTIONS: Record<SacrementType, string> = {
   bapteme: "vie.registre.wizard.baptise",

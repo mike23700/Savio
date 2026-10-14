@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\PrayerTimeController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProjetController;
 use App\Http\Controllers\Api\RegistreController;
+use App\Http\Controllers\Api\RegistrePrintRequestController;
 use App\Http\Controllers\Api\RegistreSacrementController;
 use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\SacrementController;
@@ -91,7 +92,6 @@ Route::get('/mouvements/{slug}', [MouvementController::class, 'show']);
 Route::get('/projets', [ProjetController::class, 'index']);
 Route::get('/projets/{projet}', [ProjetController::class, 'show']);
 
-Route::post('/registre', [RegistreController::class, 'store']);
 Route::get('/registre/next-numero', [RegistreController::class, 'nextNumero']);
 Route::post('/registre/sacrements', [RegistreSacrementController::class, 'store']);
 
@@ -114,6 +114,11 @@ Route::get('/journal/tarifs', [JournalController::class, 'tarifs']);
 Route::get('/journal/issues', [JournalController::class, 'issues']);
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/registre', [RegistreController::class, 'store']);
+    Route::get('/my-registre', [RegistreController::class, 'myInscription']);
+    Route::get('/my-registre-demandes', [RegistrePrintRequestController::class, 'myRequests']);
+    Route::post('/registre/demandes-impression', [RegistrePrintRequestController::class, 'store']);
+
     Route::post('/donations', [DonationController::class, 'store']);
     Route::get('/my-donations', [DonationController::class, 'myDonations']);
 
@@ -221,8 +226,13 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
 
     Route::get('/registre', [RegistreController::class, 'adminIndex']);
     Route::post('/registre', [RegistreController::class, 'adminStore']);
+    Route::get('/registre/{registreInscription}/pdf', [RegistrePrintRequestController::class, 'pdfForInscription']);
     Route::put('/registre/{registreInscription}', [RegistreController::class, 'update']);
     Route::delete('/registre/{registreInscription}', [RegistreController::class, 'destroy']);
+
+    Route::get('/registre-demandes', [RegistrePrintRequestController::class, 'adminIndex']);
+    Route::patch('/registre-demandes/{registrePrintRequest}', [RegistrePrintRequestController::class, 'update']);
+    Route::get('/registre-demandes/{registrePrintRequest}/pdf', [RegistrePrintRequestController::class, 'pdf']);
 
     Route::get('/registre-sacrements', [RegistreSacrementController::class, 'adminIndex']);
     Route::post('/registre-sacrements', [RegistreSacrementController::class, 'adminStore']);

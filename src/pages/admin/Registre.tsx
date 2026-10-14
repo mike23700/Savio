@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
+import { apiGet, apiPost, apiPut, apiDelete, downloadFile } from "@/lib/api";
 import { confirmDialog } from "./ConfirmDialog";
 import { SACREMENTS, SACREMENT_LABELS, type RegistreInscription, type SacrementType } from "@/lib/sacrements";
 
@@ -109,6 +109,7 @@ export default function AdminRegistre() {
               </td>
               <td style={td}>{r.source === "admin" ? "Admin" : "Public"}</td>
               <td style={td}>
+                <button onClick={() => downloadFile(`/admin/registre/${r.id}/pdf`, `fiche-${r.nom}-${r.prenom}.pdf`).catch(() => {})} style={linkBtn}>PDF</button>
                 <button onClick={() => openEdit(r)} style={linkBtn}>Modifier</button>
                 <button onClick={() => remove(r.id)} style={{ ...linkBtn, color: "#b91c1c" }}>Supprimer</button>
               </td>

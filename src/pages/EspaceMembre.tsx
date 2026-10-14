@@ -3,11 +3,12 @@ import { Link, useLocation, useNavigate } from "react-router";
 import { useAuth } from "@/lib/auth";
 import { apiGet, apiPost, ApiError, mediaUrl } from "@/lib/api";
 import { type Reservation } from "@/lib/content-types";
+import { type RegistreInscription, type RegistrePrintRequest, SACREMENT_LABELS, formatIsoDate } from "@/lib/sacrements";
 import { useLang } from "@/lib/i18n";
 import Icon, { type IconName } from "@/components/Icon";
 
 type Mode = "login" | "register";
-type Tab = "profil" | "journal" | "homelies" | "achats" | "reservations" | "donations";
+type Tab = "profil" | "registre" | "journal" | "homelies" | "achats" | "reservations" | "donations";
 
 interface Homelie {
   id: number;
@@ -81,6 +82,14 @@ export default function EspaceMembre() {
   const [subscribeTarifId, setSubscribeTarifId] = useState("");
   const [subscribeFormat, setSubscribeFormat] = useState("electronique");
 
+  const [registre, setRegistre] = useState<RegistreInscription | null>(null);
+  const [registreLoaded, setRegistreLoaded] = useState(false);
+  const [printRequests, setPrintRequests] = useState<RegistrePrintRequest[]>([]);
+  const [printMessage, setPrintMessage] = useState("");
+  const [printSubmitting, setPrintSubmitting] = useState(false);
+  const [printError, setPrintError] = useState<string | null>(null);
+  const [printSuccess, setPrintSuccess] = useState(false);
+
   useEffect(() => {
     if (!user) return;
     if (tab === "homelies") apiGet<Homelie[]>("/favorites").then(setFavorites).catch(() => {});
@@ -92,6 +101,14 @@ export default function EspaceMembre() {
     if (tab === "achats") apiGet<Order[]>("/my-orders").then(setOrders).catch(() => {});
     if (tab === "donations") apiGet<DonationRow[]>("/my-donations").then(setDonations).catch(() => {});
     if (tab === "reservations") apiGet<Reservation[]>("/my-reservations").then(setReservations).catch(() => {});
+    if (tab === "registre") {
+      setRegistreLoaded(false);
+      apiGet<RegistreInscription | null>("/my-registre")
+        .then(setRegistre)
+        .catch(() => setRegistre(null))
+        .finally(() => setRegistreLoaded(true));
+      apiGet<RegistrePrintRequest[]>("/my-registre-demandes").then(setPrintRequests).catch(() => {});
+    }
   }, [tab, user]);
 
   const inputClass = "w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all";
@@ -100,6 +117,7 @@ export default function EspaceMembre() {
 
   const tabs: { id: Tab; label: string; icon: IconName }[] = [
     { id: "profil", label: t("top.membre.ongletProfil"), icon: "user" },
+    { id: "registre", label: t("top.membre.ongletRegistre"), icon: "clipboard" },
     { id: "journal", label: t("top.membre.ongletJournal"), icon: "newspaper" },
     { id: "homelies", label: t("top.membre.ongletHomelies"), icon: "mic" },
     { id: "achats", label: t("top.membre.ongletAchats"), icon: "cart" },
@@ -155,6 +173,32 @@ export default function EspaceMembre() {
     setSubscription(sub);
   }
 
+  async function handleRequestPrint(e: React.FormEvent) {
+    e.preventDefault();
+    setPrintError(null);
+    setPrintSuccess(false);
+    setPrintSubmitting(true);
+    try {
+      const created = await apiPost<RegistrePrintRequest>("/registre/demandes-impression", { message: printMessage || null });
+      setPrintRequests(prev => [created, ...prev]);
+      setPrintMessage("");
+      setPrintSuccess(true);
+    } catch (err) {
+      setPrintError(err instanceof ApiError ? err.message : "Une erreur est survenue.");
+    } finally {
+      setPrintSubmitting(false);
+    }
+  }
+
+  const printStatutColor: Record<string, { bg: string; fg: string }> = {
+    en_attente: { bg: "#fef3c7", fg: "#92400e" },
+    en_traitement: { bg: "#dbeafe", fg: "#1e40af" },
+    prete: { bg: "#dcfce7", fg: "#15803d" },
+    livree: { bg: "#e0e7ff", fg: "#3730a3" },
+    refusee: { bg: "#fee2e2", fg: "#b91c1c" },
+  };
+  const openPrintRequest = printRequests.some(r => ["en_attente", "en_traitement", "prete"].includes(r.statut));
+
   if (loading) return null;
 
   if (user) {
@@ -207,6 +251,122 @@ export default function EspaceMembre() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {tab === "registre" && (
+            <div className="bg-white rounded-2xl p-8 border border-gray-100">
+              <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.3rem", fontWeight: 700, color: "#1c2340", marginBottom: 8 }}>{t("top.membre.ongletRegistre")}</h2>
+              <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.85rem", color: "#6b7280", marginBottom: 24, lineHeight: 1.7 }}>{t("top.membre.registre.intro")}</p>
+
+              {!registreLoaded ? (
+                <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.85rem", color: "#9ca3af" }}>{t("top.membre.registre.chargement")}</p>
+              ) : !registre ? (
+                <div style={{ background: "#F5F7FA", borderRadius: 12, padding: 20 }}>
+                  <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.85rem", color: "#374151", marginBottom: 12 }}>{t("top.membre.registre.aucuneTexte")}</p>
+                  <Link to="/vie-paroissiale/registre"
+                    style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.82rem" }}
+                    className="inline-flex items-center gap-2 text-white px-5 py-2.5 rounded-xl hover:opacity-90 transition-opacity">
+                    <Icon name="clipboard" size={16} strokeWidth={1.75} /> {t("top.membre.registre.lienInscription")}
+                  </Link>
+                </div>
+              ) : (
+                <>
+                  <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1rem", fontWeight: 700, color: "#1c2340", marginBottom: 12 }}>{t("top.membre.ongletRegistre")}</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                    {([
+                      [t("top.membre.champNom"), registre.nom],
+                      [t("top.membre.champPrenom"), registre.prenom],
+                      [t("top.membre.champTelephone"), registre.telephone],
+                      [t("top.membre.champEmail"), registre.email || "—"],
+                      ["Quartier", registre.quartier || "—"],
+                      ["Rue / Lieu-dit", [registre.rue, registre.lieu_dit].filter(Boolean).join(" · ") || "—"],
+                      ["Tranche d'âge", registre.tranche_age || "—"],
+                      ["Ancienneté", registre.anciennete || "—"],
+                    ] as [string, string][]).map(([label, value]) => (
+                      <div key={label} style={{ background: "#F5F7FA", borderRadius: 12, padding: "12px 16px" }}>
+                        <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.7rem", color: "#9ca3af", fontWeight: 700, letterSpacing: "0.05em" }}>{label.toUpperCase()}</div>
+                        <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.9rem", fontWeight: 700, color: "#1c2340", marginTop: 4 }}>{value}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1rem", fontWeight: 700, color: "#1c2340", marginBottom: 12 }}>{t("top.membre.registre.sacrements")}</h3>
+                  {registre.sacrements.length === 0 ? (
+                    <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.85rem", color: "#9ca3af", marginBottom: 24 }}>{t("top.membre.registre.aucunSacrement")}</p>
+                  ) : (
+                    <div className="space-y-3 mb-6">
+                      {registre.sacrements.map((s) => (
+                        <div key={s.id} style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 16 }}>
+                          <div style={{ fontFamily: "Playfair Display, serif", fontSize: "0.95rem", fontWeight: 700, color: "#1c2340", marginBottom: 6 }}>
+                            {SACREMENT_LABELS[s.type]}
+                            {s.numero_registre ? <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#6b7280", fontWeight: 400 }}> · N° {s.numero_registre}</span> : null}
+                          </div>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "4px 16px", fontFamily: "Montserrat, sans-serif", fontSize: "0.8rem", color: "#374151" }}>
+                            {s.date_evenement && <div><span style={{ color: "#9ca3af" }}>Date : </span>{formatIsoDate(s.date_evenement)}</div>}
+                            {s.lieu && <div><span style={{ color: "#9ca3af" }}>Lieu : </span>{s.lieu}</div>}
+                            {s.parrain_marraine && <div><span style={{ color: "#9ca3af" }}>Parrain / Marraine : </span>{s.parrain_marraine}</div>}
+                            {s.ministre && <div><span style={{ color: "#9ca3af" }}>Ministre : </span>{s.ministre}</div>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: 20 }}>
+                    <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1rem", fontWeight: 700, color: "#1c2340", marginBottom: 8 }}>{t("top.membre.registre.demander")}</h3>
+
+                    {printSuccess && (
+                      <div style={{ background: "#dcfce7", color: "#15803d", borderRadius: 12, padding: "12px 16px", marginBottom: 16, fontFamily: "Montserrat, sans-serif", fontSize: "0.82rem" }}>
+                        {t("top.membre.registre.demandeEnvoyee")}
+                      </div>
+                    )}
+
+                    {openPrintRequest ? (
+                      <div style={{ background: "#fef3c7", color: "#92400e", borderRadius: 12, padding: "12px 16px", marginBottom: 16, fontFamily: "Montserrat, sans-serif", fontSize: "0.82rem" }}>
+                        Une demande d'impression est déjà en cours pour votre fiche.
+                      </div>
+                    ) : (
+                      <form onSubmit={handleRequestPrint} style={{ background: "#F5F7FA", borderRadius: 12, padding: 20 }}>
+                        <label style={labelStyle} className="block mb-1.5">{t("top.membre.registre.messageLabel")}</label>
+                        <textarea rows={3} value={printMessage} onChange={e => setPrintMessage(e.target.value)} placeholder={t("top.membre.registre.messagePlaceholder")} className={inputClass} style={inputStyle} />
+                        {printError && (
+                          <div style={{ background: "#fee2e2", color: "#b91c1c", borderRadius: 10, padding: "10px 14px", marginTop: 12, fontFamily: "Montserrat, sans-serif", fontSize: "0.8rem" }}>{printError}</div>
+                        )}
+                        <button type="submit" disabled={printSubmitting}
+                          style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.82rem", opacity: printSubmitting ? 0.6 : 1 }}
+                          className="inline-flex items-center gap-2 text-white px-5 py-2.5 rounded-xl hover:opacity-90 transition-opacity mt-4">
+                          <Icon name="fileText" size={16} strokeWidth={1.75} /> {t("top.membre.registre.demander")}
+                        </button>
+                      </form>
+                    )}
+
+                    <h4 style={{ fontFamily: "Playfair Display, serif", fontSize: "0.95rem", fontWeight: 700, color: "#1c2340", margin: "24px 0 12px" }}>{t("top.membre.registre.demandesTitre")}</h4>
+                    {printRequests.length === 0 ? (
+                      <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.85rem", color: "#9ca3af" }}>{t("top.membre.registre.aucuneDemande")}</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {printRequests.map((r) => {
+                          const color = printStatutColor[r.statut] ?? { bg: "#f3f4f6", fg: "#6b7280" };
+                          return (
+                            <div key={r.id} className="flex items-start justify-between gap-3 p-4 rounded-xl border border-gray-100">
+                              <div>
+                                <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", fontWeight: 700, color: "#D4AF37" }}>{r.reference}</div>
+                                <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "#6b7280" }}>{new Date(r.created_at).toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" })}</div>
+                                {r.message && <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "#374151", marginTop: 4 }}>{r.message}</div>}
+                                {r.admin_notes && <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.75rem", color: "#6b7280", marginTop: 4 }}><span style={{ color: "#9ca3af" }}>Note du secrétariat : </span>{r.admin_notes}</div>}
+                              </div>
+                              <span style={{ background: color.bg, color: color.fg, borderRadius: 20, padding: "3px 10px", fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, whiteSpace: "nowrap" }}>
+                                {t(`top.membre.registre.statut.${r.statut}`)}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           )}
 

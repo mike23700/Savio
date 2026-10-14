@@ -26,7 +26,13 @@ const NAV: NavItem[] = [
   { label: "Curé & équipe pastorale", to: "/admin/equipe" },
   { label: "Mouvements & Groupes", to: "/admin/mouvements" },
   { label: "Projets paroissiaux", to: "/admin/projets" },
-  { label: "Registre paroissial", to: "/admin/registre" },
+  {
+    label: "Registre paroissial",
+    children: [
+      { label: "Inscriptions", to: "/admin/registre" },
+      { label: "Demandes d'impression", to: "/admin/registre-demandes" },
+    ],
+  },
   {
     label: "Boutique",
     children: [

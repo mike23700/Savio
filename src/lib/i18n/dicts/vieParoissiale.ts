@@ -132,6 +132,21 @@ const fr: Record<string, string> = {
   "vie.registre.merci": "Inscription enregistrée !",
   "vie.registre.merciTexte":
     "Votre inscription au registre paroissial a bien été reçue. Nous vous contacterons prochainement.",
+  "vie.registre.merciCompteTexte":
+    "Votre fiche est enregistrée et liée à votre compte. Retrouvez-la à tout moment dans votre espace membre.",
+  "vie.registre.voirEspace": "Voir ma fiche dans mon espace membre",
+  "vie.registre.compte.titre": "Votre compte",
+  "vie.registre.compte.intro":
+    "Pour retrouver votre fiche dans votre espace membre et demander une impression, créez un compte (ou connectez-vous).",
+  "vie.registre.compte.email": "Email *",
+  "vie.registre.compte.motDePasse": "Mot de passe *",
+  "vie.registre.compte.confirmation": "Confirmer le mot de passe *",
+  "vie.registre.compte.creer": "Créer mon compte et m’inscrire",
+  "vie.registre.compte.seConnecter": "Se connecter et m’inscrire",
+  "vie.registre.compte.deja": "J’ai déjà un compte",
+  "vie.registre.compte.nouveau": "Créer un compte",
+  "vie.registre.compte.erreur": "Impossible de créer le compte (email déjà utilisé ?).",
+  "vie.registre.compte.connexionErreur": "Connexion impossible, vérifiez vos identifiants.",
 
   "vie.registre.tab.fiche": "Fiche paroissiale",
   "vie.registre.tab.bapteme": "Baptême",
@@ -315,6 +330,21 @@ const en: Record<string, string> = {
   "vie.registre.merci": "Registration saved!",
   "vie.registre.merciTexte":
     "Your registration for the parish register has been received. We will contact you shortly.",
+  "vie.registre.merciCompteTexte":
+    "Your form has been saved and linked to your account. Find it any time in your member area.",
+  "vie.registre.voirEspace": "View my form in the member area",
+  "vie.registre.compte.titre": "Your account",
+  "vie.registre.compte.intro":
+    "To find your form in the member area and request a print, create an account (or log in).",
+  "vie.registre.compte.email": "Email *",
+  "vie.registre.compte.motDePasse": "Password *",
+  "vie.registre.compte.confirmation": "Confirm password *",
+  "vie.registre.compte.creer": "Create my account and register",
+  "vie.registre.compte.seConnecter": "Log in and register",
+  "vie.registre.compte.deja": "I already have an account",
+  "vie.registre.compte.nouveau": "Create an account",
+  "vie.registre.compte.erreur": "Unable to create the account (email already used?).",
+  "vie.registre.compte.connexionErreur": "Unable to log in, please check your credentials.",
 
   "vie.registre.tab.fiche": "Parish form",
   "vie.registre.tab.bapteme": "Baptism",

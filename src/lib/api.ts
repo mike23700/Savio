@@ -91,6 +91,34 @@ export const apiPatch = <T,>(path: string, body?: unknown) =>
   request<T>(path, { method: "PATCH", body: JSON.stringify(body ?? {}) });
 export const apiDelete = <T,>(path: string) => request<T>(path, { method: "DELETE" });
 
+/**
+ * Fetch a file with the Bearer token and trigger a browser download.
+ * Used for admin PDF exports, which cannot be plain <a href> links
+ * because the API requires the Authorization header.
+ */
+export async function downloadFile(path: string, fallbackName = "document.pdf"): Promise<void> {
+  const token = getToken();
+  const res = await fetch(`${API_URL}${path}`, {
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new ApiError(res.status, data?.message || res.statusText, data?.errors);
+  }
+  const blob = await res.blob();
+  const disposition = res.headers.get("content-disposition") || "";
+  const match = /filename\*?=(?:UTF-8''|")?([^";]+)/i.exec(disposition);
+  const name = match ? decodeURIComponent(match[1].replace(/"/g, "")) : fallbackName;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 /** Local date of the visitor's device as "YYYY-MM-DD". */
 export function localDateISO(d: Date = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, "0");

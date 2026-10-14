@@ -31,6 +31,7 @@ class RegistreController extends Controller
         $sacrements = $data['sacrements'] ?? [];
         unset($data['sacrements']);
         $data['source'] = 'public';
+        $data['user_id'] = $request->user()?->id;
 
         $inscription = DB::transaction(function () use ($data, $sacrements) {
             $inscription = RegistreInscription::create($data);
@@ -39,6 +40,17 @@ class RegistreController extends Controller
         });
 
         return response()->json($inscription->load('sacrements'), 201);
+    }
+
+    /** The fiche of the logged-in member (null when they are not registered yet). */
+    public function myInscription(Request $request)
+    {
+        $inscription = RegistreInscription::where('user_id', $request->user()->id)
+            ->with('sacrements')
+            ->latest()
+            ->first();
+
+        return response()->json($inscription);
     }
 
     public function adminIndex(Request $request)

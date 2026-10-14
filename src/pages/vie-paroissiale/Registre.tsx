@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { apiGet, apiPost, ApiError } from "@/lib/api";
 import Icon from "@/components/Icon";
 import { useLang } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
 import { SACREMENTS, SACREMENT_QUESTIONS, type SacrementType } from "@/lib/sacrements";
 
 const GROUPES: { value: string; key: string }[] = [
@@ -42,6 +43,7 @@ const EMPTY_FORM: FormData = {
 
 export default function Registre() {
   const { t } = useLang();
+  const { user, login, register } = useAuth();
   const [step, setStep] = useState(0);
   const [returnStep, setReturnStep] = useState<number | null>(null);
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
@@ -50,6 +52,14 @@ export default function Registre() {
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [accountMode, setAccountMode] = useState<"register" | "login">("register");
+  const [accountForm, setAccountForm] = useState({ email: "", password: "", confirm: "" });
+
+  useEffect(() => {
+    if (step === RECAP && !user && !accountForm.email && form.email) {
+      setAccountForm(prev => ({ ...prev, email: form.email }));
+    }
+  }, [step, user, form.email, accountForm.email]);
 
   const set = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm(prev => ({ ...prev, [field]: e.target.value }));
@@ -113,6 +123,30 @@ export default function Registre() {
     setError(null);
     setSaving(true);
     try {
+      if (!user) {
+        const email = (accountForm.email || form.email).trim();
+        if (!email) {
+          setError(t("vie.registre.compte.email"));
+          return;
+        }
+        if (accountMode === "register") {
+          if (accountForm.password !== accountForm.confirm) {
+            setError(t("top.membre.motsDePasseDifferents"));
+            return;
+          }
+          await register({
+            nom: form.nom,
+            prenom: form.prenom,
+            email,
+            phone: form.telephone || undefined,
+            password: accountForm.password,
+            password_confirmation: accountForm.confirm,
+          });
+        } else {
+          await login(email, accountForm.password);
+        }
+      }
+
       const sacrements = ORDER.filter(type => answers[type]).map(type => {
         const def = SACREMENTS.find(s => s.type === type)!;
         const payload: Record<string, string | null> = { type };
@@ -126,7 +160,7 @@ export default function Registre() {
       await apiPost("/registre", {
         nom: form.nom,
         prenom: form.prenom,
-        email: form.email || null,
+        email: form.email || accountForm.email || null,
         telephone: form.telephone,
         tranche_age: form.trancheAge,
         rue: form.rue || null,
@@ -141,7 +175,11 @@ export default function Registre() {
       });
       setSubmitted(true);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t("vie.registre.erreur"));
+      if (err instanceof ApiError && err.status === 422 && !user) {
+        setError(accountMode === "register" ? t("vie.registre.compte.erreur") : t("vie.registre.compte.connexionErreur"));
+      } else {
+        setError(err instanceof ApiError ? err.message : t("vie.registre.erreur"));
+      }
     } finally {
       setSaving(false);
     }
@@ -157,13 +195,22 @@ export default function Registre() {
         <div className="text-6xl mb-4"><Icon name="checkCircle" size={56} /></div>
         <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.8rem", fontWeight: 700, color: "#1c2340" }}>{t("vie.registre.merci")}</h2>
         <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.9rem", color: "#6b7280", marginTop: 8, lineHeight: 1.7 }}>
-          {t("vie.registre.merciTexte")}
+          {user ? t("vie.registre.merciCompteTexte") : t("vie.registre.merciTexte")}
         </p>
-        <Link to="/vie-paroissiale"
-          style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.83rem" }}
-          className="inline-flex items-center gap-2 text-white px-6 py-3 rounded-full mt-6 hover:opacity-90 transition-opacity">
-          <Icon name="arrowLeft" size={16} /> {t("vie.titre")}
-        </Link>
+        <div className="flex flex-wrap gap-3 justify-center mt-6">
+          {user && (
+            <Link to="/espace-paroissien"
+              style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.83rem" }}
+              className="inline-flex items-center gap-2 text-white px-6 py-3 rounded-full hover:opacity-90 transition-opacity">
+              <Icon name="user" size={16} /> {t("vie.registre.voirEspace")}
+            </Link>
+          )}
+          <Link to="/vie-paroissiale"
+            style={{ background: user ? "#fff" : "#0B3D91", border: "1px solid #e5e7eb", color: user ? "#374151" : "#fff", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.83rem" }}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full hover:opacity-90 transition-opacity">
+            <Icon name="arrowLeft" size={16} /> {t("vie.titre")}
+          </Link>
+        </div>
       </div>
     );
   }
@@ -371,6 +418,33 @@ export default function Registre() {
                   )}
                 </div>
 
+                {!user && (
+                  <div style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 16 }}>
+                    <h3 style={sectionTitle}>{t("vie.registre.compte.titre")}</h3>
+                    <p style={{ ...labelStyle, fontWeight: 400, marginBottom: 12, lineHeight: 1.6 }}>{t("vie.registre.compte.intro")}</p>
+                    <div className="space-y-4">
+                      <div>
+                        <label style={labelStyle} className="block mb-1.5">{t("vie.registre.compte.email")}</label>
+                        <input required type="email" value={accountForm.email} onChange={e => setAccountForm(p => ({ ...p, email: e.target.value }))} className={inputClass} style={inputStyle} />
+                      </div>
+                      <div>
+                        <label style={labelStyle} className="block mb-1.5">{t("vie.registre.compte.motDePasse")}</label>
+                        <input required type="password" minLength={8} value={accountForm.password} onChange={e => setAccountForm(p => ({ ...p, password: e.target.value }))} className={inputClass} style={inputStyle} />
+                      </div>
+                      {accountMode === "register" && (
+                        <div>
+                          <label style={labelStyle} className="block mb-1.5">{t("vie.registre.compte.confirmation")}</label>
+                          <input required type="password" value={accountForm.confirm} onChange={e => setAccountForm(p => ({ ...p, confirm: e.target.value }))} className={inputClass} style={inputStyle} />
+                        </div>
+                      )}
+                    </div>
+                    <button type="button" onClick={() => { setAccountMode(m => (m === "register" ? "login" : "register")); setError(null); }}
+                      style={{ ...labelStyle, color: "#0B3D91", background: "none", border: "none", cursor: "pointer", marginTop: 12, textDecoration: "underline" }}>
+                      {accountMode === "register" ? t("vie.registre.compte.deja") : t("vie.registre.compte.nouveau")}
+                    </button>
+                  </div>
+                )}
+
                 {error && <ErrorBox message={error} />}
 
                 <div className="flex flex-col sm:flex-row gap-3">
@@ -380,7 +454,7 @@ export default function Registre() {
                   </button>
                   <button type="submit" disabled={saving}
                     style={{ ...primaryBtn, opacity: saving ? 0.6 : 1 }} className="flex-1 text-white py-3.5 rounded-xl hover:opacity-90 transition-opacity">
-                    {t("vie.registre.submit")} <Icon name="cross" size={16} strokeWidth={1.75} />
+                    {user ? t("vie.registre.submit") : accountMode === "register" ? t("vie.registre.compte.creer") : t("vie.registre.compte.seConnecter")} <Icon name="cross" size={16} strokeWidth={1.75} />
                   </button>
                 </div>
               </form>
