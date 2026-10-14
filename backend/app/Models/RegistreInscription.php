@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class RegistreInscription extends Model
 {
@@ -17,5 +18,10 @@ class RegistreInscription extends Model
             'membre_cev' => 'boolean',
             'membre_groupe' => 'boolean',
         ];
+    }
+
+    public function sacrements(): HasMany
+    {
+        return $this->hasMany(RegistreSacrement::class, 'registre_inscription_id');
     }
 }

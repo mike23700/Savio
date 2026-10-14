@@ -132,6 +132,55 @@ const fr: Record<string, string> = {
   "vie.registre.merci": "Inscription enregistrée !",
   "vie.registre.merciTexte":
     "Votre inscription au registre paroissial a bien été reçue. Nous vous contacterons prochainement.",
+
+  "vie.registre.tab.fiche": "Fiche paroissiale",
+  "vie.registre.tab.bapteme": "Baptême",
+  "vie.registre.tab.communion": "1ère Communion",
+  "vie.registre.tab.confirmation": "Confirmation",
+  "vie.registre.tab.mariage": "Mariage",
+  "vie.registre.sacr.h2": "Enregistrer un sacrement",
+  "vie.registre.sacr.intro":
+    "Renseignez les informations d'état civil et de célébration du sacrement. Les champs marqués d'une étoile sont obligatoires.",
+  "vie.registre.sacr.submit": "Enregistrer",
+  "vie.registre.sacr.merci": "Enregistrement transmis !",
+  "vie.registre.sacr.merciTexte":
+    "Votre demande a bien été enregistrée. Le secrétariat paroissial la traitera prochainement.",
+
+  "vie.registre.wizard.intro":
+    "Remplissez votre fiche paroissiale, puis répondez aux questions sur vos sacrements : les informations correspondantes apparaissent au fur et à mesure.",
+  "vie.registre.wizard.baptise": "Êtes-vous baptisé(e) ?",
+  "vie.registre.wizard.communion": "Avez-vous fait votre 1ère Communion ?",
+  "vie.registre.wizard.confirmation": "Êtes-vous confirmé(e) ?",
+  "vie.registre.wizard.mariage": "Êtes-vous marié(e) ?",
+  "vie.registre.wizard.continuer": "Continuer",
+  "vie.registre.wizard.retour": "Retour",
+  "vie.registre.wizard.recap": "Récapitulatif",
+  "vie.registre.wizard.recapIntro": "Vérifiez vos informations avant d'enregistrer.",
+  "vie.registre.wizard.aucunSacrement": "Aucun sacrement renseigné.",
+  "vie.registre.wizard.completer": "Compléter les informations",
+
+  "vie.sacr.nom": "Noms et prénoms",
+  "vie.sacr.sexe": "Fils / Fille",
+  "vie.sacr.fils": "Fils",
+  "vie.sacr.fille": "Fille",
+  "vie.sacr.filsDe": "Fils / Fille de",
+  "vie.sacr.etDe": "Et de",
+  "vie.sacr.neLe": "Né(e) le",
+  "vie.sacr.baptiseLe": "Baptisé(e) le",
+  "vie.sacr.numeroRegistre": "N° du Registre",
+  "vie.sacr.parrain": "Parrain / Marraine",
+  "vie.sacr.village": "Village",
+  "vie.sacr.remarques": "Remarques",
+  "vie.sacr.certifieLe": "Certifié exact le",
+  "vie.sacr.signataire": "Signé par",
+  "vie.sacr.lieu": "À / At",
+  "vie.sacr.le": "Le / On",
+  "vie.sacr.signature": "Signature",
+  "vie.sacr.ministre": "Ministre",
+  "vie.sacr.numero": "N°",
+  "vie.sacr.conjoint": "Avec / With",
+  "vie.sacr.baptiseA": "Baptisé(e) à",
+  "vie.sacr.temoins": "Témoins",
 };
 
 const en: Record<string, string> = {
@@ -266,6 +315,55 @@ const en: Record<string, string> = {
   "vie.registre.merci": "Registration saved!",
   "vie.registre.merciTexte":
     "Your registration for the parish register has been received. We will contact you shortly.",
+
+  "vie.registre.tab.fiche": "Parish form",
+  "vie.registre.tab.bapteme": "Baptism",
+  "vie.registre.tab.communion": "First Communion",
+  "vie.registre.tab.confirmation": "Confirmation",
+  "vie.registre.tab.mariage": "Marriage",
+  "vie.registre.sacr.h2": "Register a sacrament",
+  "vie.registre.sacr.intro":
+    "Fill in the civil and celebration details of the sacrament. Fields marked with a star are required.",
+  "vie.registre.sacr.submit": "Save",
+  "vie.registre.sacr.merci": "Record submitted!",
+  "vie.registre.sacr.merciTexte":
+    "Your request has been saved. The parish office will process it shortly.",
+
+  "vie.registre.wizard.intro":
+    "Fill in your parish form, then answer the questions about your sacraments: the matching fields appear as you go.",
+  "vie.registre.wizard.baptise": "Are you baptized?",
+  "vie.registre.wizard.communion": "Have you made your First Communion?",
+  "vie.registre.wizard.confirmation": "Are you confirmed?",
+  "vie.registre.wizard.mariage": "Are you married?",
+  "vie.registre.wizard.continuer": "Continue",
+  "vie.registre.wizard.retour": "Back",
+  "vie.registre.wizard.recap": "Summary",
+  "vie.registre.wizard.recapIntro": "Check your information before saving.",
+  "vie.registre.wizard.aucunSacrement": "No sacrament filled in.",
+  "vie.registre.wizard.completer": "Complete the information",
+
+  "vie.sacr.nom": "Names",
+  "vie.sacr.sexe": "Son / Daughter",
+  "vie.sacr.fils": "Son",
+  "vie.sacr.fille": "Daughter",
+  "vie.sacr.filsDe": "Son / Daughter of",
+  "vie.sacr.etDe": "And of",
+  "vie.sacr.neLe": "Born on",
+  "vie.sacr.baptiseLe": "Baptized on",
+  "vie.sacr.numeroRegistre": "Register No.",
+  "vie.sacr.parrain": "Godfather / Godmother",
+  "vie.sacr.village": "Village",
+  "vie.sacr.remarques": "Remarks",
+  "vie.sacr.certifieLe": "Certified on",
+  "vie.sacr.signataire": "Signed by",
+  "vie.sacr.lieu": "At",
+  "vie.sacr.le": "On",
+  "vie.sacr.signature": "Signature",
+  "vie.sacr.ministre": "Minister",
+  "vie.sacr.numero": "No.",
+  "vie.sacr.conjoint": "With",
+  "vie.sacr.baptiseA": "Baptized at",
+  "vie.sacr.temoins": "Witnesses",
 };
 
 export default { fr, en } satisfies Bundle;

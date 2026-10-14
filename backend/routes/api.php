@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\PrayerTimeController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProjetController;
 use App\Http\Controllers\Api\RegistreController;
+use App\Http\Controllers\Api\RegistreSacrementController;
 use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\SacrementController;
 use App\Http\Controllers\Api\SettingsController;
@@ -91,6 +92,8 @@ Route::get('/projets', [ProjetController::class, 'index']);
 Route::get('/projets/{projet}', [ProjetController::class, 'show']);
 
 Route::post('/registre', [RegistreController::class, 'store']);
+Route::get('/registre/next-numero', [RegistreController::class, 'nextNumero']);
+Route::post('/registre/sacrements', [RegistreSacrementController::class, 'store']);
 
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{slug}', [ProductController::class, 'show']);
@@ -218,7 +221,13 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
 
     Route::get('/registre', [RegistreController::class, 'adminIndex']);
     Route::post('/registre', [RegistreController::class, 'adminStore']);
+    Route::put('/registre/{registreInscription}', [RegistreController::class, 'update']);
     Route::delete('/registre/{registreInscription}', [RegistreController::class, 'destroy']);
+
+    Route::get('/registre-sacrements', [RegistreSacrementController::class, 'adminIndex']);
+    Route::post('/registre-sacrements', [RegistreSacrementController::class, 'adminStore']);
+    Route::put('/registre-sacrements/{registreSacrement}', [RegistreSacrementController::class, 'update']);
+    Route::delete('/registre-sacrements/{registreSacrement}', [RegistreSacrementController::class, 'destroy']);
 
     Route::get('/products', [ProductController::class, 'adminIndex']);
     Route::post('/products', [ProductController::class, 'store']);

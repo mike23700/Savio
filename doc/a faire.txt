@@ -1,0 +1,9 @@
+-menu comptabiliter (pour tout les entrer d'argent et les depenses)
+-cathegoriser les depenses(entrer ou sorti)
+- possibiliter de filtrer par categories
+
+-faire monter faire un don et espasse paroiciale au niveau de la barre bleu
+-creer un menu louer deroulant(chambre et salle) apres se nourir
+- changer toutes les iconnes du site (mettre des icones comme ceux de services dans acceuil)
+-retirer les reseaux au header
+- mettre fr/eng au header
