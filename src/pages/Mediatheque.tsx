@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import { Link, useSearchParams } from "react-router"
 
@@ -19,8 +19,10 @@ import Icon, { type IconName } from "@/components/Icon"
 
 const ALL = "*"
 
+type TabId = "galerie" | "videos" | "chants" | "boutique"
+
 /**
- * Media library (photos + YouTube videos managed from /admin/mediatheque).
+ * Media library (photos + YouTube videos + cantiques/chants managed from /admin/mediatheque).
  * Served at /mediatheque and, without the shop tab, at /paroisse/mediatheque.
  */
 
@@ -35,23 +37,32 @@ export default function Mediatheque({
 
   const youtubeUrl = settings["social.youtube_url"] || "#"
 
-  // The active tab lives in the URL (?onglet=videos) so it can be linked to.
+  // The active tab lives in the URL (?onglet=videos, ?onglet=chants) so it can be linked to.
 
   const [params, setParams] = useSearchParams()
 
   const tabParam = params.get("onglet")
 
-  const tab =
-    tabParam === "videos" || (tabParam === "boutique" && !fromParoisse)
+  const tab: TabId =
+    tabParam === "videos" ||
+    tabParam === "chants" ||
+    (tabParam === "boutique" && !fromParoisse)
       ? tabParam
       : "galerie"
 
-  const setTab = (t: "galerie" | "videos" | "boutique") =>
-    setParams(t === "galerie" ? {} : { onglet: t }, { replace: true })
+  const setTab = (next: TabId) =>
+    setParams(next === "galerie" ? {} : { onglet: next }, { replace: true })
 
   const [galleryFilter, setGalleryFilter] = useState(ALL)
 
   const [videoFilter, setVideoFilter] = useState(ALL)
+
+  const [chantCategory, setChantCategory] = useState(ALL)
+
+  const [chantLangue, setChantLangue] = useState(ALL)
+
+  const [chantSearch, setChantSearch] = useState("")
+
   const [lightbox, setLightbox] = useState<string | null>(null)
 
   const [playing, setPlaying] = useState<MediaItem | null>(null)
@@ -62,7 +73,7 @@ export default function Mediatheque({
 
   // Load, then reload whenever the visitor comes back to this tab/window, so
 
-  // photos and videos added from the admin show up without a manual refresh.
+  // photos, videos and chants added from the admin show up without a manual refresh.
 
   useEffect(() => {
     function load() {
@@ -96,6 +107,8 @@ export default function Mediatheque({
 
   const videos = items.filter((i) => i.type === "video" && i.youtube_id)
 
+  const chants = items.filter((i) => i.type === "chant")
+
   // Only list categories that have content for the current tab.
 
   const catsFor = (list: MediaItem[]) => [
@@ -106,11 +119,19 @@ export default function Mediatheque({
       .map((c) => ({ value: c.name, label: c.name })),
   ]
 
-  const tabs: {
-    id: "galerie" | "videos" | "boutique"
-    icon: IconName
-    label: string
-  }[] = [
+  const langues = useMemo(() => {
+    const set = new Set<string>()
+
+    for (const c of chants) {
+      const l = (c.language || "").trim()
+
+      if (l) set.add(l)
+    }
+
+    return [...set].sort((a, b) => a.localeCompare(b, "fr"))
+  }, [chants])
+
+  const tabs: { id: TabId icon: IconName label: string }[] = [
     {
       id: "galerie",
       icon: "camera",
@@ -129,9 +150,18 @@ export default function Mediatheque({
       ),
     },
 
+    {
+      id: "chants",
+      icon: "music",
+      label: t("top.mediatheque.ongletChants").replace(
+        "{count}",
+        String(chants.length),
+      ),
+    },
+
     { id: "boutique", icon: "bag", label: t("top.mediatheque.ongletBoutique") },
   ].filter((t) => !fromParoisse || t.id !== "boutique") as {
-    id: "galerie" | "videos" | "boutique"
+    id: TabId
     icon: IconName
     label: string
   }[]
@@ -143,6 +173,20 @@ export default function Mediatheque({
   const filteredVideos = videos.filter(
     (v) => videoFilter === ALL || v.category?.name === videoFilter,
   )
+
+  const filteredChants = chants.filter((c) => {
+    if (chantCategory !== ALL && c.category?.name !== chantCategory)
+      return false
+
+    if (chantLangue !== ALL && (c.language || "").trim() !== chantLangue)
+      return false
+
+    const q = chantSearch.trim().toLowerCase()
+
+    if (q && !(c.title || "").toLowerCase().includes(q)) return false
+
+    return true
+  })
 
   return (
     <>
@@ -533,6 +577,325 @@ export default function Mediatheque({
               {t("top.mediatheque.youtubeBouton")}
             </a>
           </div>
+        </section>
+      )}
+
+      {/* Cantiques & Chants */}
+      {tab === "chants" && (
+        <section className="py-12 px-4 bg-white">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex flex-col md:flex-row gap-3 md:items-center mb-6">
+              <input
+                value={chantSearch}
+                onChange={(e) => setChantSearch(e.target.value)}
+                placeholder={t("top.mediatheque.rechercherChant")}
+                style={{
+                  fontFamily: "Montserrat, sans-serif",
+                  fontSize: "0.85rem",
+                  color: "#1c2340",
+                }}
+                className="w-full md:max-w-sm border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+              />
+              <div className="flex flex-wrap gap-2">
+                <select
+                  value={chantLangue}
+                  onChange={(e) => setChantLangue(e.target.value)}
+                  style={{
+                    fontFamily: "Montserrat, sans-serif",
+                    fontSize: "0.8rem",
+                  }}
+                  className="border border-gray-200 rounded-full px-4 py-2 bg-white"
+                >
+                  <option value={ALL}>
+                    {t("top.mediatheque.toutesLangues")}
+                  </option>
+                  {langues.map((l) => (
+                    <option key={l} value={l}>
+                      {l}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2 mb-8">
+              {catsFor(chants).map((cat) => (
+                <button
+                  key={cat.value}
+                  onClick={() => setChantCategory(cat.value)}
+                  style={{
+                    fontFamily: "Montserrat, sans-serif",
+                    fontSize: "0.76rem",
+                    fontWeight: 700,
+                    background:
+                      chantCategory === cat.value ? "#0B3D91" : "#F5F7FA",
+                    color: chantCategory === cat.value ? "white" : "#374151",
+                    border: `1px solid ${
+                      chantCategory === cat.value ? "#0B3D91" : "#e5e7eb"
+                    }`,
+                  }}
+                  className="px-4 py-2 rounded-full hover:opacity-90 transition-all"
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            {filteredChants.length === 0 ? (
+              <p
+                className="text-center py-10"
+                style={{
+                  fontFamily: "Montserrat, sans-serif",
+                  fontSize: "0.88rem",
+                  color: "#6b7280",
+                }}
+              >
+                {t("top.mediatheque.aucunChant")}
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {filteredChants.map((c) => {
+                  const audio = mediaUrl(c.audio_url)
+
+                  const pdf = mediaUrl(c.pdf_url)
+
+                  const hasBoth = !!(audio && pdf)
+
+                  return (
+                    <article
+                      key={c.id}
+                      className="rounded-2xl overflow-hidden border border-gray-100 bg-white hover:shadow-lg transition-all"
+                    >
+                      <div className="p-5">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          {c.language && (
+                            <span
+                              style={{
+                                fontFamily: "Montserrat, sans-serif",
+                                fontSize: "0.65rem",
+                                fontWeight: 700,
+                                background: "#0B3D91",
+                                color: "white",
+                                letterSpacing: "0.06em",
+                              }}
+                              className="px-2.5 py-1 rounded-full uppercase"
+                            >
+                              {c.language}
+                            </span>
+                          )}
+                          {c.category && (
+                            <span
+                              style={{
+                                fontFamily: "Montserrat, sans-serif",
+                                fontSize: "0.65rem",
+                                fontWeight: 700,
+                                background: "#FEF3C7",
+                                color: "#92400E",
+                                letterSpacing: "0.06em",
+                              }}
+                              className="px-2.5 py-1 rounded-full uppercase"
+                            >
+                              {c.category.name}
+                            </span>
+                          )}
+                        </div>
+                        <h3
+                          style={{
+                            fontFamily: "Playfair Display, serif",
+                            fontSize: "1.05rem",
+                            fontWeight: 700,
+                            color: "#1c2340",
+                            lineHeight: 1.35,
+                          }}
+                        >
+                          {c.title || "—"}
+                        </h3>
+                        <div
+                          className="flex flex-wrap gap-3 mt-2"
+                          style={{
+                            fontFamily: "Montserrat, sans-serif",
+                            fontSize: "0.72rem",
+                            color: "#6b7280",
+                          }}
+                        >
+                          {audio && (
+                            <span className="inline-flex items-center gap-1">
+                              <Icon name="music" size={14} strokeWidth={1.75} />{" "}
+                              Audio
+                            </span>
+                          )}
+                          {c.youtube_id && (
+                            <span className="inline-flex items-center gap-1">
+                              <Icon name="play" size={14} strokeWidth={1.75} />{" "}
+                              Vidéo
+                            </span>
+                          )}
+                          {pdf && (
+                            <span className="inline-flex items-center gap-1">
+                              <Icon
+                                name="fileText"
+                                size={14}
+                                strokeWidth={1.75}
+                              />{" "}
+                              PDF
+                            </span>
+                          )}
+                        </div>
+
+                        {hasBoth && (
+                          <p
+                            className="mt-3"
+                            style={{
+                              fontFamily: "Montserrat, sans-serif",
+                              fontSize: "0.76rem",
+                              color: "#0B3D91",
+                              lineHeight: 1.6,
+                            }}
+                          >
+                            {t("top.mediatheque.chantLireEnEcoutant")}
+                          </p>
+                        )}
+
+                        {audio && (
+                          <div className="mt-4">
+                            <audio
+                              controls
+                              src={audio}
+                              className="w-full"
+                              preload="none"
+                            >
+                              {t("top.mediatheque.audioNonSupporte")}
+                            </audio>
+                          </div>
+                        )}
+
+                        <div className="flex flex-wrap gap-2 mt-4">
+                          {c.youtube_id && (
+                            <button
+                              onClick={() => setPlaying(c)}
+                              style={{
+                                background: "#ff0000",
+                                fontFamily: "Montserrat, sans-serif",
+                                fontWeight: 700,
+                                fontSize: "0.78rem",
+                              }}
+                              className="inline-flex items-center gap-2 text-white px-4 py-2.5 rounded-full hover:opacity-90 transition-opacity"
+                            >
+                              <Icon name="play" size={15} strokeWidth={1.75} />{" "}
+                              {t("top.mediatheque.voirVideo")}
+                            </button>
+                          )}
+                          {pdf && (
+                            <>
+                              <a
+                                href={pdf}
+                                target="_blank"
+                                rel="noreferrer"
+                                style={{
+                                  background: "#0B3D91",
+                                  fontFamily: "Montserrat, sans-serif",
+                                  fontWeight: 700,
+                                  fontSize: "0.78rem",
+                                }}
+                                className="inline-flex items-center gap-2 text-white px-4 py-2.5 rounded-full hover:opacity-90 transition-opacity"
+                              >
+                                <Icon
+                                  name="bookOpen"
+                                  size={15}
+                                  strokeWidth={1.75}
+                                />{" "}
+                                {t("top.mediatheque.lireParoles")}
+                              </a>
+                              <a
+                                href={pdf}
+                                download
+                                style={{
+                                  border: "1px solid #0B3D91",
+                                  color: "#0B3D91",
+                                  fontFamily: "Montserrat, sans-serif",
+                                  fontWeight: 700,
+                                  fontSize: "0.78rem",
+                                }}
+                                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full hover:bg-blue-50 transition-all"
+                              >
+                                <Icon
+                                  name="download"
+                                  size={15}
+                                  strokeWidth={1.75}
+                                />{" "}
+                                PDF
+                              </a>
+                            </>
+                          )}
+                          {audio && (
+                            <a
+                              href={audio}
+                              download
+                              style={{
+                                border: "1px solid #e5e7eb",
+                                color: "#374151",
+                                fontFamily: "Montserrat, sans-serif",
+                                fontWeight: 700,
+                                fontSize: "0.78rem",
+                              }}
+                              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full hover:bg-gray-50 transition-all"
+                            >
+                              <Icon
+                                name="download"
+                                size={15}
+                                strokeWidth={1.75}
+                              />{" "}
+                              {t("top.mediatheque.telechargerAudio")}
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </article>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+          {playing && playing.type === "chant" && playing.youtube_id && (
+            <div
+              className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+              onClick={() => setPlaying(null)}
+            >
+              <div
+                className="w-full max-w-4xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="relative aspect-video rounded-xl overflow-hidden bg-black">
+                  <iframe
+                    src={youtubeEmbed(playing.youtube_id)}
+                    title={playing.title ?? t("top.mediatheque.video")}
+                    className="absolute inset-0 w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+                {playing.title && (
+                  <p
+                    style={{
+                      fontFamily: "Montserrat, sans-serif",
+                      color: "white",
+                      marginTop: 12,
+                      fontSize: "0.95rem",
+                    }}
+                  >
+                    {playing.title}
+                  </p>
+                )}
+              </div>
+              <button
+                className="absolute top-4 right-4 text-white hover:text-gray-300"
+                aria-label={t("top.common.fermer")}
+                title={t("top.common.fermer")}
+                onClick={() => setPlaying(null)}
+              >
+                <Icon name="close" size={20} strokeWidth={1.75} />
+              </button>
+            </div>
+          )}
         </section>
       )}
 

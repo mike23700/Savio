@@ -20,7 +20,7 @@ class MediaController extends Controller
         $query = MediaItem::with('category')->where('is_published', true)
             ->orderBy('sort_order')->orderByDesc('taken_at')->orderByDesc('id');
 
-        if (in_array($type = $request->query('type'), ['photo', 'video'], true)) {
+        if (in_array($type = $request->query('type'), ['photo', 'video', 'chant'], true)) {
             $query->where('type', $type);
         }
 
@@ -50,6 +50,12 @@ class MediaController extends Controller
         if ($media->image && ($data['image'] ?? null) !== $media->image) {
             $this->deleteStoredImage($media->image);
         }
+        if ($media->audio_url && ($data['audio_url'] ?? null) !== $media->audio_url) {
+            $this->deleteStoredImage($media->audio_url);
+        }
+        if ($media->pdf_url && ($data['pdf_url'] ?? null) !== $media->pdf_url) {
+            $this->deleteStoredImage($media->pdf_url);
+        }
         $media->update($data);
 
         return response()->json($media->load('category'));
@@ -58,6 +64,8 @@ class MediaController extends Controller
     public function destroy(MediaItem $media)
     {
         $this->deleteStoredImage($media->image);
+        $this->deleteStoredImage($media->audio_url);
+        $this->deleteStoredImage($media->pdf_url);
         $media->delete();
 
         return response()->json(null, 204);
@@ -66,17 +74,22 @@ class MediaController extends Controller
     private function validated(Request $request): array
     {
         $data = $request->validate([
-            'type' => 'required|in:photo,video',
+            'type' => 'required|in:photo,video,chant',
             'media_category_id' => 'nullable|exists:media_categories,id',
-            'title' => 'nullable|string|max:255',
+            'title' => 'required_if:type,chant|nullable|string|max:255',
+            'language' => 'required_if:type,chant|nullable|string|max:50',
             'image' => 'required_if:type,photo|nullable|string|max:500',
             'youtube_url' => 'required_if:type,video|nullable|string|max:500',
+            'audio_url' => 'nullable|string|max:500',
+            'pdf_url' => 'nullable|string|max:500',
             'taken_at' => 'nullable|date',
             'sort_order' => 'integer',
             'is_published' => 'boolean',
         ], [
             'image.required_if' => 'Importez une photo.',
             'youtube_url.required_if' => 'Collez le lien de la vidéo YouTube.',
+            'title.required_if' => 'Donnez un titre au chant.',
+            'language.required_if' => 'Précisez la langue du chant.',
         ]);
 
         if ($data['type'] === 'video') {
@@ -85,9 +98,34 @@ class MediaController extends Controller
                 throw ValidationException::withMessages(['youtube_url' => 'Lien YouTube non reconnu.']);
             }
             $data['image'] = null;
+            $data['audio_url'] = null;
+            $data['pdf_url'] = null;
+            $data['language'] = null;
+        } elseif ($data['type'] === 'chant') {
+            // Optional YouTube link: resolve the id when present, reject bad links.
+            $youtubeUrl = trim($data['youtube_url'] ?? '');
+            if ($youtubeUrl !== '') {
+                $data['youtube_id'] = MediaItem::youtubeId($youtubeUrl);
+                if (! $data['youtube_id']) {
+                    throw ValidationException::withMessages(['youtube_url' => 'Lien YouTube non reconnu.']);
+                }
+                $data['youtube_url'] = $youtubeUrl;
+            } else {
+                $data['youtube_url'] = null;
+                $data['youtube_id'] = null;
+            }
+            $data['image'] = null;
+            if (empty($data['audio_url']) && empty($data['pdf_url']) && empty($data['youtube_url'])) {
+                throw ValidationException::withMessages([
+                    'audio_url' => 'Ajoutez un audio, un lien vidéo ou un fichier PDF.',
+                ]);
+            }
         } else {
             $data['youtube_url'] = null;
             $data['youtube_id'] = null;
+            $data['audio_url'] = null;
+            $data['pdf_url'] = null;
+            $data['language'] = null;
         }
 
         return $data;

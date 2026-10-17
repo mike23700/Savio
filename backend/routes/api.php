@@ -141,6 +141,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::delete('/mass-schedule/{massSchedule}', [MassScheduleController::class, 'destroy']);
 
     Route::post('/uploads/image', [UploadController::class, 'image']);
+    Route::post('/uploads/file', [UploadController::class, 'file']);
 
     Route::get('/events', [EventController::class, 'adminIndex']);
     Route::post('/events', [EventController::class, 'store']);

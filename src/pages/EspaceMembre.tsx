@@ -775,8 +775,7 @@ export default function EspaceMembre() {
                                     {s.numero_registre ? (
                                       <span
                                         style={{
-                                          fontFamily:
-                                            "Montserrat, sans-serif",
+                                          fontFamily: "Montserrat, sans-serif",
                                           fontSize: "0.72rem",
                                           color: "#6b7280",
                                           fontWeight: 400,

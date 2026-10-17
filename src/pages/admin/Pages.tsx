@@ -322,7 +322,6 @@ export default function AdminPages() {
         const target = idx + dir
 
         if (target < 0 || target >= blocks.length) return p
-
         ;[blocks[idx], blocks[target]] = [blocks[target], blocks[idx]]
 
         return { ...p, blocks }

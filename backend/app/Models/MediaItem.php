@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class MediaItem extends Model
 {
     protected $fillable = [
-        'type', 'media_category_id', 'title', 'image', 'youtube_url', 'youtube_id', 'taken_at', 'sort_order', 'is_published',
+        'type', 'media_category_id', 'title', 'language', 'image', 'youtube_url', 'youtube_id',
+        'audio_url', 'pdf_url', 'taken_at', 'sort_order', 'is_published',
     ];
 
     protected function casts(): array

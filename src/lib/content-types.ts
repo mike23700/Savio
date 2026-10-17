@@ -147,17 +147,29 @@ export interface MediaCategory {
 export interface MediaItem {
   id: number
 
-  type: "photo" | "video"
+  type: "photo" | "video" | "chant"
 
   media_category_id: number | null
 
   title: string | null
+
+  /** Chant language (e.g. Français, Anglais, Ewondo…). Null for photos/videos. */
+
+  language: string | null
 
   image: string | null
 
   youtube_url: string | null
 
   youtube_id: string | null
+
+  /** Chant audio file (stored path) or external URL. */
+
+  audio_url: string | null
+
+  /** Chant lyrics file (PDF stored path). */
+
+  pdf_url: string | null
 
   taken_at: string | null
 
