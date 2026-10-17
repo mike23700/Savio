@@ -1,13 +1,13 @@
-import { useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n"
 
 const OPTIONS = [
   { code: "fr", short: "FR" },
   { code: "en", short: "EN" },
-] as const;
+] as const
 
 /** Bascule FR / EN du site public. Le choix est memorise dans localStorage. */
 export default function LangSwitch({ compact = false }: { compact?: boolean }) {
-  const { lang, setLang, t } = useLang();
+  const { lang, setLang, t } = useLang()
 
   return (
     <div
@@ -23,7 +23,7 @@ export default function LangSwitch({ compact = false }: { compact?: boolean }) {
       }}
     >
       {OPTIONS.map((o) => {
-        const active = lang === o.code;
+        const active = lang === o.code
         return (
           <button
             key={o.code}
@@ -48,8 +48,8 @@ export default function LangSwitch({ compact = false }: { compact?: boolean }) {
           >
             {o.short}
           </button>
-        );
+        )
       })}
     </div>
-  );
+  )
 }

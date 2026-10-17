@@ -1,4 +1,4 @@
-﻿import type { Bundle } from "..";
+﻿import type { Bundle } from ".."
 
 const fr: Record<string, string> = {
   "vie.titre": "Vie Paroissiale",
@@ -145,8 +145,10 @@ const fr: Record<string, string> = {
   "vie.registre.compte.seConnecter": "Se connecter et m’inscrire",
   "vie.registre.compte.deja": "J’ai déjà un compte",
   "vie.registre.compte.nouveau": "Créer un compte",
-  "vie.registre.compte.erreur": "Impossible de créer le compte (email déjà utilisé ?).",
-  "vie.registre.compte.connexionErreur": "Connexion impossible, vérifiez vos identifiants.",
+  "vie.registre.compte.erreur":
+    "Impossible de créer le compte (email déjà utilisé ?).",
+  "vie.registre.compte.connexionErreur":
+    "Connexion impossible, vérifiez vos identifiants.",
 
   "vie.registre.tab.fiche": "Fiche paroissiale",
   "vie.registre.tab.bapteme": "Baptême",
@@ -170,7 +172,8 @@ const fr: Record<string, string> = {
   "vie.registre.wizard.continuer": "Continuer",
   "vie.registre.wizard.retour": "Retour",
   "vie.registre.wizard.recap": "Récapitulatif",
-  "vie.registre.wizard.recapIntro": "Vérifiez vos informations avant d'enregistrer.",
+  "vie.registre.wizard.recapIntro":
+    "Vérifiez vos informations avant d'enregistrer.",
   "vie.registre.wizard.aucunSacrement": "Aucun sacrement renseigné.",
   "vie.registre.wizard.completer": "Compléter les informations",
 
@@ -196,7 +199,7 @@ const fr: Record<string, string> = {
   "vie.sacr.conjoint": "Avec / With",
   "vie.sacr.baptiseA": "Baptisé(e) à",
   "vie.sacr.temoins": "Témoins",
-};
+}
 
 const en: Record<string, string> = {
   "vie.titre": "Parish Life",
@@ -343,8 +346,10 @@ const en: Record<string, string> = {
   "vie.registre.compte.seConnecter": "Log in and register",
   "vie.registre.compte.deja": "I already have an account",
   "vie.registre.compte.nouveau": "Create an account",
-  "vie.registre.compte.erreur": "Unable to create the account (email already used?).",
-  "vie.registre.compte.connexionErreur": "Unable to log in, please check your credentials.",
+  "vie.registre.compte.erreur":
+    "Unable to create the account (email already used?).",
+  "vie.registre.compte.connexionErreur":
+    "Unable to log in, please check your credentials.",
 
   "vie.registre.tab.fiche": "Parish form",
   "vie.registre.tab.bapteme": "Baptism",
@@ -394,6 +399,6 @@ const en: Record<string, string> = {
   "vie.sacr.conjoint": "With",
   "vie.sacr.baptiseA": "Baptized at",
   "vie.sacr.temoins": "Witnesses",
-};
+}
 
-export default { fr, en } satisfies Bundle;
+export default { fr, en } satisfies Bundle

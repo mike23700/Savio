@@ -115,7 +115,7 @@ Route::get('/journal/issues', [JournalController::class, 'issues']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/registre', [RegistreController::class, 'store']);
-    Route::get('/my-registre', [RegistreController::class, 'myInscription']);
+    Route::get('/my-registre', [RegistreController::class, 'myInscriptions']);
     Route::get('/my-registre-demandes', [RegistrePrintRequestController::class, 'myRequests']);
     Route::post('/registre/demandes-impression', [RegistrePrintRequestController::class, 'store']);
 

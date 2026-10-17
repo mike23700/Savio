@@ -1,93 +1,193 @@
-import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router";
-import { apiGet, apiPost, ApiError } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
-import { useLang } from "@/lib/i18n";
-import PaymentStatus, { type PaymentInfo } from "@/components/PaymentStatus";
-import Icon, { type IconName } from "@/components/Icon";
+import { useEffect, useState } from "react"
 
-const MODE_TO_METHOD: Record<string, string> = { orange: "orange_money", mtn: "mtn_momo", especes: "especes" };
+import { Link, useSearchParams } from "react-router"
+
+import { apiGet, apiPost, ApiError } from "@/lib/api"
+
+import { useAuth } from "@/lib/auth"
+
+import { useLang } from "@/lib/i18n"
+
+import PaymentStatus, { type PaymentInfo } from "@/components/PaymentStatus"
+
+import Icon, { type IconName } from "@/components/Icon"
+
+const MODE_TO_METHOD: Record<string, string> = {
+  orange: "orange_money",
+  mtn: "mtn_momo",
+  especes: "especes",
+}
 
 interface ProjetOption {
-  id: number;
-  titre: string;
-  objectif: number;
-  collecte: number;
+  id: number
+
+  titre: string
+
+  objectif: number
+
+  collecte: number
 }
 
 interface DonationResult {
-  donation: { montant: number; projet: { titre: string } | null };
-  payment: PaymentInfo;
+  donation: { montant: number projet: { titre: string } | null }
+
+  payment: PaymentInfo
 }
 
 export default function Don() {
-  const { t, lang } = useLang();
-  const { user } = useAuth();
-  const [searchParams] = useSearchParams();
-  const [projets, setProjets] = useState<ProjetOption[]>([]);
-  const [projetId, setProjetId] = useState(searchParams.get("projet") ?? "");
-  const [montant, setMontant] = useState("");
-  const [montantCustom, setMontantCustom] = useState("");
-  const [mode, setMode] = useState("orange");
-  const [intention, setIntention] = useState("");
-  const [telephone, setTelephone] = useState(user?.phone ?? "");
+  const { t, lang } = useLang()
+
+  const { user } = useAuth()
+
+  const [searchParams] = useSearchParams()
+
+  const [projets, setProjets] = useState<ProjetOption[]>([])
+
+  const [projetId, setProjetId] = useState(searchParams.get("projet") ?? "")
+
+  const [montant, setMontant] = useState("")
+
+  const [montantCustom, setMontantCustom] = useState("")
+
+  const [mode, setMode] = useState("orange")
+
+  const [intention, setIntention] = useState("")
+
+  const [telephone, setTelephone] = useState(user?.phone ?? "")
 
   useEffect(() => {
-    apiGet<ProjetOption[]>("/projets?statut=en_cours").then(setProjets).catch(() => {});
-  }, []);
+    apiGet<ProjetOption[]>("/projets?statut=en_cours")
+      .then(setProjets)
+      .catch(() => {})
+  }, [])
 
-  const selectedProjet = projets.find(p => String(p.id) === projetId) ?? null;
+  const selectedProjet = projets.find((p) => String(p.id) === projetId) ?? null
 
   useEffect(() => {
-    if (user?.phone) setTelephone(t => t || user.phone!);
-  }, [user]);
-  const [submitted, setSubmitted] = useState(false);
-  const [result, setResult] = useState<DonationResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
+    if (user?.phone) setTelephone((t) => t || user.phone!)
+  }, [user])
 
-  const MONTANTS = ["2 000", "5 000", "10 000", "25 000", "50 000"];
+  const [submitted, setSubmitted] = useState(false)
+
+  const [result, setResult] = useState<DonationResult | null>(null)
+
+  const [error, setError] = useState<string | null>(null)
+
+  const MONTANTS = ["2 000", "5 000", "10 000", "25 000", "50 000"]
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    const amount = parseInt((montantCustom || montant).replace(/\s/g, ""), 10);
+    e.preventDefault()
+
+    setError(null)
+
+    const amount = parseInt((montantCustom || montant).replace(/\s/g, ""), 10)
+
     if (!amount) {
-      setError(t("top.don.erreurMontant"));
-      return;
+      setError(t("top.don.erreurMontant"))
+
+      return
     }
+
     try {
       const res = await apiPost<DonationResult>("/donations", {
         montant: amount,
-        payment_method: MODE_TO_METHOD[mode],
-        telephone: mode === "especes" ? null : telephone,
-        intention: intention || null,
-        projet_id: projetId ? Number(projetId) : null,
-      });
-      setResult(res);
-      setSubmitted(true);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : t("top.common.erreurGenerique"));
-    }
-  };
 
-  const inputClass = "w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all";
-  const labelStyle = { fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", fontWeight: 600, color: "#374151" };
-  const inputStyle = { fontFamily: "Montserrat, sans-serif", fontSize: "0.85rem", color: "#1c2340" };
+        payment_method: MODE_TO_METHOD[mode],
+
+        telephone: mode === "especes" ? null : telephone,
+
+        intention: intention || null,
+
+        projet_id: projetId ? Number(projetId) : null,
+      })
+
+      setResult(res)
+
+      setSubmitted(true)
+    } catch (err) {
+      setError(
+        err instanceof ApiError ? err.message : t("top.common.erreurGenerique"),
+      )
+    }
+  }
+
+  const inputClass =
+    "w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+
+  const labelStyle = {
+    fontFamily: "Montserrat, sans-serif",
+    fontSize: "0.78rem",
+    fontWeight: 600,
+    color: "#374151",
+  }
+
+  const inputStyle = {
+    fontFamily: "Montserrat, sans-serif",
+    fontSize: "0.85rem",
+    color: "#1c2340",
+  }
 
   return (
     <>
       <div className="relative h-64 flex items-end overflow-hidden">
-        <img src="https://images.unsplash.com/photo-1515657241610-a6b33f0f6c5a?w=1400&h=500&fit=crop&auto=format"
-          alt={t("top.don.alt")} className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,45,107,0.92) 0%, rgba(8,45,107,0.35) 60%, transparent 100%)" }} />
+        <img
+          src="https://images.unsplash.com/photo-1515657241610-a6b33f0f6c5a?w=1400&h=500&fit=crop&auto=format"
+          alt={t("top.don.alt")}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to top, rgba(8,45,107,0.92) 0%, rgba(8,45,107,0.35) 60%, transparent 100%)",
+          }}
+        />
         <div className="relative max-w-7xl mx-auto px-6 pb-10 w-full">
           <div className="flex items-center gap-2 mb-2">
-            <Link to="/" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.65)" }}>{t("top.common.accueil")}</Link>
-            <Icon name="chevronRight" size={13} strokeWidth={1.75} style={{ color: "rgba(255,255,255,0.4)" }} />
-            <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#D4AF37" }}>{t("top.don.breadcrumb")}</span>
+            <Link
+              to="/"
+              style={{
+                fontFamily: "Montserrat, sans-serif",
+                fontSize: "0.72rem",
+                color: "rgba(255,255,255,0.65)",
+              }}
+            >
+              {t("top.common.accueil")}
+            </Link>
+            <Icon
+              name="chevronRight"
+              size={13}
+              strokeWidth={1.75}
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            />
+            <span
+              style={{
+                fontFamily: "Montserrat, sans-serif",
+                fontSize: "0.72rem",
+                color: "#D4AF37",
+              }}
+            >
+              {t("top.don.breadcrumb")}
+            </span>
           </div>
-          <h1 style={{ fontFamily: "Playfair Display, serif", color: "white", fontSize: "clamp(1.8rem, 4vw, 2.8rem)", fontWeight: 700 }}>{t("top.don.titre")}</h1>
-          <p style={{ fontFamily: "Montserrat, sans-serif", color: "rgba(255,255,255,0.8)", fontSize: "0.9rem", marginTop: 6 }}>
+          <h1
+            style={{
+              fontFamily: "Playfair Display, serif",
+              color: "white",
+              fontSize: "clamp(1.8rem, 4vw, 2.8rem)",
+              fontWeight: 700,
+            }}
+          >
+            {t("top.don.titre")}
+          </h1>
+          <p
+            style={{
+              fontFamily: "Montserrat, sans-serif",
+              color: "rgba(255,255,255,0.8)",
+              fontSize: "0.9rem",
+              marginTop: 6,
+            }}
+          >
             {t("top.don.sousTitre")}
           </p>
         </div>
@@ -97,36 +197,132 @@ export default function Don() {
         <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-10">
           {/* Why give */}
           <div className="lg:col-span-2">
-            <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.68rem", fontWeight: 700, color: "#D4AF37", letterSpacing: "0.15em" }} className="mb-2">{t("top.don.surtitre")}</div>
-            <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.5rem", fontWeight: 700, color: "#1c2340", marginBottom: 16 }}>
+            <div
+              style={{
+                fontFamily: "Montserrat, sans-serif",
+                fontSize: "0.68rem",
+                fontWeight: 700,
+                color: "#D4AF37",
+                letterSpacing: "0.15em",
+              }}
+              className="mb-2"
+            >
+              {t("top.don.surtitre")}
+            </div>
+            <h2
+              style={{
+                fontFamily: "Playfair Display, serif",
+                fontSize: "1.5rem",
+                fontWeight: 700,
+                color: "#1c2340",
+                marginBottom: 16,
+              }}
+            >
               {t("top.don.pourquoi")}
             </h2>
-            <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.88rem", color: "#4b5563", lineHeight: 1.85, marginBottom: 24 }}>
+            <p
+              style={{
+                fontFamily: "Montserrat, sans-serif",
+                fontSize: "0.88rem",
+                color: "#4b5563",
+                lineHeight: 1.85,
+                marginBottom: 24,
+              }}
+            >
               {t("top.don.pourquoiTexte")}
             </p>
             <div className="space-y-4">
               {([
-                { icon: "church", titre: t("top.don.motif1Titre"), desc: t("top.don.motif1Desc") },
-                { icon: "books", titre: t("top.don.motif2Titre"), desc: t("top.don.motif2Desc") },
-                { icon: "heart", titre: t("top.don.motif3Titre"), desc: t("top.don.motif3Desc") },
-                { icon: "mic", titre: t("top.don.motif4Titre"), desc: t("top.don.motif4Desc") },
-              ] as { icon: IconName; titre: string; desc: string }[]).map((r) => (
+                {
+                  icon: "church",
+                  titre: t("top.don.motif1Titre"),
+                  desc: t("top.don.motif1Desc"),
+                },
+
+                {
+                  icon: "books",
+                  titre: t("top.don.motif2Titre"),
+                  desc: t("top.don.motif2Desc"),
+                },
+
+                {
+                  icon: "heart",
+                  titre: t("top.don.motif3Titre"),
+                  desc: t("top.don.motif3Desc"),
+                },
+
+                {
+                  icon: "mic",
+                  titre: t("top.don.motif4Titre"),
+                  desc: t("top.don.motif4Desc"),
+                },
+              ] as { icon: IconName titre: string desc: string }[]).map((r) => (
                 <div key={r.titre} className="flex gap-3">
-                  <div style={{ width: 36, height: 36, background: "#E8F2FF", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem", flexShrink: 0 }}>
+                  <div
+                    style={{
+                      width: 36,
+                      height: 36,
+                      background: "#E8F2FF",
+                      borderRadius: "50%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "1rem",
+                      flexShrink: 0,
+                    }}
+                  >
                     <Icon name={r.icon} size={18} />
                   </div>
                   <div>
-                    <div style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.8rem", fontWeight: 700, color: "#1c2340" }}>{r.titre}</div>
-                    <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.76rem", color: "#6b7280", lineHeight: 1.6 }}>{r.desc}</p>
+                    <div
+                      style={{
+                        fontFamily: "Montserrat, sans-serif",
+                        fontSize: "0.8rem",
+                        fontWeight: 700,
+                        color: "#1c2340",
+                      }}
+                    >
+                      {r.titre}
+                    </div>
+                    <p
+                      style={{
+                        fontFamily: "Montserrat, sans-serif",
+                        fontSize: "0.76rem",
+                        color: "#6b7280",
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      {r.desc}
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
             <div className="mt-8 bg-blue-50 rounded-xl p-5 border border-blue-100">
-              <blockquote style={{ fontFamily: "Playfair Display, serif", fontSize: "0.95rem", fontStyle: "italic", color: "#0B3D91", lineHeight: 1.6 }}>
+              <blockquote
+                style={{
+                  fontFamily: "Playfair Display, serif",
+                  fontSize: "0.95rem",
+                  fontStyle: "italic",
+                  color: "#0B3D91",
+                  lineHeight: 1.6,
+                }}
+              >
                 {t("top.don.citation")}
               </blockquote>
-              <cite style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#D4AF37", marginTop: 8, display: "block", fontStyle: "normal", fontWeight: 600 }}>{t("top.don.citationRef")}</cite>
+              <cite
+                style={{
+                  fontFamily: "Montserrat, sans-serif",
+                  fontSize: "0.72rem",
+                  color: "#D4AF37",
+                  marginTop: 8,
+                  display: "block",
+                  fontStyle: "normal",
+                  fontWeight: 600,
+                }}
+              >
+                {t("top.don.citationRef")}
+              </cite>
             </div>
           </div>
 
@@ -134,88 +330,262 @@ export default function Don() {
           <div className="lg:col-span-3">
             {submitted && result ? (
               <div className="text-center py-12">
-                <div className="text-6xl mb-5"><Icon name="pray" size={48} /></div>
-                <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.5rem", fontWeight: 700, color: "#1c2340" }}>{t("top.don.merciTitre")}</h3>
-                <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.9rem", color: "#6b7280", marginTop: 10, lineHeight: 1.7, maxWidth: 420, margin: "10px auto 0" }}>
-                  {t("top.don.merciAvant")} <strong>{Number(result.donation.montant).toLocaleString(lang === "en" ? "en-GB" : "fr-FR")} FCFA</strong>
-                  {result.donation.projet && <> {t("top.don.merciProjet")} <strong>{result.donation.projet.titre}</strong></>} {t("top.don.merciApres")}
+                <div className="text-6xl mb-5">
+                  <Icon name="pray" size={48} />
+                </div>
+                <h3
+                  style={{
+                    fontFamily: "Playfair Display, serif",
+                    fontSize: "1.5rem",
+                    fontWeight: 700,
+                    color: "#1c2340",
+                  }}
+                >
+                  {t("top.don.merciTitre")}
+                </h3>
+                <p
+                  style={{
+                    fontFamily: "Montserrat, sans-serif",
+                    fontSize: "0.9rem",
+                    color: "#6b7280",
+                    marginTop: 10,
+                    lineHeight: 1.7,
+                    maxWidth: 420,
+                    margin: "10px auto 0",
+                  }}
+                >
+                  {t("top.don.merciAvant")}{" "}
+                  <strong>
+                    {Number(result.donation.montant).toLocaleString(
+                      lang === "en" ? "en-GB" : "fr-FR",
+                    )}{" "}
+                    FCFA
+                  </strong>
+                  {result.donation.projet && (
+                    <>
+                      {" "}
+                      {t("top.don.merciProjet")}{" "}
+                      <strong>{result.donation.projet.titre}</strong>
+                    </>
+                  )}{" "}
+                  {t("top.don.merciApres")}
                 </p>
                 <div className="mt-5 max-w-md mx-auto">
                   <PaymentStatus initial={result.payment} />
                 </div>
-                <button onClick={() => { setSubmitted(false); setResult(null); }}
-                  style={{ background: "#0B3D91", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.85rem" }}
-                  className="inline-flex items-center gap-2 text-white px-6 py-3 rounded-full mt-6 hover:opacity-90">
+                <button
+                  onClick={() => {
+                    setSubmitted(false)
+                    setResult(null)
+                  }}
+                  style={{
+                    background: "#0B3D91",
+                    fontFamily: "Montserrat, sans-serif",
+                    fontWeight: 700,
+                    fontSize: "0.85rem",
+                  }}
+                  className="inline-flex items-center gap-2 text-white px-6 py-3 rounded-full mt-6 hover:opacity-90"
+                >
                   {t("top.don.autreDon")}
                 </button>
               </div>
             ) : (
               <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-                <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.2rem", fontWeight: 700, color: "#1c2340", marginBottom: 20 }}>{t("top.don.formulaireTitre")}</h3>
+                <h3
+                  style={{
+                    fontFamily: "Playfair Display, serif",
+                    fontSize: "1.2rem",
+                    fontWeight: 700,
+                    color: "#1c2340",
+                    marginBottom: 20,
+                  }}
+                >
+                  {t("top.don.formulaireTitre")}
+                </h3>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Destination */}
                   <div>
-                    <label style={labelStyle} className="block mb-1.5">{t("top.don.destination")}</label>
-                    <select value={projetId} onChange={e => setProjetId(e.target.value)} className={inputClass} style={inputStyle}>
+                    <label style={labelStyle} className="block mb-1.5">
+                      {t("top.don.destination")}
+                    </label>
+                    <select
+                      value={projetId}
+                      onChange={(e) => setProjetId(e.target.value)}
+                      className={inputClass}
+                      style={inputStyle}
+                    >
                       <option value="">{t("top.don.destinationLibre")}</option>
-                      {projets.map(p => <option key={p.id} value={p.id}>{t("top.don.destinationProjet").replace("{titre}", p.titre)}</option>)}
+                      {projets.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {t("top.don.destinationProjet").replace(
+                            "{titre}",
+                            p.titre,
+                          )}
+                        </option>
+                      ))}
                     </select>
-                    {selectedProjet && selectedProjet.objectif > 0 && (() => {
-                      const pct = Math.min(100, Math.round((selectedProjet.collecte / selectedProjet.objectif) * 100));
-                      return (
-                        <div className="mt-3">
-                          <div style={{ background: "#e5e7eb", borderRadius: 20, height: 8, overflow: "hidden" }}>
-                            <div style={{ width: `${pct}%`, height: "100%", background: "#0B3D91", borderRadius: 20 }} />
+                    {selectedProjet &&
+                      selectedProjet.objectif > 0 &&
+                      (() => {
+                        const pct = Math.min(
+                          100,
+                          Math.round(
+                            (selectedProjet.collecte /
+                              selectedProjet.objectif) *
+                              100,
+                          ),
+                        )
+
+                        return (
+                          <div className="mt-3">
+                            <div
+                              style={{
+                                background: "#e5e7eb",
+                                borderRadius: 20,
+                                height: 8,
+                                overflow: "hidden",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  width: `${pct}%`,
+                                  height: "100%",
+                                  background: "#0B3D91",
+                                  borderRadius: 20,
+                                }}
+                              />
+                            </div>
+                            <p
+                              style={{
+                                fontFamily: "Montserrat, sans-serif",
+                                fontSize: "0.72rem",
+                                color: "#6b7280",
+                                marginTop: 6,
+                              }}
+                            >
+                              {t("top.don.collecte")
+                                .replace(
+                                  "{collecte}",
+                                  Number(
+                                    selectedProjet.collecte,
+                                  ).toLocaleString(
+                                    lang === "en" ? "en-GB" : "fr-FR",
+                                  ),
+                                )
+                                .replace(
+                                  "{objectif}",
+                                  Number(
+                                    selectedProjet.objectif,
+                                  ).toLocaleString(
+                                    lang === "en" ? "en-GB" : "fr-FR",
+                                  ),
+                                )
+                                .replace("{pct}", String(pct))}
+                            </p>
                           </div>
-                          <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#6b7280", marginTop: 6 }}>
-                            {t("top.don.collecte").replace("{collecte}", Number(selectedProjet.collecte).toLocaleString(lang === "en" ? "en-GB" : "fr-FR")).replace("{objectif}", Number(selectedProjet.objectif).toLocaleString(lang === "en" ? "en-GB" : "fr-FR")).replace("{pct}", String(pct))}
-                          </p>
-                        </div>
-                      );
-                    })()}
+                        )
+                      })()}
                   </div>
 
                   {/* Amount */}
                   <div>
-                    <label style={labelStyle} className="block mb-3">{t("top.don.montantLabel")}</label>
+                    <label style={labelStyle} className="block mb-3">
+                      {t("top.don.montantLabel")}
+                    </label>
                     <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-3">
-                      {MONTANTS.map(m => (
-                        <button type="button" key={m} onClick={() => { setMontant(m); setMontantCustom(""); }}
-                          style={{
-                            fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", fontWeight: 700,
-                            background: montant === m ? "#0B3D91" : "#F5F7FA",
-                            color: montant === m ? "white" : "#374151",
-                            border: montant === m ? "2px solid #0B3D91" : "2px solid transparent",
+                      {MONTANTS.map((m) => (
+                        <button
+                          type="button"
+                          key={m}
+                          onClick={() => {
+                            setMontant(m)
+                            setMontantCustom("")
                           }}
-                          className="py-2.5 rounded-xl hover:opacity-90 transition-all">
+                          style={{
+                            fontFamily: "Montserrat, sans-serif",
+                            fontSize: "0.78rem",
+                            fontWeight: 700,
+
+                            background: montant === m ? "#0B3D91" : "#F5F7FA",
+
+                            color: montant === m ? "white" : "#374151",
+
+                            border:
+                              montant === m
+                                ? "2px solid #0B3D91"
+                                : "2px solid transparent",
+                          }}
+                          className="py-2.5 rounded-xl hover:opacity-90 transition-all"
+                        >
                           {m}
                         </button>
                       ))}
                     </div>
-                    <input value={montantCustom} onChange={e => { setMontantCustom(e.target.value); setMontant(""); }}
-                      placeholder={t("top.don.montantAutre")} type="number" min="500"
-                      className={inputClass} style={inputStyle} />
+                    <input
+                      value={montantCustom}
+                      onChange={(e) => {
+                        setMontantCustom(e.target.value)
+                        setMontant("")
+                      }}
+                      placeholder={t("top.don.montantAutre")}
+                      type="number"
+                      min="500"
+                      className={inputClass}
+                      style={inputStyle}
+                    />
                   </div>
 
                   {/* Mode de paiement */}
                   <div>
-                    <label style={labelStyle} className="block mb-3">{t("top.don.modeLabel")}</label>
+                    <label style={labelStyle} className="block mb-3">
+                      {t("top.don.modeLabel")}
+                    </label>
                     <div className="grid grid-cols-3 gap-3">
                       {([
                         { id: "orange", label: "Orange Money", dot: "#FF7900" },
+
                         { id: "mtn", label: "MTN MoMo", dot: "#FFCC00" },
-                        { id: "especes", label: t("top.common.especes"), icon: "banknote" },
-                      ] as { id: string; label: string; dot?: string; icon?: IconName }[]).map(p => (
-                        <button type="button" key={p.id} onClick={() => setMode(p.id)}
+
+                        {
+                          id: "especes",
+                          label: t("top.common.especes"),
+                          icon: "banknote",
+                        },
+                      ] as {
+                        id: string
+                        label: string
+                        dot?: string
+                        icon?: IconName
+                      }[]).map((p) => (
+                        <button
+                          type="button"
+                          key={p.id}
+                          onClick={() => setMode(p.id)}
                           style={{
-                            fontFamily: "Montserrat, sans-serif", fontSize: "0.76rem", fontWeight: 600,
+                            fontFamily: "Montserrat, sans-serif",
+                            fontSize: "0.76rem",
+                            fontWeight: 600,
+
                             background: mode === p.id ? "#E8F2FF" : "#F5F7FA",
+
                             color: mode === p.id ? "#0B3D91" : "#374151",
-                            border: mode === p.id ? "2px solid #0B3D91" : "2px solid transparent",
+
+                            border:
+                              mode === p.id
+                                ? "2px solid #0B3D91"
+                                : "2px solid transparent",
                           }}
-                          className="py-3 rounded-xl flex flex-col items-center gap-1 hover:opacity-90 transition-all">
+                          className="py-3 rounded-xl flex flex-col items-center gap-1 hover:opacity-90 transition-all"
+                        >
                           {p.dot ? (
-                            <span style={{ width: 12, height: 12, borderRadius: "50%", background: p.dot }} />
+                            <span
+                              style={{
+                                width: 12,
+                                height: 12,
+                                borderRadius: "50%",
+                                background: p.dot,
+                              }}
+                            />
                           ) : (
                             <Icon name={p.icon as IconName} size={20} />
                           )}
@@ -226,36 +596,85 @@ export default function Don() {
                     {mode !== "especes" && (
                       <div className="mt-3">
                         <label style={labelStyle} className="block mb-1.5">
-                          {mode === "orange" ? t("top.don.numeroOrange") : t("top.don.numeroMtn")}
+                          {mode === "orange"
+                            ? t("top.don.numeroOrange")
+                            : t("top.don.numeroMtn")}
                         </label>
-                        <input required value={telephone} onChange={e => setTelephone(e.target.value)} type="tel"
-                          placeholder={t("top.don.telPlaceholder")} className={inputClass} style={inputStyle} />
-                        <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.72rem", color: "#6b7280", marginTop: 6 }}>
-                          <Icon name="smartphone" size={15} strokeWidth={1.75} /> {t("top.don.validationMmo")}
+                        <input
+                          required
+                          value={telephone}
+                          onChange={(e) => setTelephone(e.target.value)}
+                          type="tel"
+                          placeholder={t("top.don.telPlaceholder")}
+                          className={inputClass}
+                          style={inputStyle}
+                        />
+                        <p
+                          style={{
+                            fontFamily: "Montserrat, sans-serif",
+                            fontSize: "0.72rem",
+                            color: "#6b7280",
+                            marginTop: 6,
+                          }}
+                        >
+                          <Icon
+                            name="smartphone"
+                            size={15}
+                            strokeWidth={1.75}
+                          />{" "}
+                          {t("top.don.validationMmo")}
                         </p>
                       </div>
                     )}
                     {mode === "especes" && (
                       <div className="mt-3 bg-gray-50 rounded-xl p-4 border border-gray-200">
-                        <p style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.78rem", color: "#374151" }}>
-                          <Icon name="banknote" size={16} strokeWidth={1.75} /> {t("top.don.especesTexte")}
+                        <p
+                          style={{
+                            fontFamily: "Montserrat, sans-serif",
+                            fontSize: "0.78rem",
+                            color: "#374151",
+                          }}
+                        >
+                          <Icon name="banknote" size={16} strokeWidth={1.75} />{" "}
+                          {t("top.don.especesTexte")}
                         </p>
                       </div>
                     )}
                   </div>
 
                   <div>
-                    <label style={labelStyle} className="block mb-1.5">{t("top.don.intentionLabel")}</label>
-                    <input value={intention} onChange={e => setIntention(e.target.value)} placeholder={t("top.don.intentionPlaceholder")} className={inputClass} style={inputStyle} />
+                    <label style={labelStyle} className="block mb-1.5">
+                      {t("top.don.intentionLabel")}
+                    </label>
+                    <input
+                      value={intention}
+                      onChange={(e) => setIntention(e.target.value)}
+                      placeholder={t("top.don.intentionPlaceholder")}
+                      className={inputClass}
+                      style={inputStyle}
+                    />
                   </div>
                   {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3" style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.82rem" }}>
+                    <div
+                      className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3"
+                      style={{
+                        fontFamily: "Montserrat, sans-serif",
+                        fontSize: "0.82rem",
+                      }}
+                    >
                       {error}
                     </div>
                   )}
-                  <button type="submit"
-                    style={{ background: "#D4AF37", fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: "0.9rem" }}
-                    className="w-full text-white py-4 rounded-xl hover:opacity-90 transition-opacity">
+                  <button
+                    type="submit"
+                    style={{
+                      background: "#D4AF37",
+                      fontFamily: "Montserrat, sans-serif",
+                      fontWeight: 700,
+                      fontSize: "0.9rem",
+                    }}
+                    className="w-full text-white py-4 rounded-xl hover:opacity-90 transition-opacity"
+                  >
                     <Icon name="heart" size={18} /> {t("top.don.confirmer")}
                   </button>
                 </form>
@@ -265,5 +684,5 @@ export default function Don() {
         </div>
       </section>
     </>
-  );
+  )
 }

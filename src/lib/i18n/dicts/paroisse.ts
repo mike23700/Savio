@@ -1,9 +1,10 @@
-﻿import type { Bundle } from "..";
+﻿import type { Bundle } from ".."
 
 const fr: Record<string, string> = {
   "paroisse.accueil": "Accueil",
   "paroisse.titre": "La Paroisse",
-  "paroisse.sousTitre": "Une communauté vivante, unie dans la foi, au service de Dieu et de nos frères.",
+  "paroisse.sousTitre":
+    "Une communauté vivante, unie dans la foi, au service de Dieu et de nos frères.",
   "paroisse.explorer": "EXPLORER",
   "paroisse.toutTitre": "Tout sur notre paroisse",
   "paroisse.toutIntro":
@@ -16,7 +17,8 @@ const fr: Record<string, string> = {
   "paroisse.genese.alt": "Genèse de la Paroisse",
   "paroisse.genese.desc":
     "Les origines de notre paroisse en 1961, la vision des fondateurs et les premiers pas de notre communauté.",
-  "paroisse.genese.sousTitre": "Les origines et fondements de notre communauté de foi à Douala",
+  "paroisse.genese.sousTitre":
+    "Les origines et fondements de notre communauté de foi à Douala",
   "paroisse.genese.labelOrigines": "LES ORIGINES",
   "paroisse.genese.titre1961": "1961 : La naissance d'une communauté",
   "paroisse.genese.quote":
@@ -25,14 +27,16 @@ const fr: Record<string, string> = {
     "— Esprit de la fondation de la Paroisse Saint Dominique Savio, 1961",
   "paroisse.genese.labelSuccession": "SUCCESSION PASTORALE",
   "paroisse.genese.titreCures": "Les curés qui nous ont précédés",
-  "paroisse.genese.introCures": "Depuis 1964, quatorze prêtres ont guidé notre communauté.",
+  "paroisse.genese.introCures":
+    "Depuis 1964, quatorze prêtres ont guidé notre communauté.",
   "paroisse.genese.numero": "N° {n}",
   "paroisse.genese.cureActuel": "CURÉ ACTUEL",
 
   "paroisse.histoire.titre": "Notre Histoire",
   "paroisse.histoire.desc":
     "Dates clés, succession des curés, consécration de l'église et extension vers Youpwè.",
-  "paroisse.histoire.sousTitre": "Plus de 60 ans de foi, de service et de communauté à Douala",
+  "paroisse.histoire.sousTitre":
+    "Plus de 60 ans de foi, de service et de communauté à Douala",
   "paroisse.histoire.ctaComplet": "Notre Histoire complète",
   "paroisse.histoire.labelChronologie": "CHRONOLOGIE",
   "paroisse.histoire.titreDates": "Dates clés de la paroisse",
@@ -44,7 +48,8 @@ const fr: Record<string, string> = {
   "paroisse.savio.titre": "Saint Dominique Savio",
   "paroisse.savio.desc":
     "Découvrez notre saint patron, jeune saint salésien canonisé en 1954, modèle pour la jeunesse.",
-  "paroisse.savio.sousTitre": "Notre saint patron, modèle de jeunesse et de foi",
+  "paroisse.savio.sousTitre":
+    "Notre saint patron, modèle de jeunesse et de foi",
   "paroisse.savio.labelBio": "REPÈRES BIOGRAPHIQUES",
   "paroisse.savio.labelPatron": "NOTRE SAINT PATRON",
   "paroisse.savio.titreVie": "La vie de Dominique Savio",
@@ -105,12 +110,13 @@ const fr: Record<string, string> = {
   "paroisse.mediatheque.titre": "Médiathèque",
   "paroisse.mediatheque.desc":
     "Photos et vidéos de la vie paroissiale, célébrations et moments communautaires.",
-};
+}
 
 const en: Record<string, string> = {
   "paroisse.accueil": "Home",
   "paroisse.titre": "The Parish",
-  "paroisse.sousTitre": "A living community, united in faith, in the service of God and of our brothers.",
+  "paroisse.sousTitre":
+    "A living community, united in faith, in the service of God and of our brothers.",
   "paroisse.explorer": "EXPLORE",
   "paroisse.toutTitre": "All about our parish",
   "paroisse.toutIntro":
@@ -123,7 +129,8 @@ const en: Record<string, string> = {
   "paroisse.genese.alt": "The origins of the Parish",
   "paroisse.genese.desc":
     "The origins of our parish in 1961, the vision of the founders and the first steps of our community.",
-  "paroisse.genese.sousTitre": "The origins and foundations of our community of faith in Douala",
+  "paroisse.genese.sousTitre":
+    "The origins and foundations of our community of faith in Douala",
   "paroisse.genese.labelOrigines": "THE ORIGINS",
   "paroisse.genese.titre1961": "1961: the birth of a community",
   "paroisse.genese.quote":
@@ -132,14 +139,16 @@ const en: Record<string, string> = {
     "— Spirit of the founding of Saint Dominique Savio Parish, 1961",
   "paroisse.genese.labelSuccession": "PASTORAL SUCCESSION",
   "paroisse.genese.titreCures": "The parish priests who preceded us",
-  "paroisse.genese.introCures": "Since 1964, fourteen priests have guided our community.",
+  "paroisse.genese.introCures":
+    "Since 1964, fourteen priests have guided our community.",
   "paroisse.genese.numero": "No. {n}",
   "paroisse.genese.cureActuel": "CURRENT PRIEST",
 
   "paroisse.histoire.titre": "Our History",
   "paroisse.histoire.desc":
     "Key dates, succession of parish priests, consecration of the church and expansion towards Youpwè.",
-  "paroisse.histoire.sousTitre": "More than 60 years of faith, service and community in Douala",
+  "paroisse.histoire.sousTitre":
+    "More than 60 years of faith, service and community in Douala",
   "paroisse.histoire.ctaComplet": "Our complete History",
   "paroisse.histoire.labelChronologie": "CHRONOLOGY",
   "paroisse.histoire.titreDates": "Key dates of the parish",
@@ -212,6 +221,6 @@ const en: Record<string, string> = {
   "paroisse.mediatheque.titre": "Media Library",
   "paroisse.mediatheque.desc":
     "Photos and videos of parish life, celebrations and community moments.",
-};
+}
 
-export default { fr, en } satisfies Bundle;
+export default { fr, en } satisfies Bundle

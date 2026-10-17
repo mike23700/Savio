@@ -1,18 +1,20 @@
-﻿import type { Bundle } from "..";
+﻿import type { Bundle } from ".."
 
 const fr: Record<string, string> = {
-  "nourrir.form.erreurGenerique": "Une erreur est survenue, veuillez réessayer.",
+  "nourrir.form.erreurGenerique":
+    "Une erreur est survenue, veuillez réessayer.",
   "nourrir.form.selectionner": "Sélectionner...",
 
   "nourrir.hub.titre": "Se Nourrir",
-  "nourrir.hub.sousTitre": "Formation, prière et ressources pour votre croissance spirituelle",
+  "nourrir.hub.sousTitre":
+    "Formation, prière et ressources pour votre croissance spirituelle",
   "nourrir.hub.surtitre": "FORMATION",
   "nourrir.hub.titre2": "Grandir dans la foi",
   "nourrir.hub.intro":
     "Ressources spirituelles, formations et publications pour nourrir votre vie intérieure.",
   "nourrir.hub.decouvrir": "Découvrir",
   "nourrir.hub.quote":
-    "\"Heureux ceux qui ont faim et soif de la justice, car ils seront rassasiés.\"",
+    '"Heureux ceux qui ont faim et soif de la justice, car ils seront rassasiés."',
   "nourrir.hub.quoteRef": "— Matthieu 5,6",
   "nourrir.hub.card.lectures.titre": "Lectures du jour",
   "nourrir.hub.card.lectures.desc":
@@ -48,7 +50,7 @@ const fr: Record<string, string> = {
   "nourrir.catechese.emailPlaceholder": "votre@email.com",
   "nourrir.catechese.telephone": "Téléphone *",
   "nourrir.catechese.telephonePlaceholder": "(+237) 6XX XXX XXX",
-  "nourrir.catechese.age": "Âge de l'enfant (ou \"adulte\") *",
+  "nourrir.catechese.age": 'Âge de l\'enfant (ou "adulte") *',
   "nourrir.catechese.agePlaceholder": "Ex: 8 ans, Adulte",
   "nourrir.catechese.niveau": "Niveau souhaité *",
   "nourrir.catechese.selectionnerNiveau": "Sélectionner un niveau...",
@@ -59,7 +61,7 @@ const fr: Record<string, string> = {
   "nourrir.priere.surtitre": "VIE SPIRITUELLE",
   "nourrir.priere.tempsTitre": "Temps de prière à la paroisse",
   "nourrir.priere.quote":
-    "\"Veillez et priez, afin de ne pas entrer en tentation. L'esprit est ardent, mais la chair est faible.\"",
+    '"Veillez et priez, afin de ne pas entrer en tentation. L\'esprit est ardent, mais la chair est faible."',
   "nourrir.priere.quoteRef": "— Matthieu 26,41",
 
   "nourrir.journal.titre": "La Voix de Dominique Savio",
@@ -104,37 +106,41 @@ const fr: Record<string, string> = {
   "nourrir.lectures.chargement": "Chargement des lectures…",
   "nourrir.lectures.texteIndisponible":
     "Le texte intégral de ces lectures n'est pas encore disponible.",
-  "nourrir.lectures.indisponibles": "Lectures indisponibles pour ce jour pour le moment.",
+  "nourrir.lectures.indisponibles":
+    "Lectures indisponibles pour ce jour pour le moment.",
   "nourrir.lectures.ecouterHomelie": "Écouter l'homélie",
   "nourrir.lectures.messes": "Horaires des messes",
   "nourrir.lectures.sourceAelf":
     "Textes liturgiques © AELF — calendrier liturgique d'Afrique.",
 
   "nourrir.homelies.titre": "Homélies",
-  "nourrir.homelies.sousTitre": "Retrouvez les homélies dominicales de notre paroisse",
+  "nourrir.homelies.sousTitre":
+    "Retrouvez les homélies dominicales de notre paroisse",
   "nourrir.homelies.rechercherPlaceholder": "Rechercher une homélie...",
   "nourrir.homelies.derniere": "DERNIÈRE HOMÉLIE",
   "nourrir.homelies.ecouter": "Écouter l'homélie",
   "nourrir.homelies.ecouterCourt": "Écouter",
   "nourrir.homelies.favori": "Ajouter aux favoris",
-  "nourrir.homelies.audioNonSupporte": "Votre navigateur ne supporte pas la lecture audio.",
+  "nourrir.homelies.audioNonSupporte":
+    "Votre navigateur ne supporte pas la lecture audio.",
   "nourrir.homelies.telechargerPdf": "Télécharger le PDF",
   "nourrir.homelies.pdfIndisponible": "PDF indisponible",
-};
+}
 
 const en: Record<string, string> = {
   "nourrir.form.erreurGenerique": "An error occurred, please try again.",
   "nourrir.form.selectionner": "Select...",
 
   "nourrir.hub.titre": "Feed on the Word",
-  "nourrir.hub.sousTitre": "Formation, prayer and resources for your spiritual growth",
+  "nourrir.hub.sousTitre":
+    "Formation, prayer and resources for your spiritual growth",
   "nourrir.hub.surtitre": "FORMATION",
   "nourrir.hub.titre2": "Growing in the faith",
   "nourrir.hub.intro":
     "Spiritual resources, courses and publications to nourish your inner life.",
   "nourrir.hub.decouvrir": "Discover",
   "nourrir.hub.quote":
-    "\"Blessed are those who hunger and thirst for righteousness, for they shall be satisfied.\"",
+    '"Blessed are those who hunger and thirst for righteousness, for they shall be satisfied."',
   "nourrir.hub.quoteRef": "— Matthew 5,6",
   "nourrir.hub.card.lectures.titre": "Daily Readings",
   "nourrir.hub.card.lectures.desc":
@@ -170,7 +176,7 @@ const en: Record<string, string> = {
   "nourrir.catechese.emailPlaceholder": "your@email.com",
   "nourrir.catechese.telephone": "Phone *",
   "nourrir.catechese.telephonePlaceholder": "(+237) 6XX XXX XXX",
-  "nourrir.catechese.age": "Child’s age (or \"adult\") *",
+  "nourrir.catechese.age": 'Child’s age (or "adult") *',
   "nourrir.catechese.agePlaceholder": "E.g.: 8 years old, Adult",
   "nourrir.catechese.niveau": "Preferred level *",
   "nourrir.catechese.selectionnerNiveau": "Select a level...",
@@ -181,7 +187,7 @@ const en: Record<string, string> = {
   "nourrir.priere.surtitre": "SPIRITUAL LIFE",
   "nourrir.priere.tempsTitre": "Prayer times at the parish",
   "nourrir.priere.quote":
-    "\"Watch and pray, so that you do not fall into temptation. The spirit is willing, but the flesh is weak.\"",
+    '"Watch and pray, so that you do not fall into temptation. The spirit is willing, but the flesh is weak."',
   "nourrir.priere.quoteRef": "— Matthew 26,41",
 
   "nourrir.journal.titre": "The Voice of Dominic Savio",
@@ -226,7 +232,8 @@ const en: Record<string, string> = {
   "nourrir.lectures.chargement": "Loading the readings…",
   "nourrir.lectures.texteIndisponible":
     "The full text of these readings is not available yet.",
-  "nourrir.lectures.indisponibles": "Readings are currently unavailable for this day.",
+  "nourrir.lectures.indisponibles":
+    "Readings are currently unavailable for this day.",
   "nourrir.lectures.ecouterHomelie": "Listen to the homily",
   "nourrir.lectures.messes": "Mass Schedule",
   "nourrir.lectures.sourceAelf":
@@ -239,9 +246,10 @@ const en: Record<string, string> = {
   "nourrir.homelies.ecouter": "Listen to the homily",
   "nourrir.homelies.ecouterCourt": "Listen",
   "nourrir.homelies.favori": "Add to favourites",
-  "nourrir.homelies.audioNonSupporte": "Your browser does not support audio playback.",
+  "nourrir.homelies.audioNonSupporte":
+    "Your browser does not support audio playback.",
   "nourrir.homelies.telechargerPdf": "Download the PDF",
   "nourrir.homelies.pdfIndisponible": "PDF unavailable",
-};
+}
 
-export default { fr, en } satisfies Bundle;
+export default { fr, en } satisfies Bundle

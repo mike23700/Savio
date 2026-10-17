@@ -1,25 +1,29 @@
-﻿import type { Bundle } from "..";
+﻿import type { Bundle } from ".."
 
 const fr: Record<string, string> = {
   "home.slide.1.tag": "CONCERTS",
   "home.slide.1.date": "28 septembre 2026",
   "home.slide.1.title": "Grand concert des chorales paroissiales",
-  "home.slide.1.desc": "Nos chorales Hosanna, Magnificat et Saint Cécile vous invitent à un soir de louange et de prière.",
+  "home.slide.1.desc":
+    "Nos chorales Hosanna, Magnificat et Saint Cécile vous invitent à un soir de louange et de prière.",
   "home.slide.1.cta": "Voir le programme",
   "home.slide.2.tag": "RETRAITE",
   "home.slide.2.date": "15–17 octobre 2026",
   "home.slide.2.title": "Retraite de préparation à l'Avent",
-  "home.slide.2.desc": "Trois jours de ressourcement spirituel, de méditation et de confession pour toute la communauté.",
+  "home.slide.2.desc":
+    "Trois jours de ressourcement spirituel, de méditation et de confession pour toute la communauté.",
   "home.slide.2.cta": "S'inscrire",
   "home.slide.3.tag": "FAMILLE",
   "home.slide.3.date": "5 octobre 2026",
   "home.slide.3.title": "Journée des familles de la paroisse",
-  "home.slide.3.desc": "Un après-midi de partage, de jeux et de convivialité pour toutes les familles paroissiales.",
+  "home.slide.3.desc":
+    "Un après-midi de partage, de jeux et de convivialité pour toutes les familles paroissiales.",
   "home.slide.3.cta": "En savoir plus",
   "home.slide.4.tag": "SOLIDARITÉ",
   "home.slide.4.date": "Novembre 2026",
   "home.slide.4.title": "Campagne Caritas : rentrée scolaire solidaire",
-  "home.slide.4.desc": "Ensemble, aidons les enfants les plus vulnérables de notre quartier à accéder à l'éducation.",
+  "home.slide.4.desc":
+    "Ensemble, aidons les enfants les plus vulnérables de notre quartier à accéder à l'éducation.",
   "home.slide.4.cta": "Faire un don",
 
   "home.hero.decouvrir": "Découvrir la paroisse",
@@ -41,7 +45,8 @@ const fr: Record<string, string> = {
 
   "home.services.surtitre": "NOS SERVICES",
   "home.services.titre": "Nos services aux fidèles",
-  "home.services.sousTitre": "Des outils pour grandir dans la foi et vivre pleinement la vie paroissiale",
+  "home.services.sousTitre":
+    "Des outils pour grandir dans la foi et vivre pleinement la vie paroissiale",
   "home.services.altImage": "Communauté en prière",
   "home.services.1.label": "Messes",
   "home.services.1.sub": "Horaires et intentions",
@@ -89,28 +94,32 @@ const fr: Record<string, string> = {
   "home.action.4.title": "La vie de Saint Dominique Savio",
   "home.action.4.desc": "Un modèle de foi pour les jeunes du monde entier",
   "home.action.4.cta": "Découvrir",
-};
+}
 
 const en: Record<string, string> = {
   "home.slide.1.tag": "CONCERTS",
   "home.slide.1.date": "28 September 2026",
   "home.slide.1.title": "Grand concert of the parish choirs",
-  "home.slide.1.desc": "Our Hosanna, Magnificat and Saint Cecilia choirs invite you to an evening of praise and prayer.",
+  "home.slide.1.desc":
+    "Our Hosanna, Magnificat and Saint Cecilia choirs invite you to an evening of praise and prayer.",
   "home.slide.1.cta": "See the programme",
   "home.slide.2.tag": "RETREAT",
   "home.slide.2.date": "15–17 October 2026",
   "home.slide.2.title": "Advent preparation retreat",
-  "home.slide.2.desc": "Three days of spiritual refreshment, meditation and confession for the whole community.",
+  "home.slide.2.desc":
+    "Three days of spiritual refreshment, meditation and confession for the whole community.",
   "home.slide.2.cta": "Sign up",
   "home.slide.3.tag": "FAMILY",
   "home.slide.3.date": "5 October 2026",
   "home.slide.3.title": "Parish family day",
-  "home.slide.3.desc": "An afternoon of sharing, games and fellowship for every parish family.",
+  "home.slide.3.desc":
+    "An afternoon of sharing, games and fellowship for every parish family.",
   "home.slide.3.cta": "Learn more",
   "home.slide.4.tag": "SOLIDARITY",
   "home.slide.4.date": "November 2026",
   "home.slide.4.title": "Caritas campaign: a solidarity school year",
-  "home.slide.4.desc": "Together, let's help the most vulnerable children in our neighbourhood access education.",
+  "home.slide.4.desc":
+    "Together, let's help the most vulnerable children in our neighbourhood access education.",
   "home.slide.4.cta": "Make a donation",
 
   "home.hero.decouvrir": "Discover the parish",
@@ -132,7 +141,8 @@ const en: Record<string, string> = {
 
   "home.services.surtitre": "OUR SERVICES",
   "home.services.titre": "Our services to the faithful",
-  "home.services.sousTitre": "Tools to grow in faith and fully live parish life",
+  "home.services.sousTitre":
+    "Tools to grow in faith and fully live parish life",
   "home.services.altImage": "Community at prayer",
   "home.services.1.label": "Masses",
   "home.services.1.sub": "Mass times and intentions",
@@ -164,12 +174,14 @@ const en: Record<string, string> = {
   "home.actualites.lireLaSuite": "Read more",
 
   "home.evangile.surtitre": "GOSPEL OF THE DAY",
-  "home.evangile.texte": "“ For where your treasure is, there your heart will be also. ”",
+  "home.evangile.texte":
+    "“ For where your treasure is, there your heart will be also. ”",
   "home.evangile.reference": "Matthew 6, 21",
   "home.evangile.lireMeditation": "Read today's meditation",
 
   "home.action.1.title": "Request a Mass",
-  "home.action.1.desc": "For a deceased person, a sick person, a thanksgiving...",
+  "home.action.1.desc":
+    "For a deceased person, a sick person, a thanksgiving...",
   "home.action.1.cta": "Make an intention",
   "home.action.2.title": "Make a donation",
   "home.action.2.desc": "Your support keeps the parish alive",
@@ -180,6 +192,6 @@ const en: Record<string, string> = {
   "home.action.4.title": "The life of Saint Dominic Savio",
   "home.action.4.desc": "A model of faith for young people around the world",
   "home.action.4.cta": "Discover",
-};
+}
 
-export default { fr, en } satisfies Bundle;
+export default { fr, en } satisfies Bundle

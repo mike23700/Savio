@@ -1,60 +1,84 @@
-const API_URL = import.meta.env.VITE_API_URL || "/api";
-const TOKEN_KEY = "savio_token";
+const API_URL = import.meta.env.VITE_API_URL || "/api"
+
+const TOKEN_KEY = "savio_token"
 
 export function getToken(): string | null {
   try {
-    return localStorage.getItem(TOKEN_KEY);
+    return localStorage.getItem(TOKEN_KEY)
   } catch {
-    return null;
+    return null
   }
 }
 
 export function setToken(token: string | null) {
   try {
-    if (token) localStorage.setItem(TOKEN_KEY, token);
-    else localStorage.removeItem(TOKEN_KEY);
+    if (token) localStorage.setItem(TOKEN_KEY, token)
+    else localStorage.removeItem(TOKEN_KEY)
   } catch {
     // ignore storage errors
   }
 }
 
 export class ApiError extends Error {
-  status: number;
-  errors?: Record<string, string[]>;
+  status: number
 
-  constructor(status: number, message: string, errors?: Record<string, string[]>) {
-    super(message);
-    this.status = status;
-    this.errors = errors;
+  errors?: Record<string, string[]>
+
+  constructor(
+    status: number,
+    message: string,
+    errors?: Record<string, string[]>,
+  ) {
+    super(message)
+
+    this.status = status
+
+    this.errors = errors
   }
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = getToken();
+  const token = getToken()
+
   const headers: Record<string, string> = {
     Accept: "application/json",
-    ...(options.body && !(options.body instanceof FormData) ? { "Content-Type": "application/json" } : {}),
+
+    ...(options.body && !(options.body instanceof FormData)
+      ? { "Content-Type": "application/json" }
+      : {}),
+
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...((options.headers as Record<string, string>) || {}),
-  };
 
-  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
-
-  const isJson = res.headers.get("content-type")?.includes("application/json");
-  const data = isJson ? await res.json().catch(() => null) : null;
-
-  if (!res.ok) {
-    throw new ApiError(res.status, data?.message || res.statusText, data?.errors);
+    ...(options.headers as Record<string, string> || {}),
   }
 
-  return data as T;
+  const res = await fetch(`${API_URL}${path}`, { ...options, headers })
+
+  const isJson = res.headers.get("content-type")?.includes("application/json")
+
+  const data = isJson ? await res.json().catch(() => null) : null
+
+  if (!res.ok) {
+    throw new ApiError(
+      res.status,
+      data?.message || res.statusText,
+      data?.errors,
+    )
+  }
+
+  return data as T
 }
 
-export const apiGet = <T,>(path: string) => request<T>(path, { method: "GET" });
-export const apiPost = <T,>(path: string, body?: unknown) =>
-  request<T>(path, { method: "POST", body: body instanceof FormData ? body : JSON.stringify(body ?? {}) });
-export const apiPut = <T,>(path: string, body?: unknown) =>
-  request<T>(path, { method: "PUT", body: JSON.stringify(body ?? {}) });
+export const apiGet = <T>(path: string) => request<T>(path, { method: "GET" })
+
+export const apiPost = <T>(path: string, body?: unknown) =>
+  request<T>(path, {
+    method: "POST",
+    body: body instanceof FormData ? body : JSON.stringify(body ?? {}),
+  })
+
+export const apiPut = <T>(path: string, body?: unknown) =>
+  request<T>(path, { method: "PUT", body: JSON.stringify(body ?? {}) })
 
 /**
  * Multipart upload helper. The browser sets the multipart Content-Type
@@ -64,65 +88,110 @@ export const apiPut = <T,>(path: string, body?: unknown) =>
  * PHP cannot parse multipart bodies on PUT requests, so for updates we
  * use Laravel's method spoofing: a POST carrying _method=PUT.
  */
-export async function apiFormData<T>(path: string, body: FormData, method: "POST" | "PUT" = "POST"): Promise<T> {
+
+export async function apiFormData<T>(
+  path: string,
+  body: FormData,
+  method: "POST" | "PUT" = "POST",
+): Promise<T> {
   if (method === "PUT" && !body.has("_method")) {
-    body.append("_method", "PUT");
+    body.append("_method", "PUT")
   }
-  const token = getToken();
+
+  const token = getToken()
+
   const res = await fetch(`${API_URL}${path}`, {
     method: method === "PUT" ? "POST" : method,
+
     headers: {
       Accept: "application/json",
+
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body,
-  });
 
-  const isJson = res.headers.get("content-type")?.includes("application/json");
-  const data = isJson ? await res.json().catch(() => null) : null;
+    body,
+  })
+
+  const isJson = res.headers.get("content-type")?.includes("application/json")
+
+  const data = isJson ? await res.json().catch(() => null) : null
 
   if (!res.ok) {
-    throw new ApiError(res.status, data?.message || res.statusText, data?.errors);
+    throw new ApiError(
+      res.status,
+      data?.message || res.statusText,
+      data?.errors,
+    )
   }
 
-  return data as T;
+  return data as T
 }
-export const apiPatch = <T,>(path: string, body?: unknown) =>
-  request<T>(path, { method: "PATCH", body: JSON.stringify(body ?? {}) });
-export const apiDelete = <T,>(path: string) => request<T>(path, { method: "DELETE" });
+
+export const apiPatch = <T>(path: string, body?: unknown) =>
+  request<T>(path, { method: "PATCH", body: JSON.stringify(body ?? {}) })
+
+export const apiDelete = <T>(path: string) =>
+  request<T>(path, { method: "DELETE" })
 
 /**
  * Fetch a file with the Bearer token and trigger a browser download.
  * Used for admin PDF exports, which cannot be plain <a href> links
  * because the API requires the Authorization header.
  */
-export async function downloadFile(path: string, fallbackName = "document.pdf"): Promise<void> {
-  const token = getToken();
+
+export async function downloadFile(
+  path: string,
+  fallbackName = "document.pdf",
+): Promise<void> {
+  const token = getToken()
+
   const res = await fetch(`${API_URL}${path}`, {
     headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-  });
+  })
+
   if (!res.ok) {
-    const data = await res.json().catch(() => null);
-    throw new ApiError(res.status, data?.message || res.statusText, data?.errors);
+    const data = await res.json().catch(() => null)
+
+    throw new ApiError(
+      res.status,
+      data?.message || res.statusText,
+      data?.errors,
+    )
   }
-  const blob = await res.blob();
-  const disposition = res.headers.get("content-disposition") || "";
-  const match = /filename\*?=(?:UTF-8''|")?([^";]+)/i.exec(disposition);
-  const name = match ? decodeURIComponent(match[1].replace(/"/g, "")) : fallbackName;
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+
+  const blob = await res.blob()
+
+  const disposition = res.headers.get("content-disposition") || ""
+
+  const match = /filename\*?=(?:UTF-8''|")?([^";]+)/i.exec(disposition)
+
+  const name = match
+    ? decodeURIComponent(match[1].replace(/"/g, ""))
+    : fallbackName
+
+  const url = URL.createObjectURL(blob)
+
+  const a = document.createElement("a")
+
+  a.href = url
+
+  a.download = name
+
+  document.body.appendChild(a)
+
+  a.click()
+
+  a.remove()
+
+  URL.revokeObjectURL(url)
 }
 
 /** Local date of the visitor's device as "YYYY-MM-DD". */
+
 export function localDateISO(d: Date = new Date()): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const pad = (n: number) => String(n).padStart(2, "0")
+
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
 /**
@@ -131,19 +200,33 @@ export function localDateISO(d: Date = new Date()): string {
  * and time shown on the user's computer:
  *   ?tz=Africa/Douala&now=2026-09-23T14:05:00[&extra params]
  */
-export function clientTimeQuery(extra: Record<string, string | number | boolean> = {}): string {
-  const d = new Date();
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const params = new URLSearchParams();
+
+export function clientTimeQuery(
+  extra: Record<string, string | number | boolean> = {},
+): string {
+  const d = new Date()
+
+  const pad = (n: number) => String(n).padStart(2, "0")
+
+  const params = new URLSearchParams()
+
   try {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (tz) params.set("tz", tz);
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+
+    if (tz) params.set("tz", tz)
   } catch {
     // timezone unavailable → server falls back to its own
   }
-  params.set("now", `${localDateISO(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`);
-  for (const [k, v] of Object.entries(extra)) params.set(k, String(typeof v === "boolean" ? Number(v) : v));
-  return `?${params.toString()}`;
+
+  params.set(
+    "now",
+    `${localDateISO(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`,
+  )
+
+  for (const [k, v] of Object.entries(extra))
+    params.set(k, String(typeof v === "boolean" ? Number(v) : v))
+
+  return `?${params.toString()}`
 }
 
 /**
@@ -151,14 +234,21 @@ export function clientTimeQuery(extra: Record<string, string | number | boolean>
  * In production the API lives on another domain, so /storage/… URLs must be
  * prefixed with it; in dev the Vite proxy handles /storage natively.
  */
+
 export const API_BASE_URL = (import.meta.env.VITE_API_URL || "")
+
   .replace(/\/api\/?$/, "")
-  .replace(/\/+$/, "");
+
+  .replace(/\/+$/, "")
 
 /** Resolve a stored media path ("news/x.jpg") to a servable URL. */
+
 export function mediaUrl(path: string | null | undefined): string | null {
-  if (!path) return null;
-  if (/^https?:\/\//.test(path)) return path; // external URL kept as-is
-  if (API_BASE_URL) return `${API_BASE_URL}/storage/${path}`;
-  return `/storage/${path}`;
+  if (!path) return null
+
+  if (/^https?:\/\//.test(path)) return path // external URL kept as-is
+
+  if (API_BASE_URL) return `${API_BASE_URL}/storage/${path}`
+
+  return `/storage/${path}`
 }

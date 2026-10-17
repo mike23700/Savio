@@ -42,15 +42,19 @@ class RegistreController extends Controller
         return response()->json($inscription->load('sacrements'), 201);
     }
 
-    /** The fiche of the logged-in member (null when they are not registered yet). */
-    public function myInscription(Request $request)
+    /**
+     * Every fiche registered by the logged-in member. An account can hold
+     * several fiches (e.g. a parent registering each of their children), so
+     * the endpoint returns a list, newest first.
+     */
+    public function myInscriptions(Request $request)
     {
-        $inscription = RegistreInscription::where('user_id', $request->user()->id)
-            ->with('sacrements')
-            ->latest()
-            ->first();
-
-        return response()->json($inscription);
+        return response()->json(
+            RegistreInscription::where('user_id', $request->user()->id)
+                ->with('sacrements')
+                ->latest()
+                ->get()
+        );
     }
 
     public function adminIndex(Request $request)

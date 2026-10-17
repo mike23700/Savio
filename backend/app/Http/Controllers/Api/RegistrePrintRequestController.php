@@ -24,9 +24,16 @@ class RegistrePrintRequestController extends Controller
     {
         $data = $request->validate([
             'message' => 'nullable|string|max:2000',
+            'registre_inscription_id' => 'nullable|integer',
         ]);
 
-        $inscription = RegistreInscription::where('user_id', $request->user()->id)->latest()->first();
+        // An account can hold several fiches: the request targets one of them.
+        $query = RegistreInscription::where('user_id', $request->user()->id);
+        if (! empty($data['registre_inscription_id'])) {
+            $query->where('id', $data['registre_inscription_id']);
+        }
+
+        $inscription = $query->latest()->first();
         if (! $inscription) {
             return response()->json([
                 'message' => "Vous devez d'abord vous inscrire au registre paroissial.",
@@ -94,13 +101,18 @@ class RegistrePrintRequestController extends Controller
         return response()->json($registrePrintRequest->fresh('inscription'));
     }
 
-    /** PDF of the fiche tied to a print request (admin). */
+    /**
+     * PDF of the fiche tied to a print request (admin). Downloading the PDF
+     * means the office has handled the request: it is marked as delivered so
+     * the waiting message disappears on the member's side.
+     */
     public function pdf(Request $request, RegistrePrintRequest $registrePrintRequest)
     {
-        if ($registrePrintRequest->statut === 'en_attente') {
+        if (! in_array($registrePrintRequest->statut, ['livree', 'refusee'], true)) {
             $registrePrintRequest->update([
-                'statut' => 'en_traitement',
+                'statut' => 'livree',
                 'processed_by_user_id' => $request->user()->id,
+                'processed_at' => now(),
             ]);
         }
 

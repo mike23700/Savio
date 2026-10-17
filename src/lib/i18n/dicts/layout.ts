@@ -1,4 +1,4 @@
-import type { Bundle } from "..";
+import type { Bundle } from ".."
 
 const fr = {
   "nav.accueil": "Accueil",
@@ -54,7 +54,8 @@ const fr = {
   "footer.don": "Faire un don",
   "footer.mentions": "Mentions légales",
   "footer.confidentialite": "Politique de confidentialité",
-  "footer.droits": "© 2026 Paroisse Saint Dominique Savio. Tous droits réservés.",
+  "footer.droits":
+    "© 2026 Paroisse Saint Dominique Savio. Tous droits réservés.",
   "footer.presentation":
     "Fondée le {date}, notre paroisse est un lieu de rencontre, de prière et de fraternité au cœur de Douala.",
 
@@ -65,7 +66,7 @@ const fr = {
   "404.titre": "Page introuvable",
   "404.texte": "La page que vous cherchez n'existe pas ou a été déplacée.",
   "404.retour": "Retour à l'accueil",
-};
+}
 
 const en: Record<string, string> = {
   "nav.accueil": "Home",
@@ -133,6 +134,6 @@ const en: Record<string, string> = {
   "404.titre": "Page not found",
   "404.texte": "The page you are looking for does not exist or has been moved.",
   "404.retour": "Back to the home page",
-};
+}
 
-export default { fr, en } satisfies Bundle;
+export default { fr, en } satisfies Bundle

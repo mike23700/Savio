@@ -1,10 +1,11 @@
-﻿import type { Bundle } from "..";
+﻿import type { Bundle } from ".."
 
 const fr: Record<string, string> = {
   "top.common.accueil": "Accueil",
   "top.common.chargement": "Chargement…",
   "top.common.tous": "Tous",
   "top.common.fermer": "Fermer",
+  "top.common.annuler": "Annuler",
   "top.common.surDevis": "Sur devis",
   "top.common.especes": "Espèces",
   "top.common.especesSecretaire": "Espèces (au secrétariat)",
@@ -36,7 +37,8 @@ const fr: Record<string, string> = {
   "top.agenda.aucunPasse": "Aucun événement passé.",
   "top.agenda.aucunAVenir": "Aucun événement à venir pour cette catégorie.",
   "top.agenda.ctaTitre": "Vous souhaitez réserver la salle paroissiale ?",
-  "top.agenda.ctaTexte": "Pour tout événement communautaire, contactez le secrétariat paroissial.",
+  "top.agenda.ctaTexte":
+    "Pour tout événement communautaire, contactez le secrétariat paroissial.",
   "top.agenda.ctaBouton": "Contacter le secrétariat",
 
   "top.mediatheque.alt": "Médiathèque",
@@ -62,7 +64,8 @@ const fr: Record<string, string> = {
   "top.contact.alt": "Contact",
   "top.contact.breadcrumb": "Contact",
   "top.contact.titre": "Nous contacter",
-  "top.contact.sousTitre": "Le secrétariat est à votre disposition pour toute question",
+  "top.contact.sousTitre":
+    "Le secrétariat est à votre disposition pour toute question",
   "top.contact.surtitreInfos": "INFORMATIONS",
   "top.contact.titreInfos": "Secrétariat paroissial",
   "top.contact.adresse": "Adresse",
@@ -109,7 +112,8 @@ const fr: Record<string, string> = {
   "top.don.alt": "Faire un don",
   "top.don.breadcrumb": "Faire un don",
   "top.don.titre": "Soutenir la paroisse",
-  "top.don.sousTitre": "Votre générosité permet à la paroisse de vivre et de grandir",
+  "top.don.sousTitre":
+    "Votre générosité permet à la paroisse de vivre et de grandir",
   "top.don.surtitre": "ENSEMBLE",
   "top.don.pourquoi": "Pourquoi faire un don ?",
   "top.don.pourquoiTexte":
@@ -248,14 +252,22 @@ const fr: Record<string, string> = {
     "Retrouvez ici votre fiche du registre paroissial et vos sacrements. Vous pouvez demander au secrétariat de l’imprimer au format PDF (A4).",
   "top.membre.registre.chargement": "Chargement de votre fiche…",
   "top.membre.registre.aucune": "Aucune fiche paroissiale",
-  "top.membre.registre.aucuneTexte": "Vous n’êtes pas encore inscrit(e) au registre paroissial.",
+  "top.membre.registre.aucuneTexte":
+    "Vous n’êtes pas encore inscrit(e) au registre paroissial.",
   "top.membre.registre.lienInscription": "S’inscrire au registre",
+  "top.membre.registre.mesFiches": "Mes fiches paroissiales",
+  "top.membre.registre.nouvelleFiche": "Nouvelle fiche",
+  "top.membre.registre.demandeEnCours":
+    "Une demande d’impression est déjà en cours pour cette fiche.",
+  "top.membre.registre.ficheNumero": "Fiche n° {id}",
   "top.membre.registre.sacrements": "Sacrements enregistrés",
   "top.membre.registre.aucunSacrement": "Aucun sacrement enregistré.",
   "top.membre.registre.demander": "Demander l’impression (PDF A4)",
   "top.membre.registre.messageLabel": "Message (facultatif)",
-  "top.membre.registre.messagePlaceholder": "Précisez une information utile au secrétariat…",
-  "top.membre.registre.demandeEnvoyee": "Votre demande d’impression a bien été envoyée au secrétariat.",
+  "top.membre.registre.messagePlaceholder":
+    "Précisez une information utile au secrétariat…",
+  "top.membre.registre.demandeEnvoyee":
+    "Votre demande d’impression a bien été envoyée au secrétariat.",
   "top.membre.registre.demandesTitre": "Mes demandes d’impression",
   "top.membre.registre.aucuneDemande": "Aucune demande d’impression.",
   "top.membre.registre.statut.en_attente": "En attente",
@@ -283,7 +295,8 @@ const fr: Record<string, string> = {
   "top.espaces.salleTitre": "Nos salles",
   "top.espaces.salleTexte":
     "Mariages, baptêmes, réceptions, conférences, séminaires ou réunions de mouvements : la paroisse met ses salles à disposition. Vérifiez la disponibilité, réservez et payez en ligne, ou demandez un devis.",
-  "top.espaces.aucun": "Aucune {item} n’est proposée à la réservation pour le moment. Contactez le secrétariat paroissial.",
+  "top.espaces.aucun":
+    "Aucune {item} n’est proposée à la réservation pour le moment. Contactez le secrétariat paroissial.",
   "top.espaces.capacite": "{n} pers.",
   "top.espaces.chambres": "{n} chambres",
   "top.espaces.reserver": "Réserver",
@@ -291,7 +304,8 @@ const fr: Record<string, string> = {
   "top.espaces.autreHebergement": "Besoin d’un hébergement pour vos invités ?",
   "top.espaces.decouvrirAutre": "Découvrez aussi notre {titre}.",
 
-  "top.espaceDetail.introuvable": "Cette {item} est introuvable ou n’est plus proposée.",
+  "top.espaceDetail.introuvable":
+    "Cette {item} est introuvable ou n’est plus proposée.",
   "top.espaceDetail.tarif": "TARIF",
   "top.espaceDetail.capacite": "CAPACITÉ",
   "top.espaceDetail.chambres": "CHAMBRES",
@@ -361,13 +375,14 @@ const fr: Record<string, string> = {
     "Nous n’avons pas encore reçu la confirmation. Si vous avez validé, le paiement sera pris en compte automatiquement.",
   "top.paiement.attenteValidation":
     "En attente de votre validation sur le téléphone…",
-};
+}
 
 const en: Record<string, string> = {
   "top.common.accueil": "Home",
   "top.common.chargement": "Loading…",
   "top.common.tous": "All",
   "top.common.fermer": "Close",
+  "top.common.annuler": "Cancel",
   "top.common.surDevis": "Price on request",
   "top.common.especes": "Cash",
   "top.common.especesSecretaire": "Cash (at the parish office)",
@@ -399,7 +414,8 @@ const en: Record<string, string> = {
   "top.agenda.aucunPasse": "No past event.",
   "top.agenda.aucunAVenir": "No upcoming event in this category.",
   "top.agenda.ctaTitre": "Would you like to book the parish hall?",
-  "top.agenda.ctaTexte": "For any community event, please contact the parish office.",
+  "top.agenda.ctaTexte":
+    "For any community event, please contact the parish office.",
   "top.agenda.ctaBouton": "Contact the parish office",
 
   "top.mediatheque.alt": "Media library",
@@ -425,7 +441,8 @@ const en: Record<string, string> = {
   "top.contact.alt": "Contact",
   "top.contact.breadcrumb": "Contact",
   "top.contact.titre": "Contact us",
-  "top.contact.sousTitre": "The parish office is at your disposal for any question",
+  "top.contact.sousTitre":
+    "The parish office is at your disposal for any question",
   "top.contact.surtitreInfos": "INFORMATION",
   "top.contact.titreInfos": "Parish office",
   "top.contact.adresse": "Address",
@@ -484,7 +501,8 @@ const en: Record<string, string> = {
   "top.don.motif3Titre": "Caritas & solidarity",
   "top.don.motif3Desc": "Help to the underprivileged families of the parish",
   "top.don.motif4Titre": "Pastoral work & celebrations",
-  "top.don.motif4Desc": "Organisation of the celebrations and pastoral activities",
+  "top.don.motif4Desc":
+    "Organisation of the celebrations and pastoral activities",
   "top.don.citation":
     "“Each one should give as he has resolved in his heart, not with reluctance or sadness, for God loves a cheerful giver.”",
   "top.don.citationRef": "2 Corinthians 9:7",
@@ -611,14 +629,22 @@ const en: Record<string, string> = {
     "Find here your parish register form and your sacraments. You can ask the office to print it as a PDF (A4).",
   "top.membre.registre.chargement": "Loading your form…",
   "top.membre.registre.aucune": "No parish form",
-  "top.membre.registre.aucuneTexte": "You are not registered in the parish register yet.",
+  "top.membre.registre.aucuneTexte":
+    "You are not registered in the parish register yet.",
   "top.membre.registre.lienInscription": "Register now",
+  "top.membre.registre.mesFiches": "My parish forms",
+  "top.membre.registre.nouvelleFiche": "New form",
+  "top.membre.registre.demandeEnCours":
+    "A printing request is already in progress for this form.",
+  "top.membre.registre.ficheNumero": "Form n° {id}",
   "top.membre.registre.sacrements": "Recorded sacraments",
   "top.membre.registre.aucunSacrement": "No sacrament recorded.",
   "top.membre.registre.demander": "Request printing (A4 PDF)",
   "top.membre.registre.messageLabel": "Message (optional)",
-  "top.membre.registre.messagePlaceholder": "Add any useful information for the office…",
-  "top.membre.registre.demandeEnvoyee": "Your printing request has been sent to the office.",
+  "top.membre.registre.messagePlaceholder":
+    "Add any useful information for the office…",
+  "top.membre.registre.demandeEnvoyee":
+    "Your printing request has been sent to the office.",
   "top.membre.registre.demandesTitre": "My printing requests",
   "top.membre.registre.aucuneDemande": "No printing request.",
   "top.membre.registre.statut.en_attente": "Pending",
@@ -697,7 +723,8 @@ const en: Record<string, string> = {
   "top.espaceDetail.evenementAutre": "Other",
   "top.espaceDetail.disponible": "Available",
   "top.espaceDetail.verifiezDates": "Please check the chosen dates.",
-  "top.espaceDetail.restes": "Only {n} {item}(s) still available on these dates.",
+  "top.espaceDetail.restes":
+    "Only {n} {item}(s) still available on these dates.",
   "top.espaceDetail.datesIndispo":
     "These dates are not available. Please choose other ones.",
   "top.espaceDetail.nomPlaceholder": "Last name *",
@@ -725,6 +752,6 @@ const en: Record<string, string> = {
     "We have not received the confirmation yet. If you have confirmed, the payment will be taken into account automatically.",
   "top.paiement.attenteValidation":
     "Waiting for your confirmation on your phone…",
-};
+}
 
-export default { fr, en } satisfies Bundle;
+export default { fr, en } satisfies Bundle

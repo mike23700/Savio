@@ -1,4 +1,4 @@
-﻿import type { Bundle } from "..";
+﻿import type { Bundle } from ".."
 
 const fr: Record<string, string> = {
   "celebrer.form.nom": "Nom *",
@@ -11,13 +11,16 @@ const fr: Record<string, string> = {
   "celebrer.form.emailPlaceholder": "votre@email.com",
   "celebrer.form.telephone": "Téléphone *",
   "celebrer.form.telephonePlaceholder": "(+237) 6XX XXX XXX",
-  "celebrer.form.erreurGenerique": "Une erreur est survenue, veuillez réessayer.",
+  "celebrer.form.erreurGenerique":
+    "Une erreur est survenue, veuillez réessayer.",
 
   "celebrer.hub.titre": "Célébrer",
-  "celebrer.hub.sousTitre": "Les sacrements et célébrations de notre communauté",
+  "celebrer.hub.sousTitre":
+    "Les sacrements et célébrations de notre communauté",
   "celebrer.hub.surtitre": "LITURGIE",
   "celebrer.hub.titre2": "Tout pour célébrer",
-  "celebrer.hub.intro": "Messes, sacrements, intentions et ressources liturgiques pour nourrir votre foi.",
+  "celebrer.hub.intro":
+    "Messes, sacrements, intentions et ressources liturgiques pour nourrir votre foi.",
   "celebrer.hub.decouvrir": "Découvrir",
   "celebrer.hub.card.messes.titre": "Horaires des messes",
   "celebrer.hub.card.messes.desc":
@@ -45,7 +48,8 @@ const fr: Record<string, string> = {
     "Aucune célébration programmée aujourd’hui. Retrouvez les horaires hebdomadaires ci-dessous.",
   "celebrer.messes.programmeJour": "Programme du jour",
   "celebrer.messes.lecturesTitre": "LECTURES DU JOUR",
-  "celebrer.messes.lecturesVides": "Les lectures du jour seront publiées prochainement.",
+  "celebrer.messes.lecturesVides":
+    "Les lectures du jour seront publiées prochainement.",
   "celebrer.messes.lireTextes": "Lire les textes",
   "celebrer.messes.ecouterHomelie": "Écouter l’homélie",
   "celebrer.messes.surtitre": "CÉLÉBRATIONS",
@@ -70,9 +74,11 @@ const fr: Record<string, string> = {
   "celebrer.sacrements.contacterSecretariat": "Contacter le secrétariat",
 
   "celebrer.intention.titre": "Intention de messe",
-  "celebrer.intention.sousTitre": "Faites célébrer une messe pour vos intentions",
+  "celebrer.intention.sousTitre":
+    "Faites célébrer une messe pour vos intentions",
   "celebrer.intention.offrandeTitre": "Offrande de messe",
-  "celebrer.intention.offrandeAvant": "L’offrande pour une intention de messe est de",
+  "celebrer.intention.offrandeAvant":
+    "L’offrande pour une intention de messe est de",
   "celebrer.intention.offrandeApres":
     "Elle peut être déposée au secrétariat paroissial ou remise au prêtre.",
   "celebrer.intention.recueTitre": "Intention reçue !",
@@ -101,7 +107,8 @@ const fr: Record<string, string> = {
   "celebrer.bans.definitionTexte":
     "La publication des bans est une annonce officielle d’un mariage prochain, faite à la communauté paroissiale. Elle est obligatoire dans l’Église catholique et permet à tout fidèle qui connaîtrait un empêchement au mariage de le signaler. Les bans sont publiés trois dimanches consécutifs avant la date du mariage.",
   "celebrer.bans.documentsTitre": "DOCUMENTS REQUIS",
-  "celebrer.bans.doc1": "Acte de baptême récent (moins de 6 mois) pour les deux fiancés",
+  "celebrer.bans.doc1":
+    "Acte de baptême récent (moins de 6 mois) pour les deux fiancés",
   "celebrer.bans.doc2": "Acte de naissance des deux fiancés",
   "celebrer.bans.doc3": "Carte nationale d’identité des deux fiancés",
   "celebrer.bans.doc4": "Certificat de confirmation des deux fiancés",
@@ -118,7 +125,7 @@ const fr: Record<string, string> = {
   "celebrer.bans.fiance": "FIANCÉ",
   "celebrer.bans.fiancee": "FIANCÉE",
   "celebrer.bans.soumettre": "Soumettre la demande",
-};
+}
 
 const en: Record<string, string> = {
   "celebrer.form.nom": "Last name *",
@@ -137,7 +144,8 @@ const en: Record<string, string> = {
   "celebrer.hub.sousTitre": "The sacraments and celebrations of our community",
   "celebrer.hub.surtitre": "LITURGY",
   "celebrer.hub.titre2": "Everything for celebrating",
-  "celebrer.hub.intro": "Masses, sacraments, intentions and liturgical resources to nourish your faith.",
+  "celebrer.hub.intro":
+    "Masses, sacraments, intentions and liturgical resources to nourish your faith.",
   "celebrer.hub.decouvrir": "Discover",
   "celebrer.hub.card.messes.titre": "Mass Schedule",
   "celebrer.hub.card.messes.desc":
@@ -165,7 +173,8 @@ const en: Record<string, string> = {
     "No celebration is scheduled today. The weekly times are listed below.",
   "celebrer.messes.programmeJour": "Today’s schedule",
   "celebrer.messes.lecturesTitre": "READINGS OF THE DAY",
-  "celebrer.messes.lecturesVides": "The readings of the day will be published soon.",
+  "celebrer.messes.lecturesVides":
+    "The readings of the day will be published soon.",
   "celebrer.messes.lireTextes": "Read the texts",
   "celebrer.messes.ecouterHomelie": "Listen to the homily",
   "celebrer.messes.surtitre": "CELEBRATIONS",
@@ -221,7 +230,8 @@ const en: Record<string, string> = {
   "celebrer.bans.definitionTexte":
     "The publishing of bans is the official announcement of an upcoming marriage, made to the parish community. It is obligatory in the Catholic Church and allows any faithful person who knows of an impediment to the marriage to report it. The bans are published on three consecutive Sundays before the wedding date.",
   "celebrer.bans.documentsTitre": "REQUIRED DOCUMENTS",
-  "celebrer.bans.doc1": "Recent baptismal certificate (less than 6 months old) for both partners",
+  "celebrer.bans.doc1":
+    "Recent baptismal certificate (less than 6 months old) for both partners",
   "celebrer.bans.doc2": "Birth certificate of both partners",
   "celebrer.bans.doc3": "National identity card of both partners",
   "celebrer.bans.doc4": "Confirmation certificate of both partners",
@@ -238,6 +248,6 @@ const en: Record<string, string> = {
   "celebrer.bans.fiance": "GROOM",
   "celebrer.bans.fiancee": "BRIDE",
   "celebrer.bans.soumettre": "Submit the request",
-};
+}
 
-export default { fr, en } satisfies Bundle;
+export default { fr, en } satisfies Bundle

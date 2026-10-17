@@ -1,8 +1,12 @@
-import { RouterProvider } from "react-router";
-import { router } from "./routes";
-import { AuthProvider } from "@/lib/auth";
-import { SettingsProvider } from "@/lib/settings";
-import { LangProvider } from "@/lib/i18n";
+import { RouterProvider } from "react-router"
+
+import { router } from "./routes"
+
+import { AuthProvider } from "@/lib/auth"
+
+import { SettingsProvider } from "@/lib/settings"
+
+import { LangProvider } from "@/lib/i18n"
 
 export default function App() {
   return (
@@ -13,5 +17,5 @@ export default function App() {
         </SettingsProvider>
       </AuthProvider>
     </LangProvider>
-  );
+  )
 }
