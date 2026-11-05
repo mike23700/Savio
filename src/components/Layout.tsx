@@ -6,13 +6,15 @@ import { PARISH } from "@/data/content"
 
 import logoImg from "@/imports/logo.png"
 
-import { useSettings } from "@/lib/settings"
+import { useParish, useSettings } from "@/lib/settings"
 
 import { useLang } from "@/lib/i18n"
 
 import Icon, { type IconName } from "@/components/Icon"
 
 import LangSwitch from "@/components/LangSwitch"
+
+import BackgroundMusic from "@/components/BackgroundMusic"
 
 /** Accessible names for the social round buttons, which now hold a bare icon. */
 
@@ -61,7 +63,8 @@ const NAV = [
 
       { labelKey: "nav.vie.projets", to: "/vie-paroissiale/projets" },
 
-      { labelKey: "nav.vie.registre", to: "/vie-paroissiale/registre" },
+      // Registre paroissial retiré du site public : il se gère désormais uniquement dans l'admin (/admin/registre).
+      // { labelKey: "nav.vie.registre", to: "/vie-paroissiale/registre" },
     ],
   },
 
@@ -393,13 +396,15 @@ function Header() {
 // ─── Footer ──────────────────────────────────────────────────────────────────
 
 function Footer() {
+  const parish = useParish()
+
   const settings = useSettings()
 
   const { t } = useLang()
 
   const whatsapp = settings["parish.whatsapp_number"] || "237655529999"
 
-  const founded = settings["parish.founded"] || PARISH.founded
+  const founded = parish.founded
 
   const presentation = t("footer.presentation").replace("{date}", founded)
 
@@ -551,13 +556,13 @@ function Footer() {
           </div>
           <div className="space-y-3">
             {([
-              ["mapPin", PARISH.address],
+              ["mapPin", parish.address],
 
-              ["phone", PARISH.phone],
+              ["phone", parish.phone],
 
-              ["mail", PARISH.email],
+              ["mail", parish.email],
 
-              ["clock", PARISH.hours],
+              ["clock", parish.hours],
             ] as [IconName, string][]).map(([icon, text]) => (
               <div key={text} className="flex gap-2.5">
                 <Icon
@@ -636,6 +641,7 @@ export default function Layout() {
         <Outlet />
       </main>
       <Footer />
+      <BackgroundMusic />
     </div>
   )
 }

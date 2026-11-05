@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Mouvement extends Model
 {
-    protected $fillable = ['category', 'slug', 'icon', 'title', 'description', 'content', 'color', 'image', 'sort_order', 'is_active'];
+    protected $fillable = ['category', 'slug', 'icon', 'title', 'description', 'content', 'color', 'image', 'membres', 'sort_order', 'is_active'];
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return ['is_active' => 'boolean', 'membres' => 'array'];
     }
 
     public function details(): HasMany

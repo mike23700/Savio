@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 
+import { useBanner, useSiteText } from "@/lib/banner"
+
 import { Link } from "react-router"
 
 import { apiGet, apiPost, ApiError } from "@/lib/api"
@@ -23,6 +25,19 @@ interface Tarif {
 }
 
 export default function Journal() {
+  const banner = useBanner("journal")
+
+  // Presentation texts editable in admin → Bannières & textes (journal).
+  const { t: tr } = useLang()
+
+  const jTitre = useSiteText("journal_titre", tr("nourrir.journal.titre"))
+
+  const jSousTitre = useSiteText("journal_sous_titre", tr("nourrir.journal.sousTitre"))
+
+  const jIntro = useSiteText("journal_intro", tr("nourrir.journal.intro"))
+
+  const jProgramme = useSiteText("journal_programme")
+
   const { t } = useLang()
 
   const { user } = useAuth()
@@ -77,21 +92,20 @@ export default function Journal() {
     color: "#374151",
   }
 
-  const PROGRAMME: { icon: IconName label: string }[] = [
-    { icon: "bookOpen", label: t("nourrir.journal.programme.1") },
+  const PROGRAMME_ICONS: IconName[] = ["bookOpen", "megaphone", "coins", "calendar"]
 
-    { icon: "megaphone", label: t("nourrir.journal.programme.2") },
-
-    { icon: "coins", label: t("nourrir.journal.programme.3") },
-
-    { icon: "calendar", label: t("nourrir.journal.programme.4") },
-  ]
+  // One item per line in the admin; falls back to the built-in four items.
+  const PROGRAMME: { icon: IconName; label: string }[] = (
+    jProgramme
+      ? jProgramme.split("\n").map((l) => l.trim()).filter(Boolean)
+      : [1, 2, 3, 4].map((n) => t(`nourrir.journal.programme.${n}`))
+  ).map((label, i) => ({ icon: PROGRAMME_ICONS[i % PROGRAMME_ICONS.length], label }))
 
   return (
     <>
       <div className="relative h-64 md:h-72 flex items-end overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1573591013318-b942d6ea1092?w=1400&h=500&fit=crop&auto=format"
+          src={banner}
           alt={t("nourrir.journal.nom")}
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -154,7 +168,7 @@ export default function Journal() {
               fontWeight: 700,
             }}
           >
-            {t("nourrir.journal.titre")}
+            {jTitre}
           </h1>
           <p
             style={{
@@ -164,7 +178,7 @@ export default function Journal() {
               marginTop: 6,
             }}
           >
-            {t("nourrir.journal.sousTitre")}
+            {jSousTitre}
           </p>
         </div>
       </div>
@@ -194,7 +208,7 @@ export default function Journal() {
                   marginBottom: 16,
                 }}
               >
-                {t("nourrir.journal.titre")}
+                {jTitre}
               </h2>
               <p
                 style={{
@@ -202,9 +216,10 @@ export default function Journal() {
                   fontSize: "0.9rem",
                   color: "#4b5563",
                   lineHeight: 1.85,
+                  whiteSpace: "pre-line",
                 }}
               >
-                {t("nourrir.journal.intro")}
+                {jIntro}
               </p>
               <div className="mt-6 space-y-3">
                 {PROGRAMME.map((item) => (

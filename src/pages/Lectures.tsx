@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react"
 
+import { useBanner } from "@/lib/banner"
+
 import { Link, useSearchParams } from "react-router"
 
-import { apiGet, localDateISO } from "@/lib/api"
+import { apiGet, localDateISO, mediaUrl } from "@/lib/api"
 
 import {
   readingsList,
@@ -15,6 +17,21 @@ import Icon from "@/components/Icon"
 import { useLang } from "@/lib/i18n"
 
 const font = { fontFamily: "Montserrat, sans-serif" }
+
+interface DayHomelie {
+  id: number
+  title: string
+  slug: string
+  priest: string
+  excerpt: string | null
+  audio_url: string | null
+}
+
+interface DayMass {
+  time: string
+  type: string
+  note: string | null
+}
 
 const COLOR: Record<string, string> = {
   vert: "#15803d",
@@ -147,6 +164,8 @@ function ReadingBlock({ text }: { text: ReadingText }) {
 }
 
 export default function Lectures() {
+  const banner = useBanner("lectures")
+
   const { t, lang } = useLang()
 
   const [params, setParams] = useSearchParams()
@@ -162,12 +181,26 @@ export default function Lectures() {
     undefined,
   )
 
+  const [activeTab, setActiveTab] = useState(0)
+
+  const [homelie, setHomelie] = useState<DayHomelie | null>(null)
+
+  const [masses, setMasses] = useState<DayMass[] | null>(null)
+
   useEffect(() => {
     setReadings(undefined)
-
+    setActiveTab(0)
     apiGet<DailyReadings | null>(`/lectures/jour?date=${date}`)
       .then(setReadings)
       .catch(() => setReadings(null))
+    setHomelie(null)
+    apiGet<DayHomelie[]>(`/homelies?date=${date}`)
+      .then((list) => setHomelie(list[0] ?? null))
+      .catch(() => {})
+    setMasses(null)
+    apiGet<DayMass[]>(`/mass-schedule/day?date=${date}`)
+      .then(setMasses)
+      .catch(() => setMasses([]))
   }, [date])
 
   const goTo = (iso: string) => setParams(iso === today ? {} : { date: iso })
@@ -185,7 +218,7 @@ export default function Lectures() {
     <>
       <div className="relative h-64 md:h-72 flex items-end overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=1400&h=500&fit=crop&auto=format"
+          src={banner}
           alt={t("nourrir.lectures.titre")}
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -354,10 +387,38 @@ export default function Lectures() {
               {t("nourrir.lectures.chargement")}
             </p>
           ) : texts.length > 0 ? (
-            <div className="space-y-5">
-              {texts.map((text, i) => (
-                <ReadingBlock key={`${text.type}-${i}`} text={text} />
-              ))}
+            <div>
+              {/* One tab per text (1re lecture, psaume, évangile…) to keep the page short */}
+              <div
+                role="tablist"
+                className="flex gap-2 overflow-x-auto pb-1 mb-4"
+              >
+                {texts.map((text, i) => (
+                  <button
+                    key={`${text.type}-${i}`}
+                    role="tab"
+                    aria-selected={activeTab === i}
+                    onClick={() => setActiveTab(i)}
+                    style={{
+                      ...font,
+                      fontSize: "0.78rem",
+                      fontWeight: 700,
+                      background: activeTab === i ? "#0B3D91" : "white",
+                      color: activeTab === i ? "white" : "#374151",
+                      border: `1px solid ${activeTab === i ? "#0B3D91" : "#e5e7eb"}`,
+                    }}
+                    className="px-4 py-2 rounded-full whitespace-nowrap hover:opacity-90 transition-all"
+                  >
+                    {text.label}
+                  </button>
+                ))}
+              </div>
+              {texts[activeTab] && (
+                <ReadingBlock
+                  key={`${texts[activeTab].type}-${activeTab}`}
+                  text={texts[activeTab]}
+                />
+              )}
             </div>
           ) : refs.length > 0 ? (
             <div className="bg-white rounded-2xl p-6 border border-gray-100">
@@ -403,6 +464,109 @@ export default function Lectures() {
               {t("nourrir.lectures.indisponibles")}
             </p>
           )}
+
+          {/* Homily and masses of the day */}
+          <div className="grid gap-5 md:grid-cols-2 mt-8">
+            <div className="bg-white rounded-2xl p-6 border border-gray-100">
+              <h3
+                className="flex items-center gap-2 mb-3"
+                style={{
+                  fontFamily: "Playfair Display, serif",
+                  fontSize: "1.1rem",
+                  fontWeight: 700,
+                  color: "#1c2340",
+                }}
+              >
+                <Icon name="mic" size={18} strokeWidth={1.75} style={{ color: "#D4AF37" }} />
+                {t("extra.lectures.homelie")}
+              </h3>
+              {homelie ? (
+                <>
+                  <div style={{ ...font, fontSize: "0.9rem", fontWeight: 700, color: "#0B3D91" }}>
+                    {homelie.title}
+                  </div>
+                  <div style={{ ...font, fontSize: "0.75rem", color: "#9ca3af", marginTop: 2 }}>
+                    {homelie.priest}
+                  </div>
+                  {homelie.excerpt && (
+                    <p
+                      className="line-clamp-4"
+                      style={{ ...font, fontSize: "0.82rem", color: "#4b5563", lineHeight: 1.6, marginTop: 8 }}
+                    >
+                      {homelie.excerpt}
+                    </p>
+                  )}
+                  {mediaUrl(homelie.audio_url) && (
+                    <audio
+                      controls
+                      preload="none"
+                      src={mediaUrl(homelie.audio_url)!}
+                      className="w-full mt-3"
+                    />
+                  )}
+                  <Link
+                    to={`/homelies?h=${encodeURIComponent(homelie.slug)}`}
+                    style={{ ...font, fontSize: "0.78rem", fontWeight: 700, color: "#0B3D91" }}
+                    className="inline-flex items-center gap-1 mt-3 hover:underline"
+                  >
+                    {t("extra.lectures.lireHomelie")}
+                    <Icon name="arrowRight" size={14} />
+                  </Link>
+                </>
+              ) : (
+                <p style={{ ...font, fontSize: "0.82rem", color: "#9ca3af" }}>
+                  —
+                </p>
+              )}
+            </div>
+            <div className="bg-white rounded-2xl p-6 border border-gray-100">
+              <h3
+                className="flex items-center gap-2 mb-3"
+                style={{
+                  fontFamily: "Playfair Display, serif",
+                  fontSize: "1.1rem",
+                  fontWeight: 700,
+                  color: "#1c2340",
+                }}
+              >
+                <Icon name="clock" size={18} strokeWidth={1.75} style={{ color: "#D4AF37" }} />
+                {t("extra.lectures.messesDuJour")}
+              </h3>
+              {masses === null ? (
+                <p style={{ ...font, fontSize: "0.82rem", color: "#9ca3af" }}>
+                  {t("nourrir.lectures.chargement")}
+                </p>
+              ) : masses.length === 0 ? (
+                <p style={{ ...font, fontSize: "0.82rem", color: "#9ca3af" }}>
+                  {t("extra.lectures.aucuneMesse")}
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {masses.map((m, i) => (
+                    <li key={`${m.time}-${i}`} className="flex items-baseline gap-3">
+                      <span
+                        style={{
+                          fontFamily: "Playfair Display, serif",
+                          fontSize: "1.05rem",
+                          fontWeight: 700,
+                          color: "#0B3D91",
+                          minWidth: 58,
+                        }}
+                      >
+                        {m.time}
+                      </span>
+                      <span style={{ ...font, fontSize: "0.82rem", color: "#1c2340" }}>
+                        {m.type}
+                        {m.note && (
+                          <span style={{ color: "#9ca3af" }}> · {m.note}</span>
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
 
           <div className="flex flex-wrap gap-4 mt-8">
             <Link

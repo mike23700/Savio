@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 
-import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api"
+import { apiGet, apiPost, apiPut, apiDelete, ApiError } from "@/lib/api"
 
 import { confirmDialog } from "./ConfirmDialog"
 
@@ -18,10 +18,15 @@ interface Row {
   category: string
 
   img: string
-
+  images: string[] | null
   description: string
-
   is_active: boolean
+}
+
+interface Category {
+  id: number
+  name: string
+  sort_order: number
 }
 
 const emptyForm = {
@@ -30,6 +35,7 @@ const emptyForm = {
   prix_barre: "",
   category: "Livres",
   img: "",
+  images: [] as string[],
   description: "",
   is_active: true,
 }
@@ -41,8 +47,56 @@ export default function AdminProduits() {
 
   const [form, setForm] = useState(emptyForm)
 
+  const [categories, setCategories] = useState<Category[]>([])
+
+  const [catName, setCatName] = useState("")
+
+  const [catEditingId, setCatEditingId] = useState<number | null>(null)
+
+  const [catError, setCatError] = useState<string | null>(null)
+
+  const [error, setError] = useState<string | null>(null)
+
+  const [filterCat, setFilterCat] = useState("")
+
+  const [q, setQ] = useState("")
+
   function load() {
     apiGet<Row[]>("/admin/products").then(setRows)
+    apiGet<Category[]>("/product-categories").then(setCategories)
+  }
+
+  async function saveCategory(e: React.FormEvent) {
+    e.preventDefault()
+    setCatError(null)
+    try {
+      if (catEditingId)
+        await apiPut(`/admin/product-categories/${catEditingId}`, { name: catName })
+      else
+        await apiPost("/admin/product-categories", {
+          name: catName,
+          sort_order: categories.length,
+        })
+      setCatName("")
+      setCatEditingId(null)
+      load()
+    } catch (err) {
+      setCatError(err instanceof ApiError ? err.message : "Erreur.")
+    }
+  }
+
+  async function removeCategory(c: Category) {
+    const used = rows.filter((r) => r.category === c.name).length
+    if (
+      !(await confirmDialog(
+        used
+          ? `Supprimer la catégorie « ${c.name} » ? ${used} produit(s) la gardent jusqu'à ce que vous les changiez.`
+          : `Supprimer la catégorie « ${c.name} » ?`,
+      ))
+    )
+      return
+    await apiDelete(`/admin/product-categories/${c.id}`)
+    load()
   }
 
   useEffect(load, [])
@@ -57,6 +111,7 @@ export default function AdminProduits() {
 
       category: r.category,
       img: r.img || "",
+      images: r.images ?? [],
       description: r.description || "",
       is_active: r.is_active,
     })
@@ -67,18 +122,23 @@ export default function AdminProduits() {
 
     const payload = {
       ...form,
-
       prix: parseFloat(form.prix) || 0,
-
       prix_barre: form.prix_barre ? parseFloat(form.prix_barre) : null,
+      images: form.images.filter(Boolean).slice(0, 2),
     }
-
-    if (editingId === "new") await apiPost("/admin/products", payload)
-    else if (editingId) await apiPut(`/admin/products/${editingId}`, payload)
-
-    setEditingId(null)
-
-    load()
+    setError(null)
+    try {
+      if (editingId === "new") await apiPost("/admin/products", payload)
+      else if (editingId) await apiPut(`/admin/products/${editingId}`, payload)
+      setEditingId(null)
+      load()
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? Object.values(err.errors ?? {})[0]?.[0] || err.message
+          : "Erreur lors de l'enregistrement.",
+      )
+    }
   }
 
   async function remove(id: number) {
@@ -101,10 +161,31 @@ export default function AdminProduits() {
         >
           Produits boutique
         </h1>
+        <div style={{ display: "flex", gap: 8, marginLeft: "auto", marginRight: 12 }}>
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Rechercher…"
+            style={{ ...inputStyle, width: 180 }}
+          />
+          <select
+            value={filterCat}
+            onChange={(e) => setFilterCat(e.target.value)}
+            style={{ ...inputStyle, width: "auto" }}
+          >
+            <option value="">Toutes catégories</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.name}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
         <button
           onClick={() => {
             setEditingId("new")
-            setForm(emptyForm)
+            setError(null)
+            setForm({ ...emptyForm, category: categories[0]?.name ?? "Livres" })
           }}
           style={{
             background: "#0B3D91",
@@ -118,6 +199,95 @@ export default function AdminProduits() {
         >
           + Ajouter un produit
         </button>
+      </div>
+
+      {/* Categories (Livres, Bibles, Missels…) */}
+      <div
+        style={{
+          background: "#E8F2FF",
+          borderRadius: 12,
+          padding: 14,
+          marginBottom: 20,
+          fontSize: "0.85rem",
+        }}
+      >
+        <strong style={{ color: "#0B3D91" }}>Catégories :</strong>{" "}
+        <span style={{ display: "inline-flex", flexWrap: "wrap", gap: 6, verticalAlign: "middle" }}>
+          {categories.map((c) => (
+            <span
+              key={c.id}
+              style={{
+                background: "#fff",
+                border: "1px solid #c7d7f0",
+                borderRadius: 20,
+                padding: "3px 4px 3px 12px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+              }}
+            >
+              {c.name}
+              <span style={{ color: "#6b7280", fontSize: "0.72rem" }}>
+                ({rows.filter((r) => r.category === c.name).length})
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setCatEditingId(c.id)
+                  setCatName(c.name)
+                }}
+                style={{ ...linkBtn, padding: "0 4px" }}
+                title="Renommer"
+              >
+                ✎
+              </button>
+              <button
+                type="button"
+                onClick={() => removeCategory(c)}
+                style={{ ...linkBtn, padding: "0 6px", color: "#b91c1c" }}
+                title="Supprimer"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </span>
+        <form onSubmit={saveCategory} style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+          <input
+            required
+            value={catName}
+            onChange={(e) => setCatName(e.target.value)}
+            placeholder={catEditingId ? "Nouveau nom" : "Nouvelle catégorie (ex. Bibles)"}
+            style={{ ...inputStyle, width: 240 }}
+          />
+          <button
+            type="submit"
+            style={{
+              background: "#0B3D91",
+              color: "#fff",
+              padding: "8px 14px",
+              borderRadius: 8,
+              border: "none",
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            {catEditingId ? "Renommer" : "+ Ajouter"}
+          </button>
+          {catEditingId && (
+            <button
+              type="button"
+              onClick={() => {
+                setCatEditingId(null)
+                setCatName("")
+              }}
+              style={linkBtn}
+            >
+              Annuler
+            </button>
+          )}
+          {catError && <span style={{ color: "#b91c1c" }}>{catError}</span>}
+        </form>
       </div>
 
       {editingId !== null && (
@@ -172,8 +342,14 @@ export default function AdminProduits() {
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
                 style={inputStyle}
               >
-                <option value="Livres">Livres</option>
-                <option value="Accessoires">Accessoires</option>
+                {!categories.some((c) => c.name === form.category) && (
+                  <option value={form.category}>{form.category || "—"}</option>
+                )}
+                {categories.map((c) => (
+                  <option key={c.id} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
               </select>
             </Field>
           </div>
@@ -187,13 +363,68 @@ export default function AdminProduits() {
               style={{ ...inputStyle, marginTop: 8 }}
             />
           </Field>
-          <div style={{ marginTop: 8 }}>
+          <div
+            style={{
+              marginTop: 8,
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: 10,
+            }}
+          >
             <ImageUpload
+              label="Image principale"
               folder="products"
               value={form.img}
+              height={150}
               onChange={(img) => setForm({ ...form, img })}
             />
+            {[0, 1].map((i) => (
+              <div key={i}>
+                <ImageUpload
+                  label={`Image ${i + 2} (facultatif)`}
+                  folder="products"
+                  value={form.images[i] ?? ""}
+                  height={150}
+                  onChange={(path) => {
+                    const images = [...form.images]
+                    images[i] = path
+                    setForm({ ...form, images })
+                  }}
+                />
+                {form.images[i] && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm({
+                        ...form,
+                        images: form.images.filter((_, j) => j !== i),
+                      })
+                    }
+                    style={{ ...linkBtn, color: "#b91c1c", marginTop: 4 }}
+                  >
+                    Retirer
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
+          <p style={{ fontSize: "0.72rem", color: "#6b7280", marginTop: 4 }}>
+            Format conseillé : portrait 2:3 (ex. 400×600 px), affiché en 200×300 sur le site.
+          </p>
+          {error && (
+            <div
+              style={{
+                background: "#fee2e2",
+                color: "#991b1b",
+                padding: "8px 12px",
+                borderRadius: 8,
+                fontSize: "0.83rem",
+                marginTop: 10,
+              }}
+            >
+              {error}
+            </div>
+          )}
           <div className="flex gap-3 mt-4">
             <button
               type="submit"
@@ -252,7 +483,13 @@ export default function AdminProduits() {
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => (
+          {rows
+            .filter(
+              (r) =>
+                (!filterCat || r.category === filterCat) &&
+                (!q || r.nom.toLowerCase().includes(q.toLowerCase())),
+            )
+            .map((r) => (
             <tr
               key={r.id}
               style={{ borderTop: "1px solid #f1f5f9", fontSize: "0.85rem" }}

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 
+import { useBanner } from "@/lib/banner"
+
 import { Link, useSearchParams } from "react-router"
 
 import { useSettings } from "@/lib/settings"
@@ -31,6 +33,8 @@ export default function Mediatheque({
 }: {
   fromParoisse?: boolean
 }) {
+  const banner = useBanner("mediatheque")
+
   const { t } = useLang()
 
   const settings = useSettings()
@@ -63,7 +67,7 @@ export default function Mediatheque({
 
   const [chantSearch, setChantSearch] = useState("")
 
-  const [lightbox, setLightbox] = useState<string | null>(null)
+  const [lightbox, setLightbox] = useState<MediaItem | null>(null)
 
   const [playing, setPlaying] = useState<MediaItem | null>(null)
 
@@ -131,7 +135,7 @@ export default function Mediatheque({
     return [...set].sort((a, b) => a.localeCompare(b, "fr"))
   }, [chants])
 
-  const tabs: { id: TabId icon: IconName label: string }[] = [
+  const tabs: { id: TabId; icon: IconName; label: string }[] = [
     {
       id: "galerie",
       icon: "camera",
@@ -192,7 +196,7 @@ export default function Mediatheque({
     <>
       <div className="relative h-64 flex items-end overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1515657241610-a6b33f0f6c5a?w=1400&h=500&fit=crop&auto=format"
+          src={banner}
           alt={t("top.mediatheque.alt")}
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -343,9 +347,10 @@ export default function Mediatheque({
               {filteredImgs.map((img) => (
                 <div
                   key={img.id}
-                  className="relative rounded-xl overflow-hidden cursor-pointer group aspect-square"
-                  onClick={() => setLightbox(mediaUrl(img.image))}
+                  className="cursor-pointer group"
+                  onClick={() => setLightbox(img)}
                 >
+                <div className="relative rounded-xl overflow-hidden aspect-square">
                   <img
                     src={mediaUrl(img.image) ?? undefined}
                     alt={img.title ?? ""}
@@ -373,6 +378,22 @@ export default function Mediatheque({
                     </span>
                   )}
                 </div>
+                {img.title && (
+                  <div
+                    style={{
+                      fontFamily: "Montserrat, sans-serif",
+                      fontSize: "0.78rem",
+                      fontWeight: 600,
+                      color: "#1c2340",
+                      marginTop: 6,
+                      lineHeight: 1.35,
+                    }}
+                    className="line-clamp-2"
+                  >
+                    {img.title}
+                  </div>
+                )}
+                </div>
               ))}
             </div>
           </div>
@@ -381,11 +402,26 @@ export default function Mediatheque({
               className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
               onClick={() => setLightbox(null)}
             >
-              <img
-                src={lightbox}
-                alt={t("top.mediatheque.vueAgrandie")}
-                className="max-w-full max-h-[90vh] rounded-xl object-contain"
-              />
+              <figure className="flex flex-col items-center max-w-full">
+                <img
+                  src={mediaUrl(lightbox.image) ?? undefined}
+                  alt={lightbox.title ?? t("top.mediatheque.vueAgrandie")}
+                  className="max-w-full max-h-[84vh] rounded-xl object-contain"
+                />
+                {lightbox.title && (
+                  <figcaption
+                    style={{
+                      fontFamily: "Montserrat, sans-serif",
+                      fontSize: "0.9rem",
+                      color: "white",
+                      marginTop: 10,
+                      textAlign: "center",
+                    }}
+                  >
+                    {lightbox.title}
+                  </figcaption>
+                )}
+              </figure>
               <button
                 className="absolute top-4 right-4 text-white hover:text-gray-300"
                 aria-label={t("top.common.fermer")}

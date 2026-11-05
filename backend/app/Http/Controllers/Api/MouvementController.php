@@ -73,7 +73,7 @@ class MouvementController extends Controller
 
     private function validated(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'category' => 'required|in:conseil,mouvement,chorale,cev',
             'slug' => 'nullable|string|max:255|unique:mouvements,slug,' . $request->route('mouvement')?->id,
             'icon' => 'nullable|string|max:20',
@@ -86,6 +86,22 @@ class MouvementController extends Controller
             'is_active' => 'boolean',
             'details' => 'nullable|array',
             'details.*' => 'string',
+            'membres' => 'nullable|array|max:100',
+            'membres.*.nom' => 'required|string|max:255',
+            'membres.*.titre' => 'nullable|string|max:255',
+            'membres.*.photo' => 'nullable|string|max:500',
+        ], [
+            'membres.*.nom.required' => 'Chaque membre de l\'équipe doit avoir un nom.',
         ]);
+
+        if (array_key_exists('membres', $data)) {
+            $data['membres'] = array_values(array_map(fn ($m) => [
+                'nom' => trim($m['nom']),
+                'titre' => isset($m['titre']) && trim($m['titre']) !== '' ? trim($m['titre']) : null,
+                'photo' => $m['photo'] ?? null,
+            ], $data['membres'] ?? []));
+        }
+
+        return $data;
     }
 }

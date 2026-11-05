@@ -7,9 +7,11 @@ import { useAuth } from "@/lib/auth"
 
 import ConfirmHost from "./ConfirmDialog"
 
-type NavLinkItem = { label: string to: string }
+import { ApiError } from "@/lib/api"
 
-type NavGroup = { label: string children: NavLinkItem[] }
+type NavLinkItem = { label: string; to: string }
+
+type NavGroup = { label: string; children: NavLinkItem[] }
 
 type NavItem = NavLinkItem | NavGroup
 
@@ -23,12 +25,19 @@ const NAV: NavItem[] = [
   { label: "Médiathèque", to: "/admin/mediatheque" },
 
   { label: "Pages de présentation", to: "/admin/pages" },
+  { label: "Bannières, textes & musique", to: "/admin/contenus" },
 
   { label: "Horaires des messes", to: "/admin/horaires-messes" },
 
   { label: "Lectures du jour", to: "/admin/lectures" },
 
-  { label: "Sacrements", to: "/admin/sacrements" },
+  {
+    label: "Sacrements",
+    children: [
+      { label: "Fiches sacrements", to: "/admin/sacrements" },
+      { label: "Demandes reçues", to: "/admin/demandes-sacrements" },
+    ],
+  },
 
   { label: "Catéchèse", to: "/admin/catechese" },
 
@@ -196,6 +205,33 @@ export default function AdminLayout() {
     navigate("/admin/login")
   }
 
+  // Safety net: any admin action whose API call fails without its own error
+  // handling (save, delete, status change…) shows the server message here
+  // instead of failing silently.
+  const [apiError, setApiError] = useState<string | null>(null)
+
+  useEffect(() => {
+    function onRejection(e: PromiseRejectionEvent) {
+      const err = e.reason
+      if (err instanceof ApiError) {
+        e.preventDefault()
+        const first = Object.values(err.errors ?? {})[0]?.[0]
+        setApiError(first || err.message || "L'opération a échoué.")
+      } else if (err instanceof TypeError && /fetch/i.test(err.message)) {
+        e.preventDefault()
+        setApiError("Le serveur ne répond pas. Vérifiez que le backend est démarré.")
+      }
+    }
+    window.addEventListener("unhandledrejection", onRejection)
+    return () => window.removeEventListener("unhandledrejection", onRejection)
+  }, [])
+
+  useEffect(() => {
+    if (!apiError) return
+    const timer = setTimeout(() => setApiError(null), 8000)
+    return () => clearTimeout(timer)
+  }, [apiError])
+
   return (
     <div
       style={{
@@ -305,6 +341,45 @@ export default function AdminLayout() {
         </main>
       </div>
       <ConfirmHost />
+      {apiError && (
+        <div
+          role="alert"
+          style={{
+            position: "fixed",
+            right: 20,
+            bottom: 20,
+            zIndex: 1000,
+            maxWidth: 420,
+            background: "#fee2e2",
+            color: "#991b1b",
+            border: "1px solid #fecaca",
+            borderRadius: 10,
+            padding: "12px 40px 12px 14px",
+            fontSize: "0.85rem",
+            boxShadow: "0 10px 25px rgba(0,0,0,0.12)",
+          }}
+        >
+          <strong style={{ display: "block", marginBottom: 2 }}>Erreur</strong>
+          {apiError}
+          <button
+            type="button"
+            onClick={() => setApiError(null)}
+            aria-label="Fermer"
+            style={{
+              position: "absolute",
+              top: 8,
+              right: 10,
+              background: "none",
+              border: "none",
+              color: "#991b1b",
+              fontSize: "1.1rem",
+              cursor: "pointer",
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
     </div>
   )
 }

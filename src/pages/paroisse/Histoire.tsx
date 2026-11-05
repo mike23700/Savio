@@ -4,7 +4,7 @@ import { Link } from "react-router"
 
 import { mediaUrl } from "@/lib/api"
 
-import { blocksOf, extraOf, loadPage, type PageContent } from "@/lib/pages"
+import { blocksOf, extraOf, loadPage, type PageContent, PAGE_HERO_FALLBACK } from "@/lib/pages"
 
 import Icon from "@/components/Icon"
 
@@ -14,8 +14,6 @@ export default function Histoire() {
   const { t } = useLang()
 
   const [page, setPage] = useState<PageContent | null>(null)
-
-  const timeline = blocksOf(page, "timeline")
 
   const milestones = blocksOf(page, "milestone")
 
@@ -27,13 +25,13 @@ export default function Histoire() {
       .catch(() => setPage(null))
   }, [])
 
-  function PageHero({ title, subtitle }: { title: string subtitle?: string }) {
+  function PageHero({ title, subtitle }: { title: string; subtitle?: string }) {
     return (
       <div className="relative h-64 md:h-80 flex items-end overflow-hidden">
         <img
           src={
             (page?.hero_image ? mediaUrl(page.hero_image) : null) ??
-            "https://images.unsplash.com/photo-1515657241610-a6b33f0f6c5a?w=1400&h=600&fit=crop&auto=format"
+            PAGE_HERO_FALLBACK.histoire!
           }
           alt={title}
           className="absolute inset-0 w-full h-full object-cover"
@@ -123,94 +121,6 @@ export default function Histoire() {
         subtitle={page?.subtitle ?? t("paroisse.histoire.sousTitre")}
       />
 
-      <section className="py-16 px-4 bg-white">
-        <div className="max-w-5xl mx-auto">
-          <div
-            style={{
-              fontFamily: "Montserrat, sans-serif",
-              fontSize: "0.68rem",
-              fontWeight: 700,
-              color: "#D4AF37",
-              letterSpacing: "0.15em",
-            }}
-            className="mb-2"
-          >
-            {t("paroisse.histoire.labelChronologie")}
-          </div>
-          <h2
-            style={{
-              fontFamily: "Playfair Display, serif",
-              fontSize: "clamp(1.5rem, 3vw, 2rem)",
-              fontWeight: 700,
-              color: "#1c2340",
-              marginBottom: 40,
-            }}
-          >
-            {t("paroisse.histoire.titreDates")}
-          </h2>
-
-          <div className="relative">
-            <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-blue-100" />
-            <div className="space-y-8">
-              {timeline.map((item) => (
-                <div key={item.id} className="flex gap-6 relative">
-                  <div
-                    style={{
-                      width: 48,
-                      height: 48,
-                      background: "#0B3D91",
-                      borderRadius: "50%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                      zIndex: 1,
-                    }}
-                  >
-                    <Icon name="cross" size={18} strokeWidth={1.75} />
-                  </div>
-                  <div className="bg-white rounded-xl border border-gray-100 p-5 flex-1 hover:border-yellow-200 hover:shadow-sm transition-all">
-                    <div
-                      style={{
-                        fontFamily: "Montserrat, sans-serif",
-                        fontSize: "0.7rem",
-                        fontWeight: 700,
-                        color: "#D4AF37",
-                        letterSpacing: "0.1em",
-                        marginBottom: 4,
-                      }}
-                    >
-                      {(item.meta ?? "").toUpperCase()}
-                    </div>
-                    <h3
-                      style={{
-                        fontFamily: "Playfair Display, serif",
-                        fontWeight: 700,
-                        color: "#1c2340",
-                        fontSize: "1rem",
-                        marginBottom: 6,
-                      }}
-                    >
-                      {item.title}
-                    </h3>
-                    <p
-                      style={{
-                        fontFamily: "Montserrat, sans-serif",
-                        fontSize: "0.82rem",
-                        color: "#6b7280",
-                        lineHeight: 1.6,
-                      }}
-                    >
-                      {item.description}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section style={{ background: "#F5F7FA" }} className="py-16 px-4">
         <div className="max-w-5xl mx-auto">
           <div
@@ -245,7 +155,8 @@ export default function Histoire() {
               color: "#6b7280",
               lineHeight: 1.7,
               marginBottom: 40,
-              maxWidth: 640,
+              whiteSpace: "pre-line",
+              textAlign: "justify",
             }}
           >
             {String(extra.youpwe_intro ?? t("paroisse.histoire.introYoupwe"))}

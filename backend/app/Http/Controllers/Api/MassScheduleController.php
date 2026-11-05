@@ -22,6 +22,11 @@ class MassScheduleController extends Controller
                     'time' => $r->time_label ?: ($r->time ? substr($r->time, 0, 5) : null),
                     'type' => $r->type,
                     'note' => $r->note,
+                    // Used by the public week view (Monday → Sunday columns).
+                    'sort_time' => $r->time ? substr($r->time, 0, 5) : null,
+                    'weekdays' => $r->weekdays,
+                    'recurrence_type' => $r->recurrence_type,
+                    'nth_week_of_month' => $r->nth_week_of_month,
                 ])->values(),
             ];
         })->values();
@@ -116,6 +121,12 @@ class MassScheduleController extends Controller
 
     private function validated(Request $request): array
     {
+        // Accept "06:30:00" (as stored by MySQL and sent back by older forms) as well as "06:30".
+        $time = $request->input('time');
+        if (is_string($time) && preg_match('/^\d{2}:\d{2}:\d{2}$/', $time)) {
+            $request->merge(['time' => substr($time, 0, 5)]);
+        }
+
         return $request->validate([
             'group_label' => 'required|string|max:255',
             'weekdays' => 'nullable|array',

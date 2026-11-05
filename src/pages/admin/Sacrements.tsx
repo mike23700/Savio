@@ -25,7 +25,7 @@ interface SacrementRow {
 
   is_active: boolean
 
-  details: { id: number detail: string }[]
+  details: { id: number; detail: string }[]
 }
 
 const emptyForm = {

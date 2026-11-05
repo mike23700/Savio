@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 
+import { useBanner } from "@/lib/banner"
+
 import { Link } from "react-router"
 
 import { apiGet, mediaUrl } from "@/lib/api"
@@ -35,6 +37,8 @@ function formatMontant(n: number, locale: string) {
 }
 
 export default function Projets() {
+  const banner = useBanner("vie_paroissiale")
+
   const { t, lang } = useLang()
 
   const locale = lang === "en" ? "en-GB" : "fr-FR"
@@ -57,7 +61,7 @@ export default function Projets() {
     <>
       <div className="relative h-64 md:h-72 flex items-end overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1573591013318-b942d6ea1092?w=1400&h=500&fit=crop&auto=format"
+          src={banner}
           alt={t("vie.projets.titre")}
           className="absolute inset-0 w-full h-full object-cover"
         />

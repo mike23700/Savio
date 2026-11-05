@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 
+import { useBanner } from "@/lib/banner"
+
 import { Link } from "react-router"
 
 import { apiGet, apiPost, ApiError } from "@/lib/api"
@@ -16,7 +18,7 @@ import {
   type SacrementType,
 } from "@/lib/sacrements"
 
-const GROUPES: { value: string key: string }[] = [
+const GROUPES: { value: string; key: string }[] = [
   { value: "Conseil pastoral", key: "vie.registre.groupe.1" },
 
   { value: "Conseil des affaires économiques", key: "vie.registre.groupe.2" },
@@ -88,6 +90,8 @@ const EMPTY_FORM: FormData = {
 }
 
 export default function Registre() {
+  const banner = useBanner("vie_paroissiale")
+
   const { t } = useLang()
 
   const { user, login, register } = useAuth()
@@ -402,7 +406,7 @@ export default function Registre() {
     <>
       <div className="relative h-64 md:h-72 flex items-end overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1774685398923-ba001b371579?w=1400&h=500&fit=crop&auto=format"
+          src={banner}
           alt={t("vie.registre.titre")}
           className="absolute inset-0 w-full h-full object-cover"
         />

@@ -10,8 +10,7 @@ import {
   introParagraphs,
   loadPage,
   renderInline,
-  type PageContent,
-} from "@/lib/pages"
+  type PageContent, PAGE_HERO_FALLBACK } from "@/lib/pages"
 
 import Icon from "@/components/Icon"
 
@@ -43,7 +42,7 @@ export default function Archidiocese() {
         <img
           src={
             (page?.hero_image ? mediaUrl(page.hero_image) : null) ??
-            "https://images.unsplash.com/photo-1631648859463-a42e6ce6d1e4?w=1400&h=500&fit=crop&auto=format"
+            PAGE_HERO_FALLBACK.archidiocese!
           }
           alt={page?.title ?? t("paroisse.archidiocese.titre")}
           className="absolute inset-0 w-full h-full object-cover"

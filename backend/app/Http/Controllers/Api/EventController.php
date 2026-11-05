@@ -15,19 +15,22 @@ class EventController extends Controller
 
     /**
      * Published events, chronological. `?from=YYYY-MM-DD` (the visitor's
-     * local date) hides past days; `?past=1` lists past events instead,
-     * most recent first.
+     * local date) hides events that are over — a multi-day event stays
+     * "upcoming" until its last day (`end_date`); `?past=1` lists the events
+     * that are over instead, most recent first.
      */
     public function index(Request $request)
     {
         $query = Event::with('category')->where('is_published', true);
-        $from = $request->query('from');
 
+        $from = $request->query('from');
         if (is_string($from) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $from)) {
             if ($request->boolean('past')) {
-                $query->where('date', '<', $from)->orderByDesc('date')->orderByDesc('time');
+                $query->whereRaw('COALESCE(end_date, date) < ?', [$from])
+                    ->orderByDesc('date')->orderByDesc('time');
             } else {
-                $query->where('date', '>=', $from)->orderBy('date')->orderBy('time');
+                $query->whereRaw('COALESCE(end_date, date) >= ?', [$from])
+                    ->orderBy('date')->orderBy('time');
             }
         } else {
             $query->orderBy('date')->orderBy('time');
@@ -73,15 +76,29 @@ class EventController extends Controller
 
     private function validated(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'event_category_id' => 'nullable|exists:event_categories,id',
             'title' => 'required|string|max:255',
             'date' => 'required|date_format:Y-m-d',
             'time' => 'nullable|date_format:H:i',
+            'end_date' => 'nullable|date_format:Y-m-d|after_or_equal:date',
+            'end_time' => 'nullable|date_format:H:i',
             'location' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'is_published' => 'boolean',
+        ], [
+            'end_date.after_or_equal' => 'La date de fin doit être postérieure ou égale à la date de début.',
         ]);
+
+        // A "multi-day" event ending on its start day is just a one-day event.
+        if (($data['end_date'] ?? null) === $data['date']) {
+            $data['end_date'] = null;
+        }
+        if (empty($data['end_date'] ?? null) && empty($data['time'] ?? null)) {
+            $data['end_time'] = null;
+        }
+
+        return $data;
     }
 
     // ── Admin: categories ─────────────────────────────────────────────────

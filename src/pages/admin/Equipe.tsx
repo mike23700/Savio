@@ -159,7 +159,7 @@ export default function AdminEquipe() {
           }}
         >
           <ImageUpload
-            label="Photo"
+            label="Photo (carrée, ex. 600×600 px)"
             folder="team"
             value={form.photo}
             onChange={(photo) => setForm({ ...form, photo })}

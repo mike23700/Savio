@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 
+import { useBanner } from "@/lib/banner"
+
 import { Link } from "react-router"
 
 import { mediaUrl } from "@/lib/api"
@@ -11,6 +13,8 @@ import Icon from "@/components/Icon"
 import { useLang } from "@/lib/i18n"
 
 export default function Caritas() {
+  const banner = useBanner("vie_paroissiale")
+
   const { t } = useLang()
 
   const [page, setPage] = useState<PageContent | null>(null)
@@ -30,7 +34,7 @@ export default function Caritas() {
         <img
           src={
             (page?.hero_image ? mediaUrl(page.hero_image) : null) ??
-            "https://images.unsplash.com/photo-1535361251-cbe9d0d2357d?w=1400&h=500&fit=crop&auto=format"
+            banner
           }
           alt={page?.title ?? t("vie.caritas.titre")}
           className="absolute inset-0 w-full h-full object-cover"

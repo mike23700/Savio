@@ -4,13 +4,15 @@ import { Link } from "react-router"
 
 import { apiPost, ApiError } from "@/lib/api"
 
-import { PARISH } from "@/data/content"
+import { useParish } from "@/lib/settings"
 
 import { useLang } from "@/lib/i18n"
 
 import Icon, { type IconName } from "@/components/Icon"
 
 export default function Contact() {
+  const parish = useParish()
+
   const { t } = useLang()
 
   const [form, setForm] = useState({
@@ -169,27 +171,27 @@ export default function Contact() {
                 {
                   icon: "mapPin",
                   title: t("top.contact.adresse"),
-                  content: PARISH.address,
+                  content: parish.address,
                 },
 
                 {
                   icon: "phone",
                   title: t("top.contact.telephone"),
-                  content: PARISH.phone,
-                  href: `tel:+237655529999`,
+                  content: parish.phone,
+                  href: `tel:${parish.phone.replace(/[^\d+]/g, "")}`,
                 },
 
                 {
                   icon: "mail",
                   title: t("top.contact.email"),
-                  content: PARISH.email,
-                  href: `mailto:${PARISH.email}`,
+                  content: parish.email,
+                  href: `mailto:${parish.email}`,
                 },
 
                 {
                   icon: "clock",
                   title: t("top.contact.horaires"),
-                  content: PARISH.hours,
+                  content: parish.hours,
                 },
               ].map(({ icon, title, content, href }) => (
                 <div key={title} className="flex gap-4">
@@ -311,7 +313,7 @@ export default function Contact() {
             {/* Map placeholder */}
             <div className="mt-8">
               <a
-                href={PARISH.mapsUrl}
+                href={parish.mapsUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="relative block rounded-2xl overflow-hidden h-40 group"

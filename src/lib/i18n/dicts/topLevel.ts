@@ -498,7 +498,7 @@ const fr: Record<string, string> = {
   "top.membre.registre.aucune": "Aucune fiche paroissiale",
 
   "top.membre.registre.aucuneTexte":
-    "Vous n’êtes pas encore inscrit(e) au registre paroissial.",
+    "Vous n’êtes pas encore inscrit(e) au registre paroissial. Adressez-vous au secrétariat de la paroisse pour votre inscription.",
 
   "top.membre.registre.lienInscription": "S’inscrire au registre",
 
@@ -1218,7 +1218,7 @@ const en: Record<string, string> = {
   "top.membre.registre.aucune": "No parish form",
 
   "top.membre.registre.aucuneTexte":
-    "You are not registered in the parish register yet.",
+    "You are not registered in the parish register yet. Please contact the parish office to register.",
 
   "top.membre.registre.lienInscription": "Register now",
 

@@ -183,7 +183,7 @@ export default function EquipeDetail() {
                 <img
                   src={mediaUrl(priest.photo) ?? undefined}
                   alt={priest.name}
-                  className="w-full h-80 object-cover"
+                  className="w-full aspect-square object-cover object-top"
                   onError={(e) => {
                     ;(e.target as HTMLImageElement).src =
                       "https://images.unsplash.com/photo-1515657241610-a6b33f0f6c5a?w=400&h=500&fit=crop&auto=format"

@@ -4,6 +4,10 @@ import { Link, useParams } from "react-router"
 
 import { apiGet, mediaUrl } from "@/lib/api"
 
+import { addToStoredCart } from "@/lib/cart"
+
+import { useSettings } from "@/lib/settings"
+
 import { useLang } from "@/lib/i18n"
 
 import Icon from "@/components/Icon"
@@ -22,7 +26,7 @@ interface Product {
   category: string
 
   img: string
-
+  images: string[] | null
   description: string
 }
 
@@ -35,12 +39,22 @@ export default function BoutiqueDetail() {
 
   const [notFound, setNotFound] = useState(false)
 
+  const [activeImg, setActiveImg] = useState(0)
+
+  const [qty, setQty] = useState(1)
+
+  const [added, setAdded] = useState(false)
+
+  const settings = useSettings()
+
   useEffect(() => {
     if (!id) return
 
     setProduct(null)
-
     setNotFound(false)
+    setActiveImg(0)
+    setQty(1)
+    setAdded(false)
 
     apiGet<Product>(`/products/${id}`)
       .then(setProduct)
@@ -80,6 +94,19 @@ export default function BoutiqueDetail() {
   }
 
   if (!product) return null
+
+  const gallery = [product.img, ...(product.images ?? [])]
+    .map((p) => mediaUrl(p))
+    .filter((u): u is string => !!u)
+    .slice(0, 3)
+
+  const locale = lang === "en" ? "en-GB" : "fr-FR"
+
+  const whatsapp = (settings["parish.whatsapp_number"] || "237655529999").replace(/\D/g, "")
+
+  const contactText = encodeURIComponent(
+    `${lang === "en" ? "Hello, I am interested in" : "Bonjour, je suis intéressé(e) par"} « ${product.nom} » (${product.prix.toLocaleString(locale)} FCFA) — ${window.location.href}`,
+  )
 
   return (
     <section className="py-12 px-4 bg-white">
@@ -129,12 +156,39 @@ export default function BoutiqueDetail() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          <div className="rounded-2xl overflow-hidden">
-            <img
-              src={mediaUrl(product.img) ?? undefined}
-              alt={product.nom}
-              className="w-full h-80 object-cover"
-            />
+          <div>
+            <div
+              className="rounded-2xl overflow-hidden flex items-center justify-center"
+              style={{ background: "#F5F7FA", height: 460 }}
+            >
+              {gallery[activeImg] && (
+                <img
+                  src={gallery[activeImg]}
+                  alt={product.nom}
+                  className="max-h-full max-w-full object-contain"
+                />
+              )}
+            </div>
+            {gallery.length > 1 && (
+              <div className="flex gap-3 mt-3">
+                {gallery.map((src, i) => (
+                  <button
+                    key={src}
+                    type="button"
+                    onClick={() => setActiveImg(i)}
+                    className="rounded-lg overflow-hidden"
+                    style={{
+                      width: 64,
+                      height: 96,
+                      border: `2px solid ${i === activeImg ? "#0B3D91" : "#e5e7eb"}`,
+                    }}
+                    aria-label={`${product.nom} ${i + 1}`}
+                  >
+                    <img src={src} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <div>
             <span
@@ -202,18 +256,81 @@ export default function BoutiqueDetail() {
             >
               {product.description}
             </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <div
+                className="inline-flex items-center border border-gray-200 rounded-xl overflow-hidden"
+                style={{ fontFamily: "Montserrat, sans-serif" }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  className="px-3 py-3 hover:bg-gray-50"
+                  aria-label="−"
+                >
+                  −
+                </button>
+                <span style={{ minWidth: 32, textAlign: "center", fontWeight: 700 }}>{qty}</span>
+                <button
+                  type="button"
+                  onClick={() => setQty((q) => q + 1)}
+                  className="px-3 py-3 hover:bg-gray-50"
+                  aria-label="+"
+                >
+                  +
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  addToStoredCart(product.id, qty)
+                  setAdded(true)
+                }}
+                style={{
+                  background: "#0B3D91",
+                  fontFamily: "Montserrat, sans-serif",
+                  fontWeight: 700,
+                  fontSize: "0.85rem",
+                }}
+                className="inline-flex items-center gap-2 text-white px-6 py-3 rounded-xl hover:opacity-90 transition-opacity"
+              >
+                <Icon name="cart" size={18} strokeWidth={1.75} />
+                {t("extra.boutique.ajouterPanier")}
+              </button>
+              <a
+                href={`https://wa.me/${whatsapp}?text=${contactText}`}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  border: "2px solid #16a34a",
+                  color: "#16a34a",
+                  fontFamily: "Montserrat, sans-serif",
+                  fontWeight: 700,
+                  fontSize: "0.85rem",
+                }}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl hover:bg-green-50 transition-colors"
+              >
+                <Icon name="whatsapp" size={18} strokeWidth={1.75} />
+                {t("extra.boutique.contacterVendeur")}
+              </a>
+            </div>
+            {added && (
+              <div
+                className="mt-4 flex flex-wrap items-center gap-3 rounded-xl px-4 py-3"
+                style={{ background: "#dcfce7", fontFamily: "Montserrat, sans-serif", fontSize: "0.85rem", color: "#166534" }}
+              >
+                <Icon name="checkCircle" size={18} />
+                {t("extra.boutique.ajoute")}
+                <Link to="/boutique?panier=1" style={{ fontWeight: 700, textDecoration: "underline" }}>
+                  {t("extra.boutique.voirPanier")}
+                </Link>
+              </div>
+            )}
             <Link
               to="/boutique"
-              style={{
-                background: "#0B3D91",
-                fontFamily: "Montserrat, sans-serif",
-                fontWeight: 700,
-                fontSize: "0.85rem",
-              }}
-              className="inline-flex items-center gap-2 text-white px-6 py-3 rounded-xl hover:opacity-90 transition-opacity"
+              style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.8rem", fontWeight: 600, color: "#0B3D91" }}
+              className="inline-flex items-center gap-1 mt-5 hover:underline"
             >
-              <Icon name="cart" size={18} strokeWidth={1.75} />{" "}
-              {t("top.boutiqueDetail.voirBoutique")}
+              <Icon name="arrowLeft" size={14} /> {t("top.boutiqueDetail.voirBoutique")}
             </Link>
           </div>
         </div>

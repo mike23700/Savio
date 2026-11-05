@@ -4,6 +4,14 @@ import { apiFormData, apiGet, apiPut, mediaUrl } from "@/lib/api"
 
 import ImageUpload from "./ImageUpload"
 
+import { DEFAULT_BANNER } from "@/lib/banner"
+
+import {
+  CURE_FALLBACK_IMG,
+  PAGE_HERO_FALLBACK,
+  SAVIO_BIO_FALLBACK_IMG,
+} from "@/lib/pages"
+
 import Icon from "@/components/Icon"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -74,7 +82,13 @@ const PAGES: {
   key: PageKey
   label: string
   kinds: string[]
-  extras: { key: string label: string type?: "area" | "pairs" }[]
+  extras: {
+    key: string
+    label: string
+    type?: "area" | "pairs" | "image"
+    /** Image shown on the site when none is uploaded (type "image"). */
+    fallback?: string
+  }[]
 }[] = [
   {
     key: "genese",
@@ -107,7 +121,8 @@ const PAGES: {
     key: "histoire",
     label: "Histoire",
 
-    kinds: ["timeline", "milestone"],
+    // Les « dates clés » (timeline) ne sont plus affichées sur la page Histoire.
+    kinds: ["milestone"],
 
     extras: [
       { key: "youpwe_label", label: "Libellé section Youpwè" },
@@ -125,6 +140,13 @@ const PAGES: {
     kinds: ["bullet"],
 
     extras: [
+      {
+        key: "bio_image",
+        label: "Photo de saint Dominique Savio (section biographie)",
+        type: "image",
+        fallback: SAVIO_BIO_FALLBACK_IMG,
+      },
+
       { key: "bio_label", label: "Libellé repères biographiques" },
 
       {
@@ -489,6 +511,7 @@ export default function AdminPages() {
                 value={page.hero_image}
                 onChange={(path) => updatePage({ hero_image: path })}
                 height={110}
+                fallbackSrc={PAGE_HERO_FALLBACK[pageConfig.key] ?? DEFAULT_BANNER}
               />
             </div>
             <Field label="Texte d'introduction (paragraphes séparés par une ligne vide ; **gras** et *italique* acceptés)">
@@ -532,6 +555,17 @@ export default function AdminPages() {
                       }
                       onChange={(pairs) => updateExtra(ex.key, pairs)}
                     />
+                  ) : ex.type === "image" ? (
+                    <div style={{ marginTop: 8 }}>
+                      <ImageUpload
+                        label=""
+                        folder="pages"
+                        value={String(page.extra?.[ex.key] ?? "")}
+                        onChange={(path) => updateExtra(ex.key, path)}
+                        height={110}
+                        fallbackSrc={ex.fallback}
+                      />
+                    </div>
                   ) : ex.type === "area" ? (
                     <textarea
                       value={String(page.extra?.[ex.key] ?? "")}
@@ -727,13 +761,14 @@ export default function AdminPages() {
                         >
                           {kind === "cure" && (
                             <ImageUpload
-                              label="Photo"
+                              label="Photo (carrée, ex. 600×600 px)"
                               folder="pages"
                               value={b.image}
                               onChange={(path) =>
                                 updateBlock(idx, { image: path })
                               }
                               height={90}
+                              fallbackSrc={CURE_FALLBACK_IMG}
                             />
                           )}
                           {kind === "card" && (

@@ -2,7 +2,19 @@ import { useEffect, useState } from "react"
 
 import { apiGet, apiPut } from "@/lib/api"
 
-const FIELDS: { key: string label: string }[] = [
+import { PARISH } from "@/data/content"
+
+import { PARISH_SETTING_KEYS } from "@/lib/settings"
+
+/** Values currently shown on the site when a setting is empty. */
+const SITE_DEFAULTS: Record<string, string> = {
+  ...Object.fromEntries(
+    Object.entries(PARISH_SETTING_KEYS).map(([key, field]) => [key, PARISH[field]]),
+  ),
+  "parish.whatsapp_number": "237655529999",
+}
+
+const FIELDS: { key: string; label: string }[] = [
   { key: "parish.name", label: "Nom de la paroisse" },
 
   { key: "parish.short_name", label: "Nom court" },
@@ -50,8 +62,13 @@ export default function Settings() {
 
   useEffect(() => {
     apiGet<Record<string, string>>("/settings")
-
-      .then(setValues)
+      .then((s) => {
+        // Pre-fill with what the public site currently displays.
+        const v = { ...s }
+        for (const [k, def] of Object.entries(SITE_DEFAULTS))
+          if (!(v[k] ?? "").trim()) v[k] = def
+        setValues(v)
+      })
 
       .finally(() => setLoading(false))
   }, [])

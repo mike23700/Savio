@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\ProductCategory;
+use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -14,6 +16,9 @@ class ProductController extends Controller
         $query = Product::where('is_active', true)->orderBy('sort_order');
         if ($category = $request->query('category')) {
             $query->where('category', $category);
+        }
+        if (is_string($q = $request->query('q')) && trim($q) !== '') {
+            $query->where('nom', 'like', '%' . trim($q) . '%');
         }
 
         return response()->json($query->get());
@@ -51,6 +56,50 @@ class ProductController extends Controller
         return response()->json(null, 204);
     }
 
+    // ── Categories (Livres, Bibles, Missels…) ────────────────────────────
+    public function categories()
+    {
+        return response()->json(ProductCategory::orderBy('sort_order')->orderBy('name')->get());
+    }
+
+    public function storeCategory(Request $request)
+    {
+        return response()->json(ProductCategory::create($this->validatedCategory($request)), 201);
+    }
+
+    /** Renaming a category also renames it on its products. */
+    public function updateCategory(Request $request, ProductCategory $category)
+    {
+        $data = $this->validatedCategory($request, $category);
+        if ($data['name'] !== $category->name) {
+            Product::where('category', $category->name)->update(['category' => $data['name']]);
+        }
+        $category->update($data);
+
+        return response()->json($category);
+    }
+
+    public function destroyCategory(ProductCategory $category)
+    {
+        $category->delete();
+
+        return response()->json(null, 204);
+    }
+
+    private function validatedCategory(Request $request, ?ProductCategory $current = null): array
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:100',
+            'sort_order' => 'integer',
+        ]);
+        $data['slug'] = Str::slug($data['name']);
+        validator($data, [
+            'slug' => [Rule::unique('product_categories', 'slug')->ignore($current?->id)],
+        ], ['slug.unique' => 'Une catégorie porte déjà ce nom.'])->validate();
+
+        return $data;
+    }
+
     private function validated(Request $request): array
     {
         return $request->validate([
@@ -60,6 +109,9 @@ class ProductController extends Controller
             'prix_barre' => 'nullable|numeric|min:0',
             'category' => 'required|string|max:100',
             'img' => 'nullable|string|max:500',
+            // up to 2 extra pictures (3 with the main one)
+            'images' => 'nullable|array|max:2',
+            'images.*' => 'string|max:500',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
             'sort_order' => 'integer',

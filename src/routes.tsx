@@ -69,6 +69,10 @@ import AdminJournalNumeros from "@/pages/admin/JournalNumeros"
 
 import AdminJournalTarifs from "@/pages/admin/JournalTarifs"
 
+import AdminContenus from "@/pages/admin/Contenus"
+
+import AdminDemandesSacrements from "@/pages/admin/DemandesSacrements"
+
 import Home from "@/pages/Home"
 
 import LaParoisse from "@/pages/LaParoisse"
@@ -131,7 +135,8 @@ import Caritas from "@/pages/vie-paroissiale/Caritas"
 
 import Projets from "@/pages/vie-paroissiale/Projets"
 
-import Registre from "@/pages/vie-paroissiale/Registre"
+// Registre paroissial retiré du site public : il se gère désormais uniquement dans l'admin (/admin/registre).
+// import Registre from "@/pages/vie-paroissiale/Registre"
 
 // Centre d'accueil & location de salles
 
@@ -244,7 +249,8 @@ export const router = createBrowserRouter([
 
       { path: "vie-paroissiale/projets/:id", Component: ProjetDetail },
 
-      { path: "vie-paroissiale/registre", Component: Registre },
+      // Registre paroissial retiré du site public : il se gère désormais uniquement dans l'admin (/admin/registre).
+      // { path: "vie-paroissiale/registre", Component: Registre },
 
       // Centre d'accueil (chambres) & location de salles
 
@@ -351,6 +357,8 @@ export const router = createBrowserRouter([
       { path: "messages", Component: AdminMessages },
 
       { path: "pages", Component: AdminPages },
+      { path: "contenus", Component: AdminContenus },
+      { path: "demandes-sacrements", Component: AdminDemandesSacrements },
 
       { path: "bans", Component: AdminBans },
 

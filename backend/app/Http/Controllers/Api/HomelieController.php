@@ -14,6 +14,12 @@ class HomelieController extends Controller
     {
         $query = Homelie::where('is_published', true)->orderByDesc('published_at');
 
+        // `?date=YYYY-MM-DD`: homily of that day (used by the daily readings page).
+        $date = $request->query('date');
+        if (is_string($date) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            $query->whereDate('published_at', $date);
+        }
+
         if ($q = $request->query('q')) {
             $query->where(function ($w) use ($q) {
                 $w->where('title', 'like', "%{$q}%")->orWhere('sunday', 'like', "%{$q}%");

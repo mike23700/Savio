@@ -23,7 +23,7 @@ interface SacrementDetail {
 
   img: string
 
-  details: { id: number detail: string }[]
+  details: { id: number; detail: string }[]
 }
 
 export default function SacrementDetailPage() {

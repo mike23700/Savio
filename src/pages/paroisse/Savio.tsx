@@ -10,8 +10,7 @@ import {
   introParagraphs,
   loadPage,
   renderInline,
-  type PageContent,
-} from "@/lib/pages"
+  type PageContent, PAGE_HERO_FALLBACK, SAVIO_BIO_FALLBACK_IMG } from "@/lib/pages"
 
 import Icon from "@/components/Icon"
 
@@ -30,8 +29,8 @@ export default function Savio() {
   const bio = Array.isArray(extra.bio) ? extra.bio as [string, string][] : []
 
   const bioImage =
-    (typeof extra.bio_image === "string" ? extra.bio_image : "") ||
-    "https://backoffice.paroissesaintdominiquesavio.com/assets/09633277-f72b-4102-9fe8-3752e3acd3ee"
+    (typeof extra.bio_image === "string" ? mediaUrl(extra.bio_image) : null) ||
+    SAVIO_BIO_FALLBACK_IMG
 
   useEffect(() => {
     loadPage("savio")
@@ -45,7 +44,7 @@ export default function Savio() {
         <img
           src={
             (page?.hero_image ? mediaUrl(page.hero_image) : null) ??
-            "https://images.unsplash.com/photo-1573591013318-b942d6ea1092?w=1400&h=600&fit=crop&auto=format"
+            PAGE_HERO_FALLBACK.savio!
           }
           alt={page?.title ?? t("paroisse.savio.titre")}
           className="absolute inset-0 w-full h-full object-cover"

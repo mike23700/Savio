@@ -43,7 +43,7 @@ interface Stats {
   }[]
 }
 
-const CARDS: { key: keyof Stats label: string icon: IconName to: string }[] = [
+const CARDS: { key: keyof Stats; label: string; icon: IconName; to: string }[] = [
   {
     key: "commandes_en_attente",
     label: "Commandes en attente de paiement",

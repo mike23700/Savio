@@ -22,11 +22,13 @@ import seNourrir from "./dicts/seNourrir"
 
 import topLevel from "./dicts/topLevel"
 
+import extras from "./dicts/extras"
+
 export type Lang = "fr" | "en"
 
 export type Dict = Record<string, string>
 
-export type Bundle = { fr: Dict en: Dict }
+export type Bundle = { fr: Dict; en: Dict }
 
 const BUNDLES: Bundle[] = [
   layout,
@@ -36,6 +38,7 @@ const BUNDLES: Bundle[] = [
   celebrer,
   seNourrir,
   topLevel,
+  extras,
 ]
 
 const FR: Dict = {}

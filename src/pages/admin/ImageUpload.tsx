@@ -2,7 +2,7 @@ import { useRef, useState } from "react"
 
 import { apiFormData, mediaUrl, ApiError } from "@/lib/api"
 
-type Folder = "news" | "team" | "homelies" | "products" | "projets" | "sacrements" | "media" | "pages" | "espaces" | "misc"
+type Folder = "news" | "team" | "homelies" | "products" | "projets" | "sacrements" | "media" | "pages" | "espaces" | "misc" | "banners"
 
 /**
  * Admin image field: shows the current image as a preview and lets the admin
@@ -21,6 +21,7 @@ export default function ImageUpload({
   folder,
 
   height = 140,
+  fallbackSrc,
 }: {
   label?: string
 
@@ -31,6 +32,11 @@ export default function ImageUpload({
   folder: Folder
 
   height?: number
+  /**
+   * Image currently shown on the public site when nothing is saved here
+   * (built-in default). Displayed so the admin sees what to replace.
+   */
+  fallbackSrc?: string | null
 }) {
   const input = useRef<HTMLInputElement>(null)
 
@@ -38,7 +44,11 @@ export default function ImageUpload({
 
   const [error, setError] = useState<string | null>(null)
 
-  const src = mediaUrl(value)
+  const saved = mediaUrl(value)
+
+  const src = saved ?? fallbackSrc ?? null
+
+  const isFallback = !saved && !!fallbackSrc
 
   async function upload(file: File | undefined) {
     if (!file) return
@@ -108,7 +118,7 @@ export default function ImageUpload({
             <img
               src={src}
               alt=""
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              style={{ width: "100%", height: "100%", objectFit: "cover", opacity: isFallback ? 0.85 : 1 }}
             />
           ) : (
             <span style={{ fontSize: "0.75rem", color: "#9ca3af" }}>
@@ -139,7 +149,12 @@ export default function ImageUpload({
                 ? "Changer l'image"
                 : "Importer une image"}
           </button>
-          {src && (
+          {isFallback && (
+            <span style={{ fontSize: "0.72rem", color: "#0B3D91", fontWeight: 600 }}>
+              Image actuellement affichée (par défaut)
+            </span>
+          )}
+          {saved && (
             <button
               type="button"
               onClick={() => onChange("")}
@@ -153,7 +168,7 @@ export default function ImageUpload({
                 textAlign: "left",
               }}
             >
-              Retirer l'image
+              {fallbackSrc ? "Revenir à l'image par défaut" : "Retirer l'image"}
             </button>
           )}
           <span style={{ fontSize: "0.7rem", color: "#9ca3af" }}>

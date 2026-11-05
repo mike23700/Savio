@@ -78,7 +78,7 @@ export interface ReadingText {
 
 export function readingsList(
   r: DailyReadings | null,
-): { label: string value: string }[] {
+): { label: string; value: string }[] {
   if (!r) return []
 
   return [
@@ -89,7 +89,7 @@ export function readingsList(
     { label: "2ème lecture", value: r.reading_2 },
 
     { label: "Évangile", value: r.gospel },
-  ].filter((x): x is { label: string value: string } => !!x.value)
+  ].filter((x): x is { label: string; value: string } => !!x.value)
 }
 
 export function formatNewsDate(iso: string): string {
@@ -208,6 +208,11 @@ export interface ParishEvent {
   date: string
 
   time: string | null
+
+  /** Last day of a multi-day event (inclusive); null for a one-day event. */
+  end_date: string | null
+
+  end_time: string | null
 
   location: string | null
 

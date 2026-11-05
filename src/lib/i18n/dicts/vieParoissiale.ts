@@ -59,7 +59,7 @@ const fr: Record<string, string> = {
     "Les CEV sont de petites communautés de quartier qui permettent aux fidèles de vivre leur foi ensemble au plus proche de leur lieu de vie. Elles forment la base vivante de notre paroisse.",
   "vie.mouv.enSavoirPlus": "En savoir plus",
   "vie.mouv.cev.texte":
-    "Pour rejoindre une CEV de votre quartier, inscrivez-vous au registre paroissial ou contactez le secrétariat.",
+    "Pour rejoindre une CEV de votre quartier, contactez le secrétariat paroissial : il vous inscrira au registre et vous mettra en lien avec votre CEV.",
   "vie.mouv.cev.bouton": "S'inscrire au registre",
   "vie.mouv.cat.conseil": "Conseils",
   "vie.mouv.cat.mouvement": "Mouvements",
@@ -260,7 +260,7 @@ const en: Record<string, string> = {
     "CEVs are small neighbourhood communities that allow the faithful to live their faith together as close as possible to where they live. They form the living foundation of our parish.",
   "vie.mouv.enSavoirPlus": "Learn more",
   "vie.mouv.cev.texte":
-    "To join a CEV in your neighbourhood, sign up for the parish register or contact the parish office.",
+    "To join a CEV in your neighbourhood, contact the parish office: they will register you and put you in touch with your CEV.",
   "vie.mouv.cev.bouton": "Sign up for the register",
   "vie.mouv.cat.conseil": "Councils",
   "vie.mouv.cat.mouvement": "Movements",

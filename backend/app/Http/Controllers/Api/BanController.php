@@ -17,8 +17,10 @@ class BanController extends Controller
             'telephone' => 'required|string|max:30',
             'fiance1_nom' => 'required|string|max:255',
             'fiance1_prenom' => 'required|string|max:255',
+            'fiance1_age' => 'nullable|integer|min:14|max:120',
             'fiance2_nom' => 'required|string|max:255',
             'fiance2_prenom' => 'required|string|max:255',
+            'fiance2_age' => 'nullable|integer|min:14|max:120',
             'mariage_date' => 'nullable|date',
         ]);
         $data['user_id'] = $request->user()?->id;

@@ -1,31 +1,74 @@
 import { useState } from "react"
+
+import { useBanner, useSiteText } from "@/lib/banner"
+
 import { Link } from "react-router"
-import { apiPost, ApiError } from "@/lib/api"
+
+import { apiPost, ApiError, mediaUrl } from "@/lib/api"
+
+import { useSettings } from "@/lib/settings"
+
 import Icon from "@/components/Icon"
+
+import {
+  Field,
+  FormMessage,
+  FormStep,
+  FormTitle,
+  SubmitButton,
+  inputClass,
+  inputStyle,
+} from "@/components/FormSteps"
+
 import { useLang } from "@/lib/i18n"
 
+const emptyForm = {
+  nom: "",
+  prenom: "",
+  email: "",
+  telephone: "",
+  fiance1Nom: "",
+  fiance1Prenom: "",
+  fiance1Age: "",
+  fiance2Nom: "",
+  fiance2Prenom: "",
+  fiance2Age: "",
+}
+
 export default function Bans() {
+  const banner = useBanner("bans")
+
+  const settings = useSettings()
+
   const { t } = useLang()
-  const [form, setForm] = useState({
-    nom: "",
-    prenom: "",
-    email: "",
-    telephone: "",
-    fiance1Nom: "",
-    fiance1Prenom: "",
-    fiance1Age: "",
-    fiance2Nom: "",
-    fiance2Prenom: "",
-    fiance2Age: "",
-  })
+
+  const [form, setForm] = useState(emptyForm)
+
   const [submitted, setSubmitted] = useState(false)
+
+  const [sending, setSending] = useState(false)
+
   const [error, setError] = useState<string | null>(null)
-  const [validationErrors, setValidationErrors] = useState<string[]>([])
+
+  // Texts editable in admin → Bannières & textes (fall back to the built-in ones).
+  const titre = useSiteText("bans_titre", t("celebrer.bans.titre"))
+
+  const intro = useSiteText("bans_intro", t("celebrer.bans.definitionTexte"))
+
+  const piecesTitre = useSiteText("bans_pieces_titre", t("extra.bans.piecesTitre"))
+
+  const piecesText = useSiteText("bans_pieces")
+
+  const illustration = mediaUrl(settings["image.bans"])
+
+  const docs = piecesText
+    ? piecesText.split("\n").map((l) => l.trim()).filter(Boolean)
+    : [1, 2, 3, 4, 5, 6, 7, 8].map((n) => t(`celebrer.bans.doc${n}`))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
-    setValidationErrors([])
+    setSending(true)
     try {
       await apiPost("/bans", {
         nom: form.nom,
@@ -34,52 +77,34 @@ export default function Bans() {
         telephone: form.telephone,
         fiance1_nom: form.fiance1Nom,
         fiance1_prenom: form.fiance1Prenom,
+        fiance1_age: form.fiance1Age ? Number(form.fiance1Age) : null,
         fiance2_nom: form.fiance2Nom,
         fiance2_prenom: form.fiance2Prenom,
+        fiance2_age: form.fiance2Age ? Number(form.fiance2Age) : null,
       })
+      setForm(emptyForm)
       setSubmitted(true)
     } catch (err) {
       setError(
         err instanceof ApiError
-          ? err.message
+          ? Object.values(err.errors ?? {})[0]?.[0] || err.message
           : t("celebrer.form.erreurGenerique"),
       )
-      if (err instanceof ApiError && err.errors) {
-        setValidationErrors(Object.values(err.errors).flat())
-      }
+    } finally {
+      setSending(false)
     }
   }
 
-  const inputClass =
-    "w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
-  const inputStyle = {
-    fontFamily: "Montserrat, sans-serif",
-    fontSize: "0.85rem",
-    color: "#1c2340",
-  }
-  const labelStyle = {
-    fontFamily: "Montserrat, sans-serif",
-    fontSize: "0.78rem",
-    fontWeight: 600 as const,
-    color: "#374151",
-  }
-
-  const docs = [
-    t("celebrer.bans.doc1"),
-    t("celebrer.bans.doc2"),
-    t("celebrer.bans.doc3"),
-    t("celebrer.bans.doc4"),
-    t("celebrer.bans.doc5"),
-    t("celebrer.bans.doc6"),
-    t("celebrer.bans.doc7"),
-    t("celebrer.bans.doc8"),
+  const couple: { n: 1 | 2; label: string }[] = [
+    { n: 1, label: t("extra.form.fiance") },
+    { n: 2, label: t("extra.form.fiancee") },
   ]
 
   return (
     <>
       <div className="relative h-64 md:h-72 flex items-end overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1515657241610-a6b33f0f6c5a?w=1400&h=500&fit=crop&auto=format"
+          src={banner}
           alt={t("celebrer.bans.titre")}
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -158,83 +183,70 @@ export default function Bans() {
       </div>
 
       <section className="py-16 px-4 bg-white">
-        <div className="max-w-3xl mx-auto">
-          <div className="mb-10">
-            <div
-              style={{
-                fontFamily: "Montserrat, sans-serif",
-                fontSize: "0.68rem",
-                fontWeight: 700,
-                color: "#D4AF37",
-                letterSpacing: "0.15em",
-              }}
-              className="mb-2"
-            >
-              {t("celebrer.bans.surtitre")}
-            </div>
-            <h2
-              style={{
-                fontFamily: "Playfair Display, serif",
-                fontSize: "1.5rem",
-                fontWeight: 700,
-                color: "#1c2340",
-                marginBottom: 12,
-              }}
-            >
-              {t("celebrer.bans.definition")}
-            </h2>
-            <p
-              style={{
-                fontFamily: "Montserrat, sans-serif",
-                fontSize: "0.9rem",
-                color: "#4b5563",
-                lineHeight: 1.8,
-              }}
-            >
-              {t("celebrer.bans.definitionTexte")}
-            </p>
-          </div>
+        <div className="max-w-4xl mx-auto">
+          {illustration && (
+            <img
+              src={illustration}
+              alt={titre}
+              className="w-full max-h-[420px] object-contain"
+              style={{ borderBottom: "4px solid #0B8BD9" }}
+            />
+          )}
 
-          <div className="bg-blue-50 rounded-2xl p-6 border border-blue-100 mb-10">
-            <div
-              style={{
-                fontFamily: "Montserrat, sans-serif",
-                fontSize: "0.72rem",
-                fontWeight: 700,
-                color: "#D4AF37",
-                letterSpacing: "0.1em",
-                marginBottom: 16,
-              }}
-            >
-              {t("celebrer.bans.documentsTitre")}
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {docs.map((doc) => (
-                <div key={doc} className="flex items-start gap-2">
-                  <div
-                    style={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: "50%",
-                      background: "#0B3D91",
-                      flexShrink: 0,
-                      marginTop: 6,
-                    }}
-                  />
-                  <span
-                    style={{
-                      fontFamily: "Montserrat, sans-serif",
-                      fontSize: "0.8rem",
-                      color: "#4b5563",
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    {doc}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <h2
+            style={{
+              fontFamily: "Montserrat, sans-serif",
+              fontSize: "1.45rem",
+              fontWeight: 500,
+              color: "#1f2937",
+              marginTop: illustration ? 24 : 0,
+              marginBottom: 8,
+            }}
+          >
+            {titre}
+          </h2>
+          <p
+            style={{
+              fontFamily: "Montserrat, sans-serif",
+              fontSize: "0.92rem",
+              color: "#4b5563",
+              lineHeight: 1.7,
+              textAlign: "justify",
+              whiteSpace: "pre-line",
+            }}
+          >
+            {intro}
+          </p>
+
+          <hr className="my-8 border-0 border-t border-dashed border-gray-300" />
+
+          <h2
+            style={{
+              fontFamily: "Montserrat, sans-serif",
+              fontSize: "1.45rem",
+              fontWeight: 500,
+              color: "#1f2937",
+              marginBottom: 12,
+            }}
+          >
+            {piecesTitre}
+          </h2>
+          <ul className="space-y-1.5">
+            {docs.map((doc, i) => (
+              <li
+                key={i}
+                className="flex items-start gap-3"
+                style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.9rem", color: "#4b5563" }}
+              >
+                <span style={{ color: "#0B8BD9", marginTop: 2, flexShrink: 0, display: "flex" }}>
+                  <Icon name="check" size={16} strokeWidth={2} />
+                </span>
+                {doc}
+              </li>
+            ))}
+          </ul>
+
+          <hr className="my-8 border-0 border-t border-dashed border-gray-300" />
 
           {submitted ? (
             <div className="text-center py-10">
@@ -275,258 +287,116 @@ export default function Bans() {
               </button>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-              <h3
-                style={{
-                  fontFamily: "Playfair Display, serif",
-                  fontSize: "1.1rem",
-                  fontWeight: 700,
-                  color: "#1c2340",
-                  marginBottom: 24,
-                }}
-              >
-                {t("celebrer.bans.formulaireTitre")}
-              </h3>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <h4
-                    style={{
-                      fontFamily: "Montserrat, sans-serif",
-                      fontSize: "0.78rem",
-                      fontWeight: 700,
-                      color: "#D4AF37",
-                      letterSpacing: "0.08em",
-                      marginBottom: 12,
-                    }}
-                  >
-                    {t("celebrer.bans.contactPrincipal")}
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label style={labelStyle} className="block mb-1.5">
-                        {t("celebrer.form.nom")}
-                      </label>
+            <form onSubmit={handleSubmit}>
+              <FormTitle>{t("extra.form.titre")}</FormTitle>
+              {error && <FormMessage kind="error">{error}</FormMessage>}
+              <div className="mt-4">
+                <FormStep
+                  icon="user"
+                  title={t("extra.form.infosPerso")}
+                  desc={t("extra.form.infosPersoDesc")}
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                    <Field label={t("extra.form.nom")}>
                       <input
                         required
                         value={form.nom}
-                        onChange={(e) =>
-                          setForm({ ...form, nom: e.target.value })
-                        }
-                        placeholder={t("celebrer.form.nomPlaceholder")}
+                        onChange={(e) => setForm({ ...form, nom: e.target.value })}
                         className={inputClass}
                         style={inputStyle}
                       />
-                    </div>
-                    <div>
-                      <label style={labelStyle} className="block mb-1.5">
-                        {t("celebrer.form.prenom")}
-                      </label>
+                    </Field>
+                    <Field label={t("extra.form.prenom")}>
                       <input
                         required
                         value={form.prenom}
-                        onChange={(e) =>
-                          setForm({ ...form, prenom: e.target.value })
-                        }
-                        placeholder={t("celebrer.form.prenomPlaceholder")}
+                        onChange={(e) => setForm({ ...form, prenom: e.target.value })}
                         className={inputClass}
                         style={inputStyle}
                       />
-                    </div>
-                    <div>
-                      <label style={labelStyle} className="block mb-1.5">
-                        {t("celebrer.form.email")}
-                      </label>
+                    </Field>
+                    <Field label={t("extra.form.email")}>
                       <input
                         required
                         type="email"
                         value={form.email}
-                        onChange={(e) =>
-                          setForm({ ...form, email: e.target.value })
-                        }
-                        placeholder={t("celebrer.form.emailPlaceholder")}
+                        onChange={(e) => setForm({ ...form, email: e.target.value })}
                         className={inputClass}
                         style={inputStyle}
                       />
-                    </div>
-                    <div>
-                      <label style={labelStyle} className="block mb-1.5">
-                        {t("celebrer.form.telephone")}
-                      </label>
+                    </Field>
+                    <Field label={t("extra.form.telephone")}>
                       <input
                         required
+                        type="tel"
                         value={form.telephone}
-                        onChange={(e) =>
-                          setForm({ ...form, telephone: e.target.value })
-                        }
-                        placeholder={t("celebrer.form.telephonePlaceholder")}
+                        onChange={(e) => setForm({ ...form, telephone: e.target.value })}
                         className={inputClass}
                         style={inputStyle}
                       />
-                    </div>
+                    </Field>
                   </div>
-                </div>
+                </FormStep>
 
-                <div>
-                  <h4
-                    style={{
-                      fontFamily: "Montserrat, sans-serif",
-                      fontSize: "0.78rem",
-                      fontWeight: 700,
-                      color: "#D4AF37",
-                      letterSpacing: "0.08em",
-                      marginBottom: 12,
-                    }}
-                  >
-                    {t("celebrer.bans.fiance")}
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                      <label style={labelStyle} className="block mb-1.5">
-                        {t("celebrer.form.nom")}
-                      </label>
-                      <input
-                        required
-                        value={form.fiance1Nom}
-                        onChange={(e) =>
-                          setForm({ ...form, fiance1Nom: e.target.value })
-                        }
-                        placeholder={t("celebrer.form.nomPlaceholder")}
-                        className={inputClass}
-                        style={inputStyle}
-                      />
-                    </div>
-                    <div>
-                      <label style={labelStyle} className="block mb-1.5">
-                        {t("celebrer.form.prenom")}
-                      </label>
-                      <input
-                        required
-                        value={form.fiance1Prenom}
-                        onChange={(e) =>
-                          setForm({ ...form, fiance1Prenom: e.target.value })
-                        }
-                        placeholder={t("celebrer.form.prenomPlaceholder")}
-                        className={inputClass}
-                        style={inputStyle}
-                      />
-                    </div>
-                    <div>
-                      <label style={labelStyle} className="block mb-1.5">
-                        {t("celebrer.form.age")}
-                      </label>
-                      <input
-                        required
-                        type="number"
-                        value={form.fiance1Age}
-                        onChange={(e) =>
-                          setForm({ ...form, fiance1Age: e.target.value })
-                        }
-                        placeholder={t("celebrer.form.agePlaceholder")}
-                        className={inputClass}
-                        style={inputStyle}
-                        min="18"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h4
-                    style={{
-                      fontFamily: "Montserrat, sans-serif",
-                      fontSize: "0.78rem",
-                      fontWeight: 700,
-                      color: "#D4AF37",
-                      letterSpacing: "0.08em",
-                      marginBottom: 12,
-                    }}
-                  >
-                    {t("celebrer.bans.fiancee")}
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                      <label style={labelStyle} className="block mb-1.5">
-                        {t("celebrer.form.nom")}
-                      </label>
-                      <input
-                        required
-                        value={form.fiance2Nom}
-                        onChange={(e) =>
-                          setForm({ ...form, fiance2Nom: e.target.value })
-                        }
-                        placeholder={t("celebrer.form.nomPlaceholder")}
-                        className={inputClass}
-                        style={inputStyle}
-                      />
-                    </div>
-                    <div>
-                      <label style={labelStyle} className="block mb-1.5">
-                        {t("celebrer.form.prenom")}
-                      </label>
-                      <input
-                        required
-                        value={form.fiance2Prenom}
-                        onChange={(e) =>
-                          setForm({ ...form, fiance2Prenom: e.target.value })
-                        }
-                        placeholder={t("celebrer.form.prenomPlaceholder")}
-                        className={inputClass}
-                        style={inputStyle}
-                      />
-                    </div>
-                    <div>
-                      <label style={labelStyle} className="block mb-1.5">
-                        {t("celebrer.form.age")}
-                      </label>
-                      <input
-                        required
-                        type="number"
-                        value={form.fiance2Age}
-                        onChange={(e) =>
-                          setForm({ ...form, fiance2Age: e.target.value })
-                        }
-                        placeholder={t("celebrer.form.agePlaceholder")}
-                        className={inputClass}
-                        style={inputStyle}
-                        min="18"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {error && (
-                  <div
-                    className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3"
-                    style={{
-                      fontFamily: "Montserrat, sans-serif",
-                      fontSize: "0.82rem",
-                    }}
-                  >
-                    {error}
-                    {validationErrors.length > 0 && (
-                      <ul className="list-disc list-inside mt-1">
-                        {validationErrors.map((m, i) => (
-                          <li key={i}>{m}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                )}
-                <button
-                  type="submit"
-                  style={{
-                    background: "#0B3D91",
-                    fontFamily: "Montserrat, sans-serif",
-                    fontWeight: 700,
-                    fontSize: "0.85rem",
-                  }}
-                  className="w-full text-white py-3.5 rounded-xl hover:opacity-90 transition-opacity"
+                <FormStep
+                  icon="info"
+                  title={t("extra.form.personnes")}
+                  desc={t("extra.form.personnesDesc")}
                 >
-                  {t("celebrer.bans.soumettre")}{" "}
-                  <Icon name="ring" size={16} strokeWidth={1.75} />
-                </button>
-              </form>
-            </div>
+                  <div className="space-y-5">
+                    {couple.map(({ n, label }) => {
+                      const nomKey = `fiance${n}Nom` as const
+                      const prenomKey = `fiance${n}Prenom` as const
+                      const ageKey = `fiance${n}Age` as const
+                      return (
+                        <div
+                          key={n}
+                          className="grid gap-x-8 gap-y-3"
+                          style={{ gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr) 108px" }}
+                          aria-label={label}
+                        >
+                          <Field label={t("extra.form.nom")}>
+                            <input
+                              required
+                              value={form[nomKey]}
+                              placeholder={label}
+                              onChange={(e) => setForm({ ...form, [nomKey]: e.target.value })}
+                              className={inputClass}
+                              style={inputStyle}
+                            />
+                          </Field>
+                          <Field label={t("extra.form.prenom")}>
+                            <input
+                              required
+                              value={form[prenomKey]}
+                              onChange={(e) => setForm({ ...form, [prenomKey]: e.target.value })}
+                              className={inputClass}
+                              style={inputStyle}
+                            />
+                          </Field>
+                          <Field label={t("extra.form.age")}>
+                            <input
+                              type="number"
+                              min={14}
+                              max={120}
+                              value={form[ageKey]}
+                              onChange={(e) => setForm({ ...form, [ageKey]: e.target.value })}
+                              className={inputClass}
+                              style={inputStyle}
+                            />
+                          </Field>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <div className="mt-6">
+                    <SubmitButton disabled={sending}>
+                      {sending ? t("extra.form.envoi") : t("extra.form.envoyer")}
+                    </SubmitButton>
+                  </div>
+                </FormStep>
+              </div>
+            </form>
           )}
         </div>
       </section>

@@ -79,3 +79,23 @@ export function renderInline(text: string): ReactNode[] {
 export function loadPage(key: PageKey): Promise<PageContent | null> {
   return apiGet<PageContent | null>(`/pages/${key}`)
 }
+
+/**
+ * Images shown on the presentation pages when the admin has not uploaded one
+ * (also displayed in /admin/pages so the admin sees what is on the site).
+ * `null` = the page uses the site's default banner.
+ */
+export const PAGE_HERO_FALLBACK: Record<string, string | null> = {
+  genese: "https://images.unsplash.com/photo-1516013474378-d6498f0d1434?w=1400&h=600&fit=crop&auto=format",
+  histoire: "https://images.unsplash.com/photo-1515657241610-a6b33f0f6c5a?w=1400&h=600&fit=crop&auto=format",
+  savio: "https://images.unsplash.com/photo-1573591013318-b942d6ea1092?w=1400&h=600&fit=crop&auto=format",
+  organisation: "https://images.unsplash.com/photo-1535361251-cbe9d0d2357d?w=1400&h=500&fit=crop&auto=format",
+  archidiocese: "https://images.unsplash.com/photo-1631648859463-a42e6ce6d1e4?w=1400&h=500&fit=crop&auto=format",
+  caritas: null,
+}
+
+export const CURE_FALLBACK_IMG =
+  "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&h=380&fit=crop&auto=format"
+
+export const SAVIO_BIO_FALLBACK_IMG =
+  "https://backoffice.paroissesaintdominiquesavio.com/assets/09633277-f72b-4102-9fe8-3752e3acd3ee"

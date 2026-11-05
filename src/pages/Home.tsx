@@ -15,6 +15,10 @@ import {
 
 import { useLang } from "@/lib/i18n"
 
+import { useSettings } from "@/lib/settings"
+
+import { defaultSlides, parseSlides } from "@/lib/slides"
+
 interface MassOccurrence {
   date: string
 
@@ -58,36 +62,15 @@ function massLabel(
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
-const SLIDES = [
-  {
-    img: "https://images.unsplash.com/photo-1637615739656-ca10c4285c88?w=1600&h=700&fit=crop&auto=format",
-
-    to: "/agenda",
-  },
-
-  {
-    img: "https://images.unsplash.com/photo-1634334639396-b34c80a75ea1?w=1600&h=700&fit=crop&auto=format",
-
-    to: "/agenda",
-  },
-
-  {
-    img: "https://images.unsplash.com/photo-1516013474378-d6498f0d1434?w=1600&h=700&fit=crop&auto=format",
-
-    to: "/actualites",
-  },
-
-  {
-    img: "https://images.unsplash.com/photo-1785355805907-b95663dfb621?w=1600&h=700&fit=crop&auto=format",
-
-    to: "/don",
-  },
-]
-
 // ─── Slideshow ────────────────────────────────────────────────────────────────
 
 function HeroSlideshow() {
-  const { t } = useLang()
+  const { t, lang } = useLang()
+
+  const settings = useSettings()
+
+  // Slides edited in admin → Bannières, textes & musique; built-in ones otherwise.
+  const SLIDES = parseSlides(settings["home.slides"]) ?? defaultSlides(lang)
 
   const [current, setCurrent] = useState(0)
 
@@ -98,21 +81,11 @@ function HeroSlideshow() {
     )
 
     return () => clearInterval(timer)
-  }, [])
+  }, [SLIDES.length])
 
-  const slide = {
-    ...SLIDES[current],
+  const slide = SLIDES[current % SLIDES.length]
 
-    tag: t(`home.slide.${current + 1}.tag`),
-
-    date: t(`home.slide.${current + 1}.date`),
-
-    title: t(`home.slide.${current + 1}.title`),
-
-    desc: t(`home.slide.${current + 1}.desc`),
-
-    cta: t(`home.slide.${current + 1}.cta`),
-  }
+  const isExternal = /^https?:\/\//.test(slide.to)
 
   return (
     <section className="relative overflow-hidden" style={{ minHeight: 580 }}>
@@ -126,8 +99,8 @@ function HeroSlideshow() {
           }}
         >
           <img
-            src={s.img}
-            alt={t(`home.slide.${i + 1}.title`)}
+            src={mediaUrl(s.img) ?? undefined}
+            alt={s.title}
             className="w-full h-full object-cover"
             style={{ minHeight: 580 }}
           />
@@ -160,6 +133,7 @@ function HeroSlideshow() {
               {slide.tag}
             </span>
           </div>
+          {slide.date && (
           <div
             style={{
               fontFamily: "Montserrat, sans-serif",
@@ -170,6 +144,7 @@ function HeroSlideshow() {
           >
             <Icon name="calendar" size={15} /> {slide.date}
           </div>
+          )}
           <h1
             key={current}
             style={{
@@ -195,18 +170,37 @@ function HeroSlideshow() {
             {slide.desc}
           </p>
           <div className="flex flex-wrap gap-3 mt-8">
-            <Link
-              to={slide.to}
-              style={{
-                background: "#D4AF37",
-                fontFamily: "Montserrat, sans-serif",
-                fontWeight: 700,
-                fontSize: "0.83rem",
-              }}
-              className="flex items-center gap-2 text-white px-6 py-3 rounded-full hover:opacity-90 transition-opacity"
-            >
-              {slide.cta} <Icon name="arrowRight" size={16} />
-            </Link>
+            {slide.cta && slide.to && (
+              isExternal ? (
+                <a
+                  href={slide.to}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    background: "#D4AF37",
+                    fontFamily: "Montserrat, sans-serif",
+                    fontWeight: 700,
+                    fontSize: "0.83rem",
+                  }}
+                  className="flex items-center gap-2 text-white px-6 py-3 rounded-full hover:opacity-90 transition-opacity"
+                >
+                  {slide.cta} <Icon name="arrowRight" size={16} />
+                </a>
+              ) : (
+                <Link
+                  to={slide.to}
+                  style={{
+                    background: "#D4AF37",
+                    fontFamily: "Montserrat, sans-serif",
+                    fontWeight: 700,
+                    fontSize: "0.83rem",
+                  }}
+                  className="flex items-center gap-2 text-white px-6 py-3 rounded-full hover:opacity-90 transition-opacity"
+                >
+                  {slide.cta} <Icon name="arrowRight" size={16} />
+                </Link>
+              )
+            )}
             <Link
               to="/paroisse"
               style={{
@@ -344,7 +338,7 @@ export default function Home() {
 
   const readingRefs = readingsList(readings)
 
-  const SERVICES: { icon: IconName label: string sub: string to: string }[] = [
+  const SERVICES: { icon: IconName; label: string; sub: string; to: string }[] = [
     {
       icon: "church",
       label: t("home.services.1.label"),

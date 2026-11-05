@@ -11,7 +11,7 @@ interface Subscription {
 
   started_at: string
 
-  user: { nom: string prenom: string email: string } | null
+  user: { nom: string; prenom: string; email: string } | null
 
   tarif: { label: string } | null
 }

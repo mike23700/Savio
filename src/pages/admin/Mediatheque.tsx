@@ -109,6 +109,11 @@ export default function AdminMediatheque() {
 
   const [bulkProgress, setBulkProgress] = useState<string | null>(null)
 
+  /** Title applied to every photo of the batch (e.g. "Messe de Pâques 2026"). */
+  const [bulkTitle, setBulkTitle] = useState("")
+
+  const [bulkDate, setBulkDate] = useState("")
+
   function load() {
     apiGet<MediaItem[]>("/admin/media").then(setRows)
 
@@ -276,9 +281,10 @@ export default function AdminMediatheque() {
         await apiPost("/admin/media", {
           type: "photo",
           image: path,
-          title: file.name.replace(/\.[^.]+$/, ""),
+          title: bulkTitle.trim() || file.name.replace(/\.[^.]+$/, ""),
 
           media_category_id: bulkCategory ? Number(bulkCategory) : null,
+          taken_at: bulkDate || null,
           is_published: true,
           sort_order: 0,
         })
@@ -553,7 +559,7 @@ export default function AdminMediatheque() {
             fontSize: "0.85rem",
           }}
         >
-          <strong style={{ color: "#0B3D91" }}>Import multiple :</strong>
+          <strong style={{ color: "#0B3D91" }}>Import d'un lot de photos :</strong>
           <select
             value={bulkCategory}
             onChange={(e) => setBulkCategory(e.target.value)}
@@ -566,6 +572,20 @@ export default function AdminMediatheque() {
               </option>
             ))}
           </select>
+          <input
+            value={bulkTitle}
+            onChange={(e) => setBulkTitle(e.target.value)}
+            placeholder="Titre du lot (ex. Messe de Pâques 2026)"
+            title="Ce titre est appliqué à toutes les photos du lot"
+            style={{ ...inputStyle, width: 280 }}
+          />
+          <input
+            type="date"
+            value={bulkDate}
+            onChange={(e) => setBulkDate(e.target.value)}
+            title="Date des photos (facultatif)"
+            style={{ ...inputStyle, width: "auto" }}
+          />
           <button
             type="button"
             onClick={() => bulkInput.current?.click()}
@@ -584,6 +604,11 @@ export default function AdminMediatheque() {
           {bulkProgress && (
             <span style={{ color: "#374151" }}>{bulkProgress}</span>
           )}
+          <span style={{ flexBasis: "100%", fontSize: "0.75rem", color: "#4b5563" }}>
+            Choisissez la catégorie et saisissez un titre : il s'applique à
+            toutes les photos du lot (sans titre, le nom du fichier est
+            utilisé). Chaque titre reste modifiable ensuite, photo par photo.
+          </span>
         </div>
       )}
 

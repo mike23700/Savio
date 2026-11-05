@@ -1,7 +1,24 @@
 import { useEffect, useState } from "react"
+
+import { useBanner, useSiteText } from "@/lib/banner"
+
 import { Link } from "react-router"
+
 import { apiGet, apiPost, ApiError, localDateISO } from "@/lib/api"
+
 import Icon from "@/components/Icon"
+
+import {
+  Field,
+  FormMessage,
+  FormStep,
+  FormTitle,
+  PlusMinus,
+  SubmitButton,
+  inputClass,
+  inputStyle,
+} from "@/components/FormSteps"
+
 import { useLang } from "@/lib/i18n"
 
 interface DayMass {
@@ -10,99 +27,118 @@ interface DayMass {
   note: string | null
 }
 
+/** One requested mass: its intention, the day and the mass chosen that day. */
+interface MassRequest {
+  description: string
+  date: string
+  heure: string
+}
+
+const emptyMass: MassRequest = { description: "", date: "", heure: "" }
+
+const emptyPerson = { nom: "", prenom: "", email: "", telephone: "" }
+
 export default function Intention() {
+  const banner = useBanner("intention")
+
   const { t } = useLang()
-  const [form, setForm] = useState({
-    nom: "",
-    prenom: "",
-    email: "",
-    telephone: "",
-    description: "",
-    date: "",
-    heure: "",
-  })
+
+  // Editable text shown above the offering box (admin → Bannières & textes).
+  const intro = useSiteText("intention_intro")
+
+  const [person, setPerson] = useState(emptyPerson)
+
+  const [requests, setRequests] = useState<MassRequest[]>([{ ...emptyMass }])
+
+  /** Masses celebrated on each selected date, keyed by YYYY-MM-DD. */
+  const [massesByDate, setMassesByDate] = useState<Record<string, DayMass[]>>({})
+
   const [submitted, setSubmitted] = useState(false)
+
+  const [sending, setSending] = useState(false)
+
   const [error, setError] = useState<string | null>(null)
-  const [masses, setMasses] = useState<DayMass[] | null>(null)
+
+  // Load the masses of every newly selected date.
+  const dates = [...new Set(requests.map((r) => r.date).filter(Boolean))]
 
   useEffect(() => {
-    setMasses(null)
-    if (!form.date) return
-    let cancelled = false
-    apiGet<DayMass[]>(`/mass-schedule/day?date=${form.date}`)
-      .then((list) => {
-        if (cancelled) return
-        setMasses(list)
-        setForm((f) => ({
-          ...f,
-          heure: list.some((m) => m.time === f.heure)
-            ? f.heure
-            : list.length === 1
-              ? list[0].time
-              : "",
-        }))
-      })
-      .catch(() => !cancelled && setMasses([]))
-    return () => {
-      cancelled = true
+    for (const d of dates) {
+      if (massesByDate[d]) continue
+      apiGet<DayMass[]>(`/mass-schedule/day?date=${d}`)
+        .then((list) => setMassesByDate((m) => ({ ...m, [d]: list })))
+        .catch(() => setMassesByDate((m) => ({ ...m, [d]: [] })))
     }
-  }, [form.date])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dates.join(",")])
+
+  // Pre-select the only mass of a day, drop a time that does not exist that day.
+  useEffect(() => {
+    setRequests((rs) => {
+      let changed = false
+      const next = rs.map((r) => {
+        const list = r.date ? massesByDate[r.date] : undefined
+        if (!list) return r
+        const heure = list.some((m) => m.time === r.heure)
+          ? r.heure
+          : list.length === 1
+            ? list[0].time
+            : ""
+        if (heure !== r.heure) changed = true
+        return heure === r.heure ? r : { ...r, heure }
+      })
+      return changed ? next : rs
+    })
+  }, [massesByDate])
+
+  const setRequest = (i: number, patch: Partial<MassRequest>) =>
+    setRequests((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
-    if (form.date && masses && masses.length > 0 && !form.heure) {
-      setError(t("celebrer.intention.erreurMesse"))
-      return
+
+    for (const r of requests) {
+      const list = r.date ? massesByDate[r.date] : undefined
+      if (r.date && list && list.length > 0 && !r.heure) {
+        setError(t("celebrer.intention.erreurMesse"))
+        return
+      }
     }
+
+    setSending(true)
     try {
-      await apiPost("/intentions", {
-        nom: form.nom,
-        prenom: form.prenom,
-        email: form.email || null,
-        telephone: form.telephone,
-        description: form.description,
-        date_souhaitee: form.date || null,
-        heure_souhaitee: form.date ? form.heure || null : null,
-      })
-      setForm({
-        nom: "",
-        prenom: "",
-        email: "",
-        telephone: "",
-        description: "",
-        date: "",
-        heure: "",
-      })
+      // One intention per requested mass.
+      for (const r of requests) {
+        await apiPost("/intentions", {
+          nom: person.nom,
+          prenom: person.prenom,
+          email: person.email || null,
+          telephone: person.telephone,
+          description: r.description,
+          date_souhaitee: r.date || null,
+          heure_souhaitee: r.date ? r.heure || null : null,
+        })
+      }
+      setPerson(emptyPerson)
+      setRequests([{ ...emptyMass }])
       setSubmitted(true)
     } catch (err) {
       setError(
         err instanceof ApiError
-          ? err.message
+          ? Object.values(err.errors ?? {})[0]?.[0] || err.message
           : t("celebrer.form.erreurGenerique"),
       )
+    } finally {
+      setSending(false)
     }
-  }
-
-  const inputClass =
-    "w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
-  const inputStyle = {
-    fontFamily: "Montserrat, sans-serif",
-    fontSize: "0.85rem",
-    color: "#1c2340",
-  }
-  const labelStyle = {
-    fontFamily: "Montserrat, sans-serif",
-    fontSize: "0.78rem",
-    fontWeight: 600 as const,
-    color: "#374151",
   }
 
   return (
     <>
       <div className="relative h-64 md:h-72 flex items-end overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1631648859463-a42e6ce6d1e4?w=1400&h=500&fit=crop&auto=format"
+          src={banner}
           alt={t("celebrer.intention.titre")}
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -181,7 +217,23 @@ export default function Intention() {
       </div>
 
       <section className="py-16 px-4 bg-white">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-4xl mx-auto">
+          {intro && (
+            <div
+              className="mb-8"
+              style={{
+                fontFamily: "Montserrat, sans-serif",
+                fontSize: "0.92rem",
+                color: "#374151",
+                lineHeight: 1.8,
+                whiteSpace: "pre-line",
+                textAlign: "justify",
+              }}
+            >
+              {intro}
+            </div>
+          )}
+
           <div className="bg-yellow-50 rounded-2xl p-6 border border-yellow-200 mb-8 flex gap-4 items-start">
             <span style={{ flexShrink: 0, display: "flex" }}>
               <Icon name="pray" size={28} />
@@ -252,198 +304,141 @@ export default function Intention() {
               </button>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div>
-                    <label style={labelStyle} className="block mb-1.5">
-                      {t("celebrer.form.nom")}
-                    </label>
-                    <input
-                      required
-                      value={form.nom}
-                      onChange={(e) =>
-                        setForm({ ...form, nom: e.target.value })
-                      }
-                      placeholder={t("celebrer.intention.nomPlaceholder")}
-                      className={inputClass}
-                      style={inputStyle}
-                    />
-                  </div>
-                  <div>
-                    <label style={labelStyle} className="block mb-1.5">
-                      {t("celebrer.intention.prenomLabel")}
-                    </label>
-                    <input
-                      required
-                      value={form.prenom}
-                      onChange={(e) =>
-                        setForm({ ...form, prenom: e.target.value })
-                      }
-                      placeholder={t("celebrer.intention.prenomPlaceholder")}
-                      className={inputClass}
-                      style={inputStyle}
-                    />
-                  </div>
-                  <div>
-                    <label style={labelStyle} className="block mb-1.5">
-                      {t("celebrer.form.email")}
-                    </label>
-                    <input
-                      type="email"
-                      value={form.email}
-                      onChange={(e) =>
-                        setForm({ ...form, email: e.target.value })
-                      }
-                      placeholder={t("celebrer.form.emailPlaceholder")}
-                      className={inputClass}
-                      style={inputStyle}
-                    />
-                  </div>
-                  <div>
-                    <label style={labelStyle} className="block mb-1.5">
-                      {t("celebrer.form.telephone")}
-                    </label>
-                    <input
-                      required
-                      value={form.telephone}
-                      onChange={(e) =>
-                        setForm({ ...form, telephone: e.target.value })
-                      }
-                      placeholder={t("celebrer.form.telephonePlaceholder")}
-                      className={inputClass}
-                      style={inputStyle}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label style={labelStyle} className="block mb-1.5">
-                    {t("celebrer.intention.description")}
-                  </label>
-                  <textarea
-                    required
-                    value={form.description}
-                    onChange={(e) =>
-                      setForm({ ...form, description: e.target.value })
-                    }
-                    placeholder={t("celebrer.intention.descriptionPlaceholder")}
-                    rows={4}
-                    className={inputClass}
-                    style={{ ...inputStyle, resize: "vertical" as const }}
-                  />
-                </div>
-                <div>
-                  <label style={labelStyle} className="block mb-1.5">
-                    {t("celebrer.intention.dateSouhaitee")}
-                  </label>
-                  <input
-                    type="date"
-                    min={localDateISO()}
-                    value={form.date}
-                    onChange={(e) => setForm({ ...form, date: e.target.value })}
-                    className={inputClass}
-                    style={inputStyle}
-                  />
-                </div>
-                {form.date && (
-                  <div>
-                    <label style={labelStyle} className="block mb-1.5">
-                      {t("celebrer.intention.messeSouhaitee")}
-                    </label>
-                    {masses === null ? (
-                      <p style={{ ...inputStyle, color: "#9ca3af" }}>
-                        {t("celebrer.intention.chargement")}
-                      </p>
-                    ) : masses.length === 0 ? (
-                      <p
-                        className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3"
-                        style={{ ...inputStyle, color: "#92400e" }}
-                      >
-                        {t("celebrer.intention.aucuneMesse")}
-                      </p>
-                    ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {masses.map((m) => {
-                          const selected = form.heure === m.time
-                          return (
-                            <button
-                              type="button"
-                              key={`${m.time}-${m.type}`}
-                              onClick={() =>
-                                setForm({ ...form, heure: m.time })
-                              }
-                              aria-pressed={selected}
-                              className="text-left rounded-xl px-4 py-3 border-2 transition-all"
-                              style={{
-                                borderColor: selected ? "#0B3D91" : "#e5e7eb",
-                                background: selected ? "#E8F2FF" : "white",
-                              }}
-                            >
-                              <span
-                                style={{
-                                  fontFamily: "Playfair Display, serif",
-                                  fontSize: "1.1rem",
-                                  fontWeight: 700,
-                                  color: "#0B3D91",
-                                }}
-                              >
-                                {m.time}
-                              </span>
-                              <span
-                                style={{
-                                  ...inputStyle,
-                                  display: "block",
-                                  fontWeight: 600,
-                                  fontSize: "0.8rem",
-                                }}
-                              >
-                                {m.type}
-                              </span>
-                              {m.note && (
-                                <span
-                                  style={{
-                                    ...inputStyle,
-                                    display: "block",
-                                    fontSize: "0.72rem",
-                                    color: "#6b7280",
-                                  }}
-                                >
-                                  {m.note}
-                                </span>
-                              )}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )}
-                {error && (
-                  <div
-                    className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3"
-                    style={{
-                      fontFamily: "Montserrat, sans-serif",
-                      fontSize: "0.82rem",
-                    }}
-                  >
-                    {error}
-                  </div>
-                )}
-                <button
-                  type="submit"
-                  style={{
-                    background: "#0B3D91",
-                    fontFamily: "Montserrat, sans-serif",
-                    fontWeight: 700,
-                    fontSize: "0.85rem",
-                  }}
-                  className="w-full text-white py-3.5 rounded-xl hover:opacity-90 transition-opacity"
+            <form onSubmit={handleSubmit}>
+              <FormTitle>{t("extra.form.titre")}</FormTitle>
+              {error && <FormMessage kind="error">{error}</FormMessage>}
+
+              <div className="mt-4">
+                <FormStep
+                  icon="user"
+                  title={t("extra.form.infosPerso")}
+                  desc={t("extra.form.infosPersoDesc")}
                 >
-                  {t("celebrer.intention.envoyer")}{" "}
-                  <Icon name="cross" size={16} strokeWidth={1.75} />
-                </button>
-              </form>
-            </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                    <Field label={t("extra.form.nom")}>
+                      <input
+                        required
+                        value={person.nom}
+                        onChange={(e) => setPerson({ ...person, nom: e.target.value })}
+                        className={inputClass}
+                        style={inputStyle}
+                      />
+                    </Field>
+                    <Field label={t("extra.form.prenom")}>
+                      <input
+                        required
+                        value={person.prenom}
+                        onChange={(e) => setPerson({ ...person, prenom: e.target.value })}
+                        className={inputClass}
+                        style={inputStyle}
+                      />
+                    </Field>
+                    <Field label={t("extra.form.email")}>
+                      <input
+                        type="email"
+                        value={person.email}
+                        onChange={(e) => setPerson({ ...person, email: e.target.value })}
+                        className={inputClass}
+                        style={inputStyle}
+                      />
+                    </Field>
+                    <Field label={t("extra.form.telephone")}>
+                      <input
+                        required
+                        type="tel"
+                        value={person.telephone}
+                        onChange={(e) => setPerson({ ...person, telephone: e.target.value })}
+                        className={inputClass}
+                        style={inputStyle}
+                      />
+                    </Field>
+                  </div>
+                </FormStep>
+
+                <FormStep
+                  icon="calendar"
+                  title={t("extra.form.messe")}
+                  desc={t("extra.form.messeDesc")}
+                >
+                  <div className="space-y-8">
+                    {requests.map((r, i) => {
+                      const list = r.date ? massesByDate[r.date] : undefined
+                      return (
+                        <div
+                          key={i}
+                          className={i > 0 ? "pt-6 border-t border-dashed border-gray-200" : ""}
+                        >
+                          <Field label={t("extra.form.intentionTexte")}>
+                            <textarea
+                              required
+                              rows={7}
+                              value={r.description}
+                              onChange={(e) => setRequest(i, { description: e.target.value })}
+                              placeholder={t("celebrer.intention.descriptionPlaceholder")}
+                              className={inputClass}
+                              style={{ ...inputStyle, resize: "vertical" }}
+                            />
+                          </Field>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 mt-5">
+                            <Field label={t("extra.form.date")}>
+                              <input
+                                type="date"
+                                min={localDateISO()}
+                                value={r.date}
+                                onChange={(e) => setRequest(i, { date: e.target.value, heure: "" })}
+                                className={inputClass}
+                                style={inputStyle}
+                              />
+                            </Field>
+                            <Field label={t("extra.form.heure")}>
+                              <select
+                                value={r.heure}
+                                disabled={!r.date || !list || list.length === 0}
+                                required={!!r.date && !!list && list.length > 0}
+                                onChange={(e) => setRequest(i, { heure: e.target.value })}
+                                className={inputClass}
+                                style={inputStyle}
+                              >
+                                {!r.date ? (
+                                  <option value="">{t("extra.form.selectDate")}</option>
+                                ) : !list ? (
+                                  <option value="">{t("celebrer.intention.chargement")}</option>
+                                ) : list.length === 0 ? (
+                                  <option value="">{t("extra.form.aucuneMesse")}</option>
+                                ) : (
+                                  <>
+                                    <option value="">{t("extra.form.choisir")}</option>
+                                    {list.map((m) => (
+                                      <option key={m.time} value={m.time}>
+                                        {m.time} — {m.type}
+                                        {m.note ? ` (${m.note})` : ""}
+                                      </option>
+                                    ))}
+                                  </>
+                                )}
+                              </select>
+                            </Field>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <PlusMinus
+                    onAdd={() => setRequests((rs) => [...rs, { ...emptyMass }])}
+                    onRemove={() => setRequests((rs) => rs.slice(0, -1))}
+                    canRemove={requests.length > 1}
+                    addLabel={t("extra.form.ajouter")}
+                    removeLabel={t("extra.form.retirer")}
+                  />
+                </FormStep>
+
+                <div className="pl-14">
+                  <SubmitButton disabled={sending}>
+                    {sending ? t("extra.form.envoi") : t("extra.form.envoyer")}
+                  </SubmitButton>
+                </div>
+              </div>
+            </form>
           )}
         </div>
       </section>

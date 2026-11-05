@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
  */
 class UploadController extends Controller
 {
-    private const FOLDERS = ['news', 'team', 'homelies', 'products', 'projets', 'sacrements', 'media', 'pages', 'espaces', 'misc', 'chants'];
+    private const FOLDERS = ['news', 'team', 'homelies', 'products', 'projets', 'sacrements', 'media', 'pages', 'espaces', 'misc', 'chants', 'musique', 'banners'];
 
     public function image(Request $request)
     {

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 
+import { useBanner } from "@/lib/banner"
+
 import { Link } from "react-router"
 
 import { apiGet } from "@/lib/api"
@@ -67,6 +69,8 @@ function tabMeta(
 }
 
 export default function Mouvements() {
+  const banner = useBanner("vie_paroissiale")
+
   const { t } = useLang()
 
   const [tab, setTab] = useState<Tab>("conseil")
@@ -81,7 +85,7 @@ export default function Mouvements() {
 
   const TAB_META = tabMeta(t)
 
-  const tabs: { id: Tab icon: IconName label: string }[] = [
+  const tabs: { id: Tab; icon: IconName; label: string }[] = [
     {
       id: "conseil",
       icon: TAB_META.conseil.icon,
@@ -109,7 +113,7 @@ export default function Mouvements() {
     <>
       <div className="relative h-64 md:h-72 flex items-end overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1535361251-cbe9d0d2357d?w=1400&h=500&fit=crop&auto=format"
+          src={banner}
           alt={t("vie.mouvements.titre")}
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -328,6 +332,7 @@ export default function Mouvements() {
               >
                 {t("vie.mouv.cev.texte")}
               </p>
+              {/* Registre retiré du site public (géré dans l'admin)
               <Link
                 to="/vie-paroissiale/registre"
                 style={{
@@ -341,6 +346,7 @@ export default function Mouvements() {
                 {t("vie.mouv.cev.bouton")}
                 <Icon name="arrowRight" size={16} />
               </Link>
+              */}
             </div>
           )}
         </div>

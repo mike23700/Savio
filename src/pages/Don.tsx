@@ -29,7 +29,7 @@ interface ProjetOption {
 }
 
 interface DonationResult {
-  donation: { montant: number projet: { titre: string } | null }
+  donation: { montant: number; projet: { titre: string } | null }
 
   payment: PaymentInfo
 }
@@ -256,7 +256,7 @@ export default function Don() {
                   titre: t("top.don.motif4Titre"),
                   desc: t("top.don.motif4Desc"),
                 },
-              ] as { icon: IconName titre: string desc: string }[]).map((r) => (
+              ] as { icon: IconName; titre: string; desc: string }[]).map((r) => (
                 <div key={r.titre} className="flex gap-3">
                   <div
                     style={{

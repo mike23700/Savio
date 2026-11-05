@@ -10,15 +10,12 @@ import {
   introParagraphs,
   loadPage,
   renderInline,
-  type PageContent,
-} from "@/lib/pages"
+  type PageContent, PAGE_HERO_FALLBACK, CURE_FALLBACK_IMG } from "@/lib/pages"
 
 import Icon from "@/components/Icon"
 
 import { useLang } from "@/lib/i18n"
 
-const CURE_FALLBACK_IMG =
-  "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&h=380&fit=crop&auto=format"
 
 export default function Genese() {
   const { t } = useLang()
@@ -45,7 +42,7 @@ export default function Genese() {
         <img
           src={
             (page?.hero_image ? mediaUrl(page.hero_image) : null) ??
-            "https://images.unsplash.com/photo-1516013474378-d6498f0d1434?w=1400&h=600&fit=crop&auto=format"
+            PAGE_HERO_FALLBACK.genese!
           }
           alt={page?.title ?? t("paroisse.genese.alt")}
           className="absolute inset-0 w-full h-full object-cover"
@@ -313,7 +310,8 @@ export default function Genese() {
                     : undefined,
                 }}
               >
-                <div className="relative h-56 overflow-hidden">
+                {/* Square photo: the whole portrait is shown, nothing is cropped */}
+                <div className="relative aspect-square overflow-hidden">
                   <img
                     src={
                       (cure.image ? mediaUrl(cure.image) : null) ??

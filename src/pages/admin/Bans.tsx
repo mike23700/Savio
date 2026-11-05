@@ -5,6 +5,8 @@ import { apiGet, apiPatch, apiDelete } from "@/lib/api"
 import { confirmDialog } from "./ConfirmDialog"
 import Icon from "@/components/Icon"
 
+import BansTextes from "./BansTextes"
+
 interface Ban {
   id: number
 
@@ -19,10 +21,12 @@ interface Ban {
   fiance1_nom: string
 
   fiance1_prenom: string
+  fiance1_age?: number | null
 
   fiance2_nom: string
 
   fiance2_prenom: string
+  fiance2_age?: number | null
 
   mariage_date: string | null
 
@@ -122,6 +126,8 @@ export default function AdminBans() {
         </div>
       </div>
 
+      <BansTextes />
+
       {rows.length === 0 ? (
         <p style={{ color: "#6b7280", fontSize: "0.9rem" }}>
           Aucune demande de bans pour le moment.
@@ -181,8 +187,10 @@ export default function AdminBans() {
                   </td>
                   <td style={td}>
                     {b.fiance1_prenom} {b.fiance1_nom}
+                    {b.fiance1_age ? ` (${b.fiance1_age} ans)` : ""}
                     <br />
                     {b.fiance2_prenom} {b.fiance2_nom}
+                    {b.fiance2_age ? ` (${b.fiance2_age} ans)` : ""}
                   </td>
                   <td style={td}>
                     {b.telephone}

@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   async function login(email: string, password: string) {
-    const { user, token } = await apiPost<{ user: User token: string }>(
+    const { user, token } = await apiPost<{ user: User; token: string }>(
       "/auth/login",
       { email, password },
     )
@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string
     password_confirmation: string
   }) {
-    const { user, token } = await apiPost<{ user: User token: string }>(
+    const { user, token } = await apiPost<{ user: User; token: string }>(
       "/auth/register",
       data,
     )

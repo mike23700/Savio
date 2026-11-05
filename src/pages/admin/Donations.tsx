@@ -19,11 +19,11 @@ interface Donation {
 
   intention: string | null
 
-  projet: { id: number titre: string } | null
+  projet: { id: number; titre: string } | null
 
   created_at: string
 
-  user: { nom: string prenom: string email: string } | null
+  user: { nom: string; prenom: string; email: string } | null
 }
 
 const STATUS_COLOR: Record<string, string> = {

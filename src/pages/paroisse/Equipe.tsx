@@ -151,8 +151,8 @@ export default function Equipe() {
                     idx % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
                   }`}
                 >
-                  {/* Photo — full height */}
-                  <div className="relative md:w-2/5 min-h-[320px] md:min-h-[360px] overflow-hidden">
+                  {/* Square photo (475×475 on desktop), independent of the text length — nothing is cropped */}
+                  <div className="relative w-full md:w-[475px] aspect-square md:self-start flex-shrink-0 overflow-hidden">
                     <img
                       src={mediaUrl(priest.photo) ?? undefined}
                       alt={priest.name}

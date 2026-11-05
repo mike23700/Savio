@@ -10,11 +10,24 @@ import Icon from "@/components/Icon"
 
 import { useLang } from "@/lib/i18n"
 
+interface ScheduleTime {
+  id: number
+  time: string | null
+  type: string
+  note: string | null
+  sort_time?: string | null
+  weekdays?: number[] | null
+  recurrence_type?: "weekly" | "monthly_nth_weekday" | "special"
+  nth_week_of_month?: number | null
+}
+
 interface ScheduleGroup {
   day: string
-
-  times: { id: number time: string | null type: string note: string | null }[]
+  times: ScheduleTime[]
 }
+
+/** Monday → Sunday (JS weekday numbers: 0 = Sunday). */
+const WEEK = [1, 2, 3, 4, 5, 6, 0]
 
 interface TodayItem {
   time: string
@@ -34,6 +47,51 @@ export default function Messes() {
   const [readings, setReadings] = useState<DailyReadings | null>(null)
 
   const today = localDateISO()
+
+  const locale = lang === "en" ? "en-GB" : "fr-FR"
+
+  // 2026-11-01 was a Sunday: +d days gives weekday d.
+  const dayName = (d: number) =>
+    new Date(2026, 10, 1 + d).toLocaleDateString(locale, { weekday: "long" })
+
+  const nthLabel = (n: number | null | undefined) =>
+    !n
+      ? ""
+      : lang === "en"
+        ? `${n}${n === 1 ? "st" : n === 2 ? "nd" : n === 3 ? "rd" : "th"} of the month`
+        : `${n === 1 ? "1er" : `${n}e`} du mois`
+
+  /** Regular masses (weekly / nth weekday of the month) placed in their weekday column. */
+  const weekColumns: Record<number, ScheduleTime[]> = Object.fromEntries(
+    WEEK.map((d) => [
+      d,
+      schedule
+        .flatMap((g) => g.times)
+        .filter(
+          (m) =>
+            m.recurrence_type !== "special" &&
+            (m.recurrence_type === "monthly_nth_weekday"
+              ? (m.weekdays ?? [])[0] === d
+              : (m.weekdays ?? []).includes(d)),
+        )
+        .sort((a, b) =>
+          (a.sort_time ?? a.time ?? "").localeCompare(b.sort_time ?? b.time ?? ""),
+        ),
+    ]),
+  )
+
+  /** Special masses and other celebrations (no fixed weekday) stay as blocks. */
+  const specialGroups = schedule
+    .map((g) => ({
+      ...g,
+      times: g.times.filter(
+        (m) =>
+          m.recurrence_type === "special" ||
+          // rows without weekdays cannot be placed in a column
+          (!m.weekdays || m.weekdays.length === 0),
+      ),
+    }))
+    .filter((g) => g.times.length > 0)
 
   useEffect(() => {
     apiGet<ScheduleGroup[]>("/mass-schedule")
@@ -396,8 +454,115 @@ export default function Messes() {
             {t("celebrer.messes.titre")}
           </h2>
 
+          {/* Week view: one column per day, Monday → Sunday */}
+          <div className="overflow-x-auto -mx-4 px-4 mb-12">
+            <div
+              className="grid gap-3"
+              style={{ gridTemplateColumns: "repeat(7, minmax(130px, 1fr))", minWidth: 7 * 138 }}
+            >
+              {WEEK.map((d) => {
+                const isToday = new Date().getDay() === d
+                return (
+                  <div
+                    key={d}
+                    className="rounded-2xl border overflow-hidden flex flex-col"
+                    style={{
+                      borderColor: isToday ? "#D4AF37" : "#e5e7eb",
+                      boxShadow: isToday ? "0 0 0 2px #D4AF3755" : undefined,
+                    }}
+                  >
+                    <div
+                      style={{
+                        background: isToday ? "#D4AF37" : "#0B3D91",
+                        color: "white",
+                        fontFamily: "Montserrat, sans-serif",
+                        fontSize: "0.74rem",
+                        fontWeight: 700,
+                        letterSpacing: "0.08em",
+                        textAlign: "center",
+                        padding: "10px 6px",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {dayName(d)}
+                    </div>
+                    <div className="p-3 flex-1 bg-white">
+                      {weekColumns[d].length === 0 && (
+                        <div
+                          className="text-center"
+                          style={{ color: "#9ca3af", fontSize: "0.85rem" }}
+                        >
+                          {t("extra.messes.aucune")}
+                        </div>
+                      )}
+                      {weekColumns[d].map((m) => (
+                        <div
+                          key={m.id}
+                          className="mb-3 last:mb-0 pb-3 last:pb-0 border-b last:border-b-0 border-gray-100"
+                        >
+                          <div
+                            style={{
+                              fontFamily: "Playfair Display, serif",
+                              fontSize: "1.15rem",
+                              fontWeight: 700,
+                              color: "#0B3D91",
+                              lineHeight: 1.1,
+                            }}
+                          >
+                            {m.time}
+                          </div>
+                          <div
+                            style={{
+                              fontFamily: "Montserrat, sans-serif",
+                              fontSize: "0.74rem",
+                              fontWeight: 600,
+                              color: "#1c2340",
+                              marginTop: 2,
+                              lineHeight: 1.35,
+                            }}
+                          >
+                            {m.type}
+                          </div>
+                          {(m.recurrence_type === "monthly_nth_weekday" || m.note) && (
+                            <div
+                              style={{
+                                fontFamily: "Montserrat, sans-serif",
+                                fontSize: "0.68rem",
+                                color: "#9ca3af",
+                                marginTop: 2,
+                                lineHeight: 1.4,
+                              }}
+                            >
+                              {m.recurrence_type === "monthly_nth_weekday" &&
+                                nthLabel(m.nth_week_of_month)}
+                              {m.recurrence_type === "monthly_nth_weekday" && m.note && " · "}
+                              {m.note}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {specialGroups.length > 0 && (
+            <>
+              <h3
+                style={{
+                  fontFamily: "Playfair Display, serif",
+                  fontSize: "1.3rem",
+                  fontWeight: 700,
+                  color: "#1c2340",
+                  marginBottom: 20,
+                }}
+              >
+                {t("extra.messes.speciales")}
+              </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
-            {schedule.map((s) => (
+            {specialGroups.map((s) => (
               <div
                 key={s.day}
                 className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-md hover:border-yellow-200 transition-all"
@@ -456,6 +621,8 @@ export default function Messes() {
               </div>
             ))}
           </div>
+            </>
+          )}
 
           <div className="mt-10 bg-blue-50 rounded-2xl p-8 border border-blue-100">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">

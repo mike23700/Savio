@@ -27,7 +27,7 @@ export interface SacrementField {
 
   /** For `radio` fields: list of options. */
 
-  options?: { value: string labelKey: string label: string }[]
+  options?: { value: string; labelKey: string; label: string }[]
 }
 
 export interface SacrementDef {
@@ -413,7 +413,7 @@ export interface RegistrePrintRequest {
 
   inscription?: RegistreInscription
 
-  user?: { id: number nom: string prenom: string email: string | null } | null
+  user?: { id: number; nom: string; prenom: string; email: string | null } | null
 }
 
 /** French label for each print request status. */

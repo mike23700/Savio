@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CatecheseController;
 use App\Http\Controllers\Api\ContactMessageController;
 use App\Http\Controllers\Api\DailyReadingController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\DemandeSacrementController;
 use App\Http\Controllers\Api\DonationController;
 use App\Http\Controllers\Api\EspaceController;
 use App\Http\Controllers\Api\EventController;
@@ -70,6 +71,7 @@ Route::get('/pages', [PageContentController::class, 'index']);
 Route::get('/pages/{key}', [PageContentController::class, 'show']);
 
 Route::get('/sacrements', [SacrementController::class, 'index']);
+Route::post('/sacrements/demandes', [DemandeSacrementController::class, 'store'])->middleware('throttle:10,1');
 Route::get('/sacrements/{slug}', [SacrementController::class, 'show']);
 
 Route::get('/catechese/niveaux', [CatecheseController::class, 'niveaux']);
@@ -95,6 +97,7 @@ Route::get('/projets/{projet}', [ProjetController::class, 'show']);
 Route::get('/registre/next-numero', [RegistreController::class, 'nextNumero']);
 Route::post('/registre/sacrements', [RegistreSacrementController::class, 'store']);
 
+Route::get('/product-categories', [ProductController::class, 'categories']);
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{slug}', [ProductController::class, 'show']);
 Route::post('/orders', [OrderController::class, 'store']);
@@ -197,6 +200,9 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::put('/priere/{prayerTime}', [PrayerTimeController::class, 'update']);
     Route::delete('/priere/{prayerTime}', [PrayerTimeController::class, 'destroy']);
 
+    Route::get('/demandes-sacrements', [DemandeSacrementController::class, 'adminIndex']);
+    Route::patch('/demandes-sacrements/{demande}', [DemandeSacrementController::class, 'update']);
+    Route::delete('/demandes-sacrements/{demande}', [DemandeSacrementController::class, 'destroy']);
     Route::get('/intentions', [IntentionMesseController::class, 'adminIndex']);
     Route::patch('/intentions/{intention}', [IntentionMesseController::class, 'update']);
 
@@ -240,6 +246,9 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::put('/registre-sacrements/{registreSacrement}', [RegistreSacrementController::class, 'update']);
     Route::delete('/registre-sacrements/{registreSacrement}', [RegistreSacrementController::class, 'destroy']);
 
+    Route::post('/product-categories', [ProductController::class, 'storeCategory']);
+    Route::put('/product-categories/{category}', [ProductController::class, 'updateCategory']);
+    Route::delete('/product-categories/{category}', [ProductController::class, 'destroyCategory']);
     Route::get('/products', [ProductController::class, 'adminIndex']);
     Route::post('/products', [ProductController::class, 'store']);
     Route::put('/products/{product}', [ProductController::class, 'update']);

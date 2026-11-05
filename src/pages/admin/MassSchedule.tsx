@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 
-import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api"
+import { apiGet, apiPost, apiPut, apiDelete, ApiError } from "@/lib/api"
 
 import { confirmDialog } from "./ConfirmDialog"
 
@@ -63,6 +63,8 @@ export default function AdminMassSchedule() {
 
   const [form, setForm] = useState(emptyForm)
 
+  const [error, setError] = useState<string | null>(null)
+
   function load() {
     apiGet<Row[]>("/admin/mass-schedule").then(setRows)
   }
@@ -70,6 +72,7 @@ export default function AdminMassSchedule() {
   useEffect(load, [])
 
   function startEdit(row: Row) {
+    setError(null)
     setEditingId(row.id)
 
     setForm({
@@ -81,7 +84,8 @@ export default function AdminMassSchedule() {
 
       nth_week_of_month: row.nth_week_of_month?.toString() || "",
 
-      time: row.time || "",
+      // MySQL returns "06:30:00"; the API (and <input type="time">) expect "06:30".
+      time: row.time ? row.time.slice(0, 5) : "",
 
       time_label: row.time_label || "",
 
@@ -98,6 +102,7 @@ export default function AdminMassSchedule() {
   }
 
   function startNew() {
+    setError(null)
     setEditingId("new")
 
     setForm(emptyForm)
@@ -127,15 +132,22 @@ export default function AdminMassSchedule() {
       note: form.note || null,
     }
 
-    if (editingId === "new") {
-      await apiPost("/admin/mass-schedule", payload)
-    } else if (editingId) {
-      await apiPut(`/admin/mass-schedule/${editingId}`, payload)
+    setError(null)
+    try {
+      if (editingId === "new") {
+        await apiPost("/admin/mass-schedule", payload)
+      } else if (editingId) {
+        await apiPut(`/admin/mass-schedule/${editingId}`, payload)
+      }
+      setEditingId(null)
+      load()
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? Object.values(err.errors ?? {})[0]?.[0] || err.message
+          : "Erreur lors de l'enregistrement.",
+      )
     }
-
-    setEditingId(null)
-
-    load()
   }
 
   async function remove(id: number) {
@@ -222,13 +234,43 @@ export default function AdminMassSchedule() {
                 <option value="special">Spéciale (hors calcul)</option>
               </select>
             </Field>
-            <Field label="Jours (0=Dim…6=Sam, séparés par virgule)">
-              <input
-                value={form.weekdays}
-                onChange={(e) => setForm({ ...form, weekdays: e.target.value })}
-                placeholder="1,2,3,4,5"
-                style={inputStyle}
-              />
+            <Field label="Jours de la semaine">
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, paddingTop: 4 }}>
+                {[1, 2, 3, 4, 5, 6, 0].map((d) => {
+                  const days = form.weekdays
+                    .split(",")
+                    .map((n) => n.trim())
+                    .filter(Boolean)
+                  const on = days.includes(String(d))
+                  return (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() =>
+                        setForm({
+                          ...form,
+                          weekdays: (on
+                            ? days.filter((x) => x !== String(d))
+                            : [...days, String(d)]
+                          ).join(","),
+                        })
+                      }
+                      style={{
+                        padding: "6px 10px",
+                        borderRadius: 6,
+                        fontSize: "0.78rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        border: `1px solid ${on ? "#0B3D91" : "#e5e7eb"}`,
+                        background: on ? "#0B3D91" : "#fff",
+                        color: on ? "#fff" : "#374151",
+                      }}
+                    >
+                      {WEEKDAY_LABELS[d]}
+                    </button>
+                  )
+                })}
+              </div>
             </Field>
             {form.recurrence_type === "monthly_nth_weekday" && (
               <Field label="Nième semaine du mois">
@@ -242,8 +284,9 @@ export default function AdminMassSchedule() {
                 />
               </Field>
             )}
-            <Field label="Heure (HH:MM)">
+            <Field label="Heure">
               <input
+                type="time"
                 value={form.time}
                 onChange={(e) => setForm({ ...form, time: e.target.value })}
                 placeholder="06:30"
@@ -308,6 +351,20 @@ export default function AdminMassSchedule() {
               Actif
             </label>
           </div>
+          {error && (
+            <div
+              style={{
+                background: "#fee2e2",
+                color: "#991b1b",
+                padding: "8px 12px",
+                borderRadius: 8,
+                fontSize: "0.83rem",
+                marginTop: 12,
+              }}
+            >
+              {error}
+            </div>
+          )}
           <div className="flex gap-3 mt-4">
             <button
               type="submit"

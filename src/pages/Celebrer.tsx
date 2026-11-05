@@ -7,7 +7,7 @@ import { useLang } from "@/lib/i18n"
 export default function Celebrer() {
   const { t } = useLang()
 
-  const SUB_PAGES: { icon: IconName title: string desc: string to: string }[] =
+  const SUB_PAGES: { icon: IconName; title: string; desc: string; to: string }[] =
     [
       {
         icon: "church",

@@ -85,7 +85,7 @@ export default function AdminComptabilite() {
 
   /** Resolve the period shortcut into the explicit [du, au] range sent to the API. */
 
-  function periodRange(): { du: string au: string } {
+  function periodRange(): { du: string; au: string } {
     if (period === "mois") {
       const d = new Date()
 
@@ -122,7 +122,7 @@ export default function AdminComptabilite() {
 
     if (q.trim()) params.set("q", q.trim())
 
-    apiGet<{ transactions: Transaction[] totaux: TransactionTotaux }>(
+    apiGet<{ transactions: Transaction[]; totaux: TransactionTotaux }>(
       `/admin/transactions?${params}`,
     ).then((res) => {
       setRows(res.transactions)

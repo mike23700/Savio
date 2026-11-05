@@ -80,7 +80,7 @@ interface Order {
 
   created_at: string
 
-  items: { product_nom_snapshot: string qty: number }[]
+  items: { product_nom_snapshot: string; qty: number }[]
 }
 
 interface DonationRow {
@@ -92,7 +92,7 @@ interface DonationRow {
 
   intention: string | null
 
-  projet: { id: number titre: string } | null
+  projet: { id: number; titre: string } | null
 
   created_at: string
 }
@@ -109,7 +109,7 @@ export default function EspaceMembre() {
   // Set by RequireAuth: bring the visitor back where they were going (e.g. /don?projet=3)
 
   const redirectFrom = (location.state as {
-    from?: { pathname: string search: string }
+    from?: { pathname: string; search: string }
   } | null)?.from
 
   const [mode, setMode] = useState<Mode>("login")
@@ -235,7 +235,7 @@ export default function EspaceMembre() {
     color: "#374151",
   }
 
-  const tabs: { id: Tab label: string icon: IconName }[] = [
+  const tabs: { id: Tab; label: string; icon: IconName }[] = [
     { id: "profil", label: t("top.membre.ongletProfil"), icon: "user" },
 
     {
@@ -329,12 +329,18 @@ export default function EspaceMembre() {
 
     if (!subscribeTarifId) return
 
-    const sub = await apiPost<JournalSubscription>("/journal/subscribe", {
-      tarif_id: subscribeTarifId,
-      format: subscribeFormat,
-    })
+    try {
+      const sub = await apiPost<JournalSubscription>("/journal/subscribe", {
+        tarif_id: subscribeTarifId,
+        format: subscribeFormat,
+      })
 
-    setSubscription(sub)
+      setSubscription(sub)
+    } catch (err) {
+      window.alert(
+        err instanceof ApiError ? err.message : t("top.common.erreurGenerique"),
+      )
+    }
   }
 
   async function handleRequestPrint(e: React.FormEvent) {
@@ -370,7 +376,7 @@ export default function EspaceMembre() {
     }
   }
 
-  const printStatutColor: Record<string, { bg: string fg: string }> = {
+  const printStatutColor: Record<string, { bg: string; fg: string }> = {
     en_attente: { bg: "#fef3c7", fg: "#92400e" },
 
     en_traitement: { bg: "#dbeafe", fg: "#1e40af" },
@@ -591,6 +597,7 @@ export default function EspaceMembre() {
                   >
                     {t("top.membre.registre.aucuneTexte")}
                   </p>
+                  {/* Registre retiré du site public (géré dans l'admin)
                   <Link
                     to="/vie-paroissiale/registre"
                     style={{
@@ -604,6 +611,7 @@ export default function EspaceMembre() {
                     <Icon name="clipboard" size={16} strokeWidth={1.75} />{" "}
                     {t("top.membre.registre.lienInscription")}
                   </Link>
+                  */}
                 </div>
               ) : (
                 <>
@@ -618,6 +626,7 @@ export default function EspaceMembre() {
                     >
                       {t("top.membre.registre.mesFiches")}
                     </h3>
+                    {/* Registre retiré du site public (géré dans l'admin)
                     <Link
                       to="/vie-paroissiale/registre"
                       style={{
@@ -631,6 +640,7 @@ export default function EspaceMembre() {
                       <Icon name="plus" size={15} strokeWidth={2} />{" "}
                       {t("top.membre.registre.nouvelleFiche")}
                     </Link>
+                    */}
                   </div>
 
                   <div className="space-y-6">

@@ -7,12 +7,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Event extends Model
 {
-    protected $fillable = ['event_category_id', 'title', 'date', 'time', 'location', 'description', 'is_published'];
+    protected $fillable = ['event_category_id', 'title', 'date', 'time', 'end_date', 'end_time', 'location', 'description', 'is_published'];
 
     protected function casts(): array
     {
         return [
             'date' => 'date:Y-m-d',
+            'end_date' => 'date:Y-m-d',
             'is_published' => 'boolean',
         ];
     }

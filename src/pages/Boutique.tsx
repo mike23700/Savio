@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react"
 
-import { Link } from "react-router"
+import { useBanner } from "@/lib/banner"
+
+import { Link, useSearchParams } from "react-router"
+
+import { loadCart, saveCart, type CartItem } from "@/lib/cart"
 
 import { apiGet, apiPost, ApiError, mediaUrl } from "@/lib/api"
 
@@ -28,26 +32,41 @@ interface Product {
   description: string
 }
 
-type CartItem = { id: number qty: number }
+interface ProductCategory {
+  id: number
+  name: string
+}
 
-const CATEGORY_VALUES = ["Livres", "Accessoires"]
+
 
 interface OrderResult {
-  order: { order_number: string total: number }
+  order: { order_number: string; total: number }
 
   payment: PaymentInfo
 }
 
 export default function Boutique() {
+  const banner = useBanner("boutique")
+
   const { t, lang } = useLang()
 
   const [products, setProducts] = useState<Product[]>([])
 
   const [filter, setFilter] = useState("Tous")
 
-  const [cart, setCart] = useState<CartItem[]>([])
+  const [search, setSearch] = useState("")
 
-  const [cartOpen, setCartOpen] = useState(false)
+  const [categories, setCategories] = useState<ProductCategory[]>([])
+
+  // Cart shared with the product page through the browser storage.
+  const [cart, setCart] = useState<CartItem[]>(() => loadCart())
+
+  const [params] = useSearchParams()
+
+  // /boutique?panier=1 (from a product page) opens the cart directly.
+  const [cartOpen, setCartOpen] = useState(params.get("panier") === "1")
+
+  useEffect(() => saveCart(cart), [cart])
 
   const [checkoutOpen, setCheckoutOpen] = useState(false)
 
@@ -67,23 +86,29 @@ export default function Boutique() {
     apiGet<Product[]>("/products")
       .then(setProducts)
       .catch(() => {})
+    apiGet<ProductCategory[]>("/product-categories")
+      .then(setCategories)
+      .catch(() => {})
   }, [])
 
+  // Admin-managed categories that have at least one product (plus any legacy name still in use).
+  const categoryNames = [
+    ...categories.map((c) => c.name),
+    ...products.map((p) => p.category),
+  ].filter((n, i, all) => n && all.indexOf(n) === i && products.some((p) => p.category === n))
+
   const CATEGORIES = [
-    { value: "Tous", label: t("top.common.tous") },
-
-    ...CATEGORY_VALUES.map((value) => ({
-      value,
-
-      label:
-        value === "Livres"
-          ? t("top.boutique.categorieLivres")
-          : t("top.boutique.categorieAccessoires"),
-    })),
+    { value: "Tous", label: t("extra.boutique.toutesCategories") },
+    ...categoryNames.map((value) => ({ value, label: value })),
   ]
 
+  const normalize = (s: string) =>
+    s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+
   const filtered = products.filter(
-    (p) => filter === "Tous" || p.category === filter,
+    (p) =>
+      (filter === "Tous" || p.category === filter) &&
+      (!search.trim() || normalize(p.nom).includes(normalize(search.trim()))),
   )
 
   const addToCart = (id: number) => {
@@ -147,7 +172,7 @@ export default function Boutique() {
     <>
       <div className="relative h-64 md:h-72 flex items-end overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1573591013318-b942d6ea1092?w=1400&h=500&fit=crop&auto=format"
+          src={banner}
           alt={t("top.boutique.alt")}
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -212,26 +237,34 @@ export default function Boutique() {
       <section className="py-10 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-wrap gap-2 mb-8 items-center justify-between">
-            <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat.value}
-                  onClick={() => setFilter(cat.value)}
-                  style={{
-                    fontFamily: "Montserrat, sans-serif",
-                    fontSize: "0.8rem",
-                    fontWeight: 700,
-                    background: filter === cat.value ? "#0B3D91" : "#F5F7FA",
-                    color: filter === cat.value ? "white" : "#374151",
-                    border: `1px solid ${
-                      filter === cat.value ? "#0B3D91" : "#e5e7eb"
-                    }`,
-                  }}
-                  className="px-5 py-2.5 rounded-full hover:opacity-90 transition-all"
+            <div className="flex flex-wrap gap-2 flex-1 min-w-0">
+              <div className="relative flex-1 min-w-[200px] max-w-md">
+                <span
+                  className="absolute left-3 top-1/2 -translate-y-1/2"
+                  style={{ color: "#9ca3af", display: "flex" }}
                 >
-                  {cat.label}
-                </button>
-              ))}
+                  <Icon name="search" size={16} strokeWidth={1.75} />
+                </span>
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder={t("extra.boutique.recherche")}
+                  className="w-full border border-gray-200 rounded-full pl-9 pr-4 py-2.5 focus:outline-none focus:border-blue-500"
+                  style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.82rem" }}
+                />
+              </div>
+              <select
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="border border-gray-200 rounded-full px-4 py-2.5 bg-white focus:outline-none focus:border-blue-500"
+                style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.82rem", fontWeight: 600 }}
+              >
+                {CATEGORIES.map((cat) => (
+                  <option key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </option>
+                ))}
+              </select>
             </div>
             <button
               onClick={() => setCartOpen(true)}
@@ -266,7 +299,16 @@ export default function Boutique() {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filtered.length === 0 && products.length > 0 && (
+            <p
+              className="text-center py-12"
+              style={{ fontFamily: "Montserrat, sans-serif", fontSize: "0.9rem", color: "#6b7280" }}
+            >
+              {t("extra.boutique.aucun")}
+            </p>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
             {filtered.map((product) => (
               <div
                 key={product.id}
@@ -274,12 +316,16 @@ export default function Boutique() {
               >
                 <Link
                   to={`/boutique/${product.slug}`}
-                  className="relative h-48 overflow-hidden block"
+                  className="relative overflow-hidden flex justify-center items-center"
+                  style={{ height: 320, background: "#F5F7FA" }}
                 >
+                  {/* Cover at 200×300 (portrait, like a book) */}
                   <img
                     src={mediaUrl(product.img) ?? undefined}
                     alt={product.nom}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                    className="object-cover rounded-md shadow-md group-hover:scale-105 transition-transform duration-500"
+                    style={{ width: 200, height: 300 }}
                   />
                   <span
                     style={{
@@ -344,7 +390,7 @@ export default function Boutique() {
                       </span>
                     )}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <button
                       onClick={() => addToCart(product.id)}
                       style={{

@@ -23,6 +23,8 @@ const emptyForm = {
   title: "",
   date: localDateISO(),
   time: "",
+  end_date: "",
+  end_time: "",
   location: "Église principale",
   description: "",
   is_published: true,
@@ -72,6 +74,8 @@ export default function AdminAgenda() {
 
       date: ev.date.slice(0, 10),
       time: ev.time ? ev.time.slice(0, 5) : "",
+      end_date: ev.end_date ? ev.end_date.slice(0, 10) : "",
+      end_time: ev.end_time ? ev.end_time.slice(0, 5) : "",
       location: ev.location || "",
 
       description: ev.description || "",
@@ -100,6 +104,8 @@ export default function AdminAgenda() {
         : null,
 
       time: form.time || null,
+      end_date: form.end_date || null,
+      end_time: form.end_time || null,
     }
 
     try {
@@ -189,8 +195,8 @@ export default function AdminAgenda() {
       (r) =>
         period === "all" ||
         (period === "upcoming"
-          ? r.date.slice(0, 10) >= today
-          : r.date.slice(0, 10) < today),
+          ? (r.end_date ?? r.date).slice(0, 10) >= today
+          : (r.end_date ?? r.date).slice(0, 10) < today),
     )
 
     .sort((a, b) => {
@@ -374,7 +380,7 @@ export default function AdminAgenda() {
                 />
               </Field>
             </div>
-            <Field label="Date">
+            <Field label="Date de début">
               <input
                 type="date"
                 required
@@ -383,11 +389,28 @@ export default function AdminAgenda() {
                 style={inputStyle}
               />
             </Field>
-            <Field label="Heure">
+            <Field label="Heure de début">
               <input
                 type="time"
                 value={form.time}
                 onChange={(e) => setForm({ ...form, time: e.target.value })}
+                style={inputStyle}
+              />
+            </Field>
+            <Field label="Date de fin (si l'événement dure plusieurs jours)">
+              <input
+                type="date"
+                min={form.date}
+                value={form.end_date}
+                onChange={(e) => setForm({ ...form, end_date: e.target.value })}
+                style={inputStyle}
+              />
+            </Field>
+            <Field label="Heure de fin">
+              <input
+                type="time"
+                value={form.end_time}
+                onChange={(e) => setForm({ ...form, end_time: e.target.value })}
                 style={inputStyle}
               />
             </Field>
@@ -547,8 +570,25 @@ export default function AdminAgenda() {
                     year: "numeric",
                   },
                 )}
+                {r.end_date && (
+                  <div style={{ fontSize: "0.72rem", color: "#6b7280" }}>
+                    →{" "}
+                    {new Date(
+                      `${r.end_date.slice(0, 10)}T12:00:00`,
+                    ).toLocaleDateString("fr-FR", {
+                      weekday: "short",
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </div>
+                )}
               </td>
-              <td style={td}>{formatEventTime(r.time)}</td>
+              <td style={td}>
+                {[formatEventTime(r.time), formatEventTime(r.end_time)]
+                  .filter(Boolean)
+                  .join(" – ")}
+              </td>
               <td style={td}>{r.title}</td>
               <td style={td}>
                 {r.category ? (

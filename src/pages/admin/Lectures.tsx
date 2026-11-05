@@ -56,7 +56,7 @@ const emptyForm = {
 
 type TextKey = "reading_1_text" | "psalm_text" | "reading_2_text" | "gospel_text"
 
-const TEXT_FIELDS: { key: TextKey label: string aelfType: string }[] = [
+const TEXT_FIELDS: { key: TextKey; label: string; aelfType: string }[] = [
   {
     key: "reading_1_text",
     label: "Texte de la 1ère lecture",

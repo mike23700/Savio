@@ -4,7 +4,7 @@ import { Link } from "react-router"
 
 import { mediaUrl } from "@/lib/api"
 
-import { blocksOf, extraOf, loadPage, type PageContent } from "@/lib/pages"
+import { blocksOf, extraOf, loadPage, type PageContent, PAGE_HERO_FALLBACK } from "@/lib/pages"
 
 import Icon from "@/components/Icon"
 
@@ -34,7 +34,7 @@ export default function Organisation() {
         <img
           src={
             (page?.hero_image ? mediaUrl(page.hero_image) : null) ??
-            "https://images.unsplash.com/photo-1535361251-cbe9d0d2357d?w=1400&h=500&fit=crop&auto=format"
+            PAGE_HERO_FALLBACK.organisation!
           }
           alt={page?.title ?? t("paroisse.organisation.titre")}
           className="absolute inset-0 w-full h-full object-cover"

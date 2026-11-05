@@ -29,6 +29,35 @@ interface Intention {
 export default function AdminIntentions() {
   const [rows, setRows] = useState<Intention[]>([])
 
+  /** Filters: mass date (exact day or range) and status. */
+  const [dateFrom, setDateFrom] = useState("")
+
+  const [dateTo, setDateTo] = useState("")
+
+  const [statut, setStatut] = useState("")
+
+  const [q, setQ] = useState("")
+
+  const visible = rows.filter((r) => {
+    const d = r.date_souhaitee?.slice(0, 10) ?? ""
+    if (dateFrom && (!d || d < dateFrom)) return false
+    if (dateTo && (!d || d > dateTo)) return false
+    if (statut && r.statut !== statut) return false
+    if (q) {
+      const hay = `${r.prenom} ${r.nom} ${r.telephone} ${r.description}`.toLowerCase()
+      if (!hay.includes(q.toLowerCase())) return false
+    }
+    return true
+  })
+
+  const filterInput: React.CSSProperties = {
+    padding: "8px 10px",
+    borderRadius: 8,
+    border: "1px solid #e5e7eb",
+    fontSize: "0.83rem",
+    background: "#fff",
+  }
+
   function load() {
     apiGet<Intention[]>("/admin/intentions").then(setRows)
   }
@@ -53,6 +82,74 @@ export default function AdminIntentions() {
       >
         Intentions de messe
       </h1>
+
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 10,
+          alignItems: "flex-end",
+          marginBottom: 16,
+          fontSize: "0.78rem",
+          color: "#6b7280",
+        }}
+      >
+        <label>
+          Messe du
+          <br />
+          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} style={filterInput} />
+        </label>
+        <label>
+          au
+          <br />
+          <input type="date" value={dateTo} min={dateFrom || undefined} onChange={(e) => setDateTo(e.target.value)} style={filterInput} />
+        </label>
+        <label>
+          Statut
+          <br />
+          <select value={statut} onChange={(e) => setStatut(e.target.value)} style={filterInput}>
+            <option value="">Tous les statuts</option>
+            <option value="en_attente">En attente</option>
+            <option value="planifiee">Planifiée</option>
+            <option value="celebree">Célébrée</option>
+            <option value="annulee">Annulée</option>
+          </select>
+        </label>
+        <label>
+          Recherche
+          <br />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nom, téléphone, intention…" style={{ ...filterInput, width: 220 }} />
+        </label>
+        <button
+          type="button"
+          onClick={() => {
+            const d = new Date()
+            const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+            setDateFrom(iso)
+            setDateTo(iso)
+          }}
+          style={{ ...filterInput, cursor: "pointer", fontWeight: 600, color: "#0B3D91" }}
+        >
+          Aujourd'hui
+        </button>
+        {(dateFrom || dateTo || statut || q) && (
+          <button
+            type="button"
+            onClick={() => {
+              setDateFrom("")
+              setDateTo("")
+              setStatut("")
+              setQ("")
+            }}
+            style={{ ...filterInput, cursor: "pointer" }}
+          >
+            Réinitialiser
+          </button>
+        )}
+        <span style={{ marginLeft: "auto" }}>
+          {visible.length} / {rows.length} intention(s)
+        </span>
+      </div>
       <table
         style={{
           width: "100%",
@@ -78,7 +175,14 @@ export default function AdminIntentions() {
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => (
+          {visible.length === 0 && (
+            <tr>
+              <td style={{ ...td, textAlign: "center", color: "#9ca3af" }} colSpan={4}>
+                Aucune intention pour ces filtres.
+              </td>
+            </tr>
+          )}
+          {visible.map((r) => (
             <tr
               key={r.id}
               style={{ borderTop: "1px solid #f1f5f9", fontSize: "0.85rem" }}

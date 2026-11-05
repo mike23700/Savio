@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 
-import { Link } from "react-router"
+import { Link, useSearchParams } from "react-router"
 
 import { apiGet, apiPost, apiDelete, mediaUrl } from "@/lib/api"
 
@@ -59,11 +59,19 @@ export default function Homelies() {
 
   const [selected, setSelected] = useState<Homelie | null>(null)
 
+  // `/homelies?h=<slug>` opens that homily directly (link from /lectures).
+  const [params] = useSearchParams()
+
+  const openSlug = params.get("h")
+
   useEffect(() => {
     apiGet<Homelie[]>("/homelies")
-      .then(setHomelies)
+      .then((list) => {
+        setHomelies(list)
+        if (openSlug) setSelected(list.find((x) => x.slug === openSlug) ?? null)
+      })
       .catch(() => {})
-  }, [])
+  }, [openSlug])
 
   useEffect(() => {
     if (!user) {
@@ -82,18 +90,22 @@ export default function Homelies() {
 
     if (!user) return
 
-    if (favoriteIds.has(id)) {
-      await apiDelete(`/favorites/${id}`)
+    try {
+      if (favoriteIds.has(id)) {
+        await apiDelete(`/favorites/${id}`)
 
-      setFavoriteIds((prev) => {
-        const next = new Set(prev)
-        next.delete(id)
-        return next
-      })
-    } else {
-      await apiPost(`/favorites/${id}`)
+        setFavoriteIds((prev) => {
+          const next = new Set(prev)
+          next.delete(id)
+          return next
+        })
+      } else {
+        await apiPost(`/favorites/${id}`)
 
-      setFavoriteIds((prev) => new Set(prev).add(id))
+        setFavoriteIds((prev) => new Set(prev).add(id))
+      }
+    } catch {
+      // network / session error: leave the heart as it was
     }
   }
 

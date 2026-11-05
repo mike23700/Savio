@@ -1,12 +1,14 @@
 import { Link } from "react-router"
 
+import { useBanner } from "@/lib/banner"
+
 import Icon, { type IconName } from "@/components/Icon"
 
 import { useLang } from "@/lib/i18n"
 
 function subPages(
   t: (key: string) => string,
-): { icon: IconName title: string desc: string to: string }[] {
+): { icon: IconName; title: string; desc: string; to: string }[] {
   return [
     {
       icon: "hand",
@@ -29,16 +31,19 @@ function subPages(
       to: "/vie-paroissiale/projets",
     },
 
-    {
-      icon: "clipboard",
-      title: t("vie.registre.titre"),
-      desc: t("vie.registre.desc"),
-      to: "/vie-paroissiale/registre",
-    },
+    // Registre paroissial retiré du site public : il se gère désormais uniquement dans l'admin (/admin/registre).
+    // {
+    //   icon: "clipboard",
+    //   title: t("vie.registre.titre"),
+    //   desc: t("vie.registre.desc"),
+    //   to: "/vie-paroissiale/registre",
+    // },
   ]
 }
 
 export default function VieParoissialeHub() {
+  const banner = useBanner("vie_paroissiale")
+
   const { t } = useLang()
 
   const SUB_PAGES = subPages(t)
@@ -47,7 +52,7 @@ export default function VieParoissialeHub() {
     <>
       <div className="relative h-64 md:h-80 flex items-end overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1535361251-cbe9d0d2357d?w=1400&h=600&fit=crop&auto=format"
+          src={banner}
           alt={t("vie.alt")}
           className="absolute inset-0 w-full h-full object-cover"
         />

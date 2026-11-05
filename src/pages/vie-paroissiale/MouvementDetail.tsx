@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react"
 
+import { useBanner } from "@/lib/banner"
+
 import { Link, useParams } from "react-router"
 
-import { apiGet } from "@/lib/api"
+import { apiGet, mediaUrl } from "@/lib/api"
 
 import Icon from "@/components/Icon"
 
@@ -25,7 +27,9 @@ interface MouvementDetail {
 
   image: string | null
 
-  details: { id: number detail: string }[]
+  details: { id: number; detail: string }[]
+
+  membres: { nom: string; titre: string | null; photo: string | null }[] | null
 }
 
 const CATEGORY_KEY: Record<string, string> = {
@@ -39,6 +43,8 @@ const CATEGORY_KEY: Record<string, string> = {
 }
 
 export default function MouvementDetailPage() {
+  const banner = useBanner("vie_paroissiale")
+
   const { t } = useLang()
 
   const { id } = useParams<{ id: string }>()
@@ -97,10 +103,7 @@ export default function MouvementDetailPage() {
     <>
       <div className="relative h-64 md:h-72 flex items-end overflow-hidden">
         <img
-          src={
-            item.image ||
-            "https://images.unsplash.com/photo-1535361251-cbe9d0d2357d?w=1400&h=500&fit=crop&auto=format"
-          }
+          src={mediaUrl(item.image) ?? banner}
           alt={item.title}
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -221,6 +224,71 @@ export default function MouvementDetailPage() {
                   </span>
                 </div>
               ))}
+            </div>
+          )}
+
+          {item.membres && item.membres.length > 0 && (
+            <div className="mt-12">
+              <h2
+                style={{
+                  fontFamily: "Playfair Display, serif",
+                  fontSize: "1.4rem",
+                  fontWeight: 700,
+                  color: "#1c2340",
+                  marginBottom: 20,
+                }}
+              >
+                {t("extra.mouvements.equipe")}
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+                {item.membres.map((m, i) => (
+                  <div
+                    key={i}
+                    className="bg-white rounded-2xl border border-gray-100 overflow-hidden text-center hover:shadow-md transition-shadow"
+                  >
+                    <div
+                      className="aspect-square flex items-center justify-center"
+                      style={{ background: "#E8F2FF" }}
+                    >
+                      {m.photo ? (
+                        <img
+                          src={mediaUrl(m.photo) ?? undefined}
+                          alt={m.nom}
+                          loading="lazy"
+                          className="w-full h-full object-cover object-top"
+                        />
+                      ) : (
+                        <Icon name="user" size={48} strokeWidth={1.25} style={{ color: "#0B3D91" }} />
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <div
+                        style={{
+                          fontFamily: "Montserrat, sans-serif",
+                          fontSize: "0.88rem",
+                          fontWeight: 700,
+                          color: "#1c2340",
+                        }}
+                      >
+                        {m.nom}
+                      </div>
+                      {m.titre && (
+                        <div
+                          style={{
+                            fontFamily: "Montserrat, sans-serif",
+                            fontSize: "0.74rem",
+                            fontWeight: 600,
+                            color: "#D4AF37",
+                            marginTop: 2,
+                          }}
+                        >
+                          {m.titre}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
