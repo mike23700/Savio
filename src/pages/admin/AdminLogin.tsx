@@ -6,6 +6,8 @@ import { useAuth } from "@/lib/auth"
 
 import { ApiError } from "@/lib/api"
 
+import logoImg from "@/imports/logo.png"
+
 export default function AdminLogin() {
   const { user, login } = useAuth()
 
@@ -72,6 +74,11 @@ export default function AdminLogin() {
           width: 360,
         }}
       >
+        <img
+          src={logoImg}
+          alt="Paroisse Saint Dominique Savio"
+          style={{ width: 220, maxWidth: "100%", height: "auto", display: "block", margin: "0 auto 16px" }}
+        />
         <h1
           style={{
             fontFamily: "Playfair Display, serif",

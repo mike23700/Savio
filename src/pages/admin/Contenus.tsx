@@ -76,7 +76,7 @@ export default function AdminContenus() {
 
   const set = (key: string, value: string) => setValues((v) => ({ ...v, [key]: value }))
 
-  const tracks = parseTracks(values["music.tracks"])
+  const tracks = parseTracks(values["music.tracks"], { keepEmpty: true })
 
   const setTracks = (list: MusicTrack[]) => set("music.tracks", JSON.stringify(list))
 

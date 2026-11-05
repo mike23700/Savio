@@ -19,6 +19,7 @@ interface ScheduleTime {
   weekdays?: number[] | null
   recurrence_type?: "weekly" | "monthly_nth_weekday" | "special"
   nth_week_of_month?: number | null
+  counts_as_mass?: boolean
 }
 
 interface ScheduleGroup {
@@ -69,10 +70,9 @@ export default function Messes() {
         .flatMap((g) => g.times)
         .filter(
           (m) =>
-            m.recurrence_type !== "special" &&
-            (m.recurrence_type === "monthly_nth_weekday"
-              ? (m.weekdays ?? [])[0] === d
-              : (m.weekdays ?? []).includes(d)),
+            m.recurrence_type === "weekly" &&
+            m.counts_as_mass !== false &&
+            (m.weekdays ?? []).includes(d),
         )
         .sort((a, b) =>
           (a.sort_time ?? a.time ?? "").localeCompare(b.sort_time ?? b.time ?? ""),
@@ -80,18 +80,26 @@ export default function Messes() {
     ]),
   )
 
-  /** Special masses and other celebrations (no fixed weekday) stay as blocks. */
-  const specialGroups = schedule
-    .map((g) => ({
-      ...g,
-      times: g.times.filter(
-        (m) =>
-          m.recurrence_type === "special" ||
-          // rows without weekdays cannot be placed in a column
-          (!m.weekdays || m.weekdays.length === 0),
-      ),
-    }))
-    .filter((g) => g.times.length > 0)
+  /**
+   * Adoration, confessions, baptisms… and anything without a fixed weekday:
+   * one block per type, each line giving the days ("Lundi – Vendredi"), time and note.
+   */
+  const specialGroups: ScheduleGroup[] = (() => {
+    const byType = new Map<string, ScheduleTime[]>()
+    for (const g of schedule)
+      for (const m of g.times) {
+        // Monthly masses (e.g. mass for the sick) also go to the blocks.
+        const placed =
+          m.recurrence_type === "weekly" &&
+          m.counts_as_mass !== false &&
+          (m.weekdays ?? []).length > 0
+        if (placed) continue
+        const list = byType.get(m.type) ?? []
+        list.push({ ...m, type: m.recurrence_type === "special" ? "" : g.day })
+        byType.set(m.type, list)
+      }
+    return [...byType.entries()].map(([day, times]) => ({ day, times }))
+  })()
 
   useEffect(() => {
     apiGet<ScheduleGroup[]>("/mass-schedule")

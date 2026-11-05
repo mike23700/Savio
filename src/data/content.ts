@@ -13,7 +13,7 @@ export const PARISH = {
 
   email: "secretariat@paroissesaintdominiquesavio.com",
 
-  hours: "Lun–Ven : 8h–13h & 15h30–18h30",
+  hours: "Lun–Ven : 7h30–13h00 & 15h30–18h30",
 
   founded: "4 décembre 1961",
 

@@ -7,6 +7,8 @@ import { useAuth } from "@/lib/auth"
 
 import ConfirmHost from "./ConfirmDialog"
 
+import logoImg from "@/imports/logo.png"
+
 import { ApiError } from "@/lib/api"
 
 type NavLinkItem = { label: string; to: string }
@@ -250,15 +252,30 @@ export default function AdminLayout() {
         }}
       >
         <Link to="/admin" style={{ color: "#fff", textDecoration: "none" }}>
-          <div
-            style={{
-              fontFamily: "Playfair Display, serif",
-              fontWeight: 700,
-              fontSize: "1.1rem",
-              marginBottom: 32,
-            }}
-          >
-            Admin · Savio
+          <div style={{ marginBottom: 28 }}>
+            {/* White version of the parish logo on the blue sidebar */}
+            <img
+              src={logoImg}
+              alt="Paroisse Saint Dominique Savio"
+              style={{
+                width: "100%",
+                maxWidth: 190,
+                height: "auto",
+                display: "block",
+                filter: "brightness(0) invert(1)",
+              }}
+            />
+            <div
+              style={{
+                fontSize: "0.68rem",
+                fontWeight: 700,
+                letterSpacing: "0.18em",
+                color: "rgba(255,255,255,0.7)",
+                marginTop: 8,
+              }}
+            >
+              ADMINISTRATION
+            </div>
           </div>
         </Link>
         <nav style={{ display: "flex", flexDirection: "column", gap: 4 }}>

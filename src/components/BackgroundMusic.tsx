@@ -15,11 +15,18 @@ export interface MusicTrack {
   url: string
 }
 
-export function parseTracks(raw: string | undefined): MusicTrack[] {
+export function parseTracks(
+  raw: string | undefined,
+  { keepEmpty = false }: { keepEmpty?: boolean } = {},
+): MusicTrack[] {
   try {
     const list = raw ? JSON.parse(raw) : []
+    // The admin keeps rows still being filled in; the player skips them.
     return Array.isArray(list)
-      ? list.filter((t): t is MusicTrack => typeof t?.url === "string" && t.url !== "")
+      ? list.filter(
+          (t): t is MusicTrack =>
+            typeof t?.url === "string" && (keepEmpty || t.url !== ""),
+        )
       : []
   } catch {
     return []

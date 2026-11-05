@@ -27,6 +27,7 @@ class MassScheduleController extends Controller
                     'weekdays' => $r->weekdays,
                     'recurrence_type' => $r->recurrence_type,
                     'nth_week_of_month' => $r->nth_week_of_month,
+                    'counts_as_mass' => (bool) $r->counts_as_mass,
                 ])->values(),
             ];
         })->values();
@@ -127,8 +128,8 @@ class MassScheduleController extends Controller
             $request->merge(['time' => substr($time, 0, 5)]);
         }
 
-        return $request->validate([
-            'group_label' => 'required|string|max:255',
+        $data = $request->validate([
+            'group_label' => 'nullable|string|max:255',
             'weekdays' => 'nullable|array',
             'weekdays.*' => 'integer|min:0|max:6',
             'recurrence_type' => 'required|in:weekly,monthly_nth_weekday,special',
@@ -138,8 +139,32 @@ class MassScheduleController extends Controller
             'type' => 'required|string|max:255',
             'note' => 'nullable|string|max:255',
             'counts_as_mass' => 'boolean',
-            'sort_order' => 'integer',
+            'sort_order' => 'nullable|integer',
             'is_active' => 'boolean',
+        ], [
+            'type.required' => 'Choisissez le type (messe, adoration…).',
         ]);
+
+        $weekdays = $data['weekdays'] ?? null;
+        if ($data['recurrence_type'] !== 'special' && empty($weekdays)) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['weekdays' => 'Cochez au moins un jour.']);
+        }
+        if ($data['recurrence_type'] === 'monthly_nth_weekday' && empty($data['nth_week_of_month'])) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['nth_week_of_month' => 'Choisissez la semaine du mois.']);
+        }
+        if ($data['recurrence_type'] === 'special') {
+            $data['weekdays'] = null;
+            $data['nth_week_of_month'] = null;
+        }
+
+        // Group label and display order are computed: the admin only ticks days and times.
+        if (empty($data['group_label'])) {
+            $data['group_label'] = MassSchedule::labelFor($data['weekdays'] ?? null, $data['recurrence_type'], $data['nth_week_of_month'] ?? null, $data['type']);
+        }
+        if (! isset($data['sort_order'])) {
+            $data['sort_order'] = MassSchedule::sortKeyFor($data['weekdays'] ?? null, $data['recurrence_type'], $data['time'] ?? null);
+        }
+
+        return $data;
     }
 }

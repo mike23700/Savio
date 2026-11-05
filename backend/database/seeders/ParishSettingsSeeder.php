@@ -17,7 +17,7 @@ class ParishSettingsSeeder extends Seeder
             'parish.phone' => '(+237) 655 529 999',
             'parish.whatsapp_number' => '237655529999',
             'parish.email' => 'secretariat@paroissesaintdominiquesavio.com',
-            'parish.hours' => 'Lun–Ven : 8h–13h & 15h30–18h30',
+            'parish.hours' => 'Lun–Ven : 7h30–13h00 & 15h30–18h30',
             'parish.founded' => '4 décembre 1961',
             'parish.diocese' => 'Archidiocèse de Douala',
             'parish.deanery' => 'Doyenné Wouri I',
