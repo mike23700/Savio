@@ -673,9 +673,10 @@ export default function Don() {
                       fontWeight: 700,
                       fontSize: "0.9rem",
                     }}
-                    className="w-full text-white py-4 rounded-xl hover:opacity-90 transition-opacity"
+                    className="w-full inline-flex items-center justify-center gap-2 text-white py-4 rounded-xl hover:opacity-90 transition-opacity"
                   >
-                    <Icon name="heart" size={18} /> {t("top.don.confirmer")}
+                    <Icon name="heart" size={18} strokeWidth={1.75} />
+                    {t("top.don.confirmer")}
                   </button>
                 </form>
               </div>

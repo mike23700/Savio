@@ -36,8 +36,10 @@ return [
     ],
 
     // https://peex-api-docs.peexit.com/ — mobile money collection (Orange Money / MTN MoMo)
+    // No base_url default: set PEEX_BASE_URL in .env (sandbox or production). Empty
+    // PEEX_SECRET_KEY keeps manual payments; secret without base_url fails at boot.
     'peex' => [
-        'base_url' => env('PEEX_BASE_URL', 'https://sandbox.peexit.com/api/v1/'),
+        'base_url' => env('PEEX_BASE_URL'),
         'secret_key' => env('PEEX_SECRET_KEY'),
         'country' => env('PEEX_COUNTRY', 'CM'),
         'dial_code' => env('PEEX_DIAL_CODE', '237'),

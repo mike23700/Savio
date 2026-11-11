@@ -41,5 +41,11 @@ class AppServiceProvider extends ServiceProvider
         if (config('app.force_https')) {
             URL::forceScheme('https');
         }
+
+        // Peex is optional (empty secret → manual payments), but a secret without
+        // PEEX_BASE_URL must not silently hit a wrong host in production.
+        if (filled(config('services.peex.secret_key')) && blank(config('services.peex.base_url'))) {
+            throw new \RuntimeException('Config manquante : services.peex.base_url (PEEX_BASE_URL).');
+        }
     }
 }

@@ -26,7 +26,8 @@ class PeexPaymentProvider implements PaymentProviderInterface
 
     public function isConfigured(): bool
     {
-        return filled(config('services.peex.secret_key'));
+        return filled(config('services.peex.secret_key'))
+            && filled(config('services.peex.base_url'));
     }
 
     public function initiate(PaymentRequest $request): array

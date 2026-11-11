@@ -78,6 +78,30 @@ class PeexPaymentTest extends TestCase
         Http::assertNothingSent();
     }
 
+    public function test_falls_back_to_manual_when_base_url_missing(): void
+    {
+        config(['services.peex.base_url' => null]);
+        Http::fake();
+
+        $res = $this->placeOrder();
+
+        $this->assertSame('manual', $res['payment']['provider']);
+        Http::assertNothingSent();
+    }
+
+    public function test_boot_rejects_secret_without_base_url(): void
+    {
+        config([
+            'services.peex.secret_key' => 'test-key',
+            'services.peex.base_url' => null,
+        ]);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('services.peex.base_url');
+
+        (new \App\Providers\AppServiceProvider(app()))->boot();
+    }
+
     public function test_provider_unavailable_marks_payment_failed_and_allows_retry(): void
     {
         Http::fakeSequence('peex.test/*')
