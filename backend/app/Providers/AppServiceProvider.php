@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,12 +20,26 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // On Railway the persistent volume is mounted at /app/storage/app.
-        // A fresh volume starts empty, which hides the public/ symlink target
-        // of `storage:link`, so make sure the folder exists on boot.
-        $publicDir = storage_path('app/public');
-        if (! is_dir($publicDir)) {
-            @mkdir($publicDir, 0775, true);
+        // Uploaded files are written to storage/app/public. A fresh clone or a
+        // new IONOS deployment starts without these runtime folders, so create
+        // them proactively instead of failing on the first upload.
+        foreach ([
+            'app/public',
+            'framework/cache/data',
+            'framework/sessions',
+            'framework/views',
+            'logs',
+        ] as $directory) {
+            $path = storage_path($directory);
+            if (! is_dir($path)) {
+                @mkdir($path, 0775, true);
+            }
+        }
+
+        // IONOS serves the API behind its TLS terminator. Generating https://
+        // URLs avoids mixed-content warnings on the frontend and in PDFs.
+        if (config('app.force_https')) {
+            URL::forceScheme('https');
         }
     }
 }

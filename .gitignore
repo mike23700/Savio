@@ -2,9 +2,13 @@ node_modules/
 composer.phar
 dist/
 build/
+release/
+backups/
 .cache/
 .env*
 !.env.example
+!.env.ionos.example
+!.env.docker.example
 .vite/
 vite.config.*.timestamp-*
 *.tsbuildinfo

@@ -1,0 +1,32 @@
+# ---------------------------------------------------------------------------
+# Safety net for IONOS
+#
+# Recommended setup: point the API subdomain's destination folder to
+# backend/public/. In that case Apache never reads this file.
+#
+# If IONOS only lets you point the subdomain to backend/ (the Laravel root),
+# this file rewrites every request into public/ while keeping .env, vendor/,
+# storage/ and the rest of the application outside the served URL space.
+# ---------------------------------------------------------------------------
+
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Keep IONOS/Let's Encrypt HTTP-01 validation files reachable. If the
+    # challenge file is in public/.well-known instead, fall through to the
+    # public/ rewrite below.
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^\.well-known/ - [L]
+
+    # Let the public/ front controller handle the request.
+    RewriteRule ^$ public/ [L]
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Never expose secrets or source files if the document root is misconfigured.
+<FilesMatch "^(\.env.*|\.git.*|composer\.(json|lock)|artisan|phpunit\.xml|.*\.log)$">
+    Require all denied
+</FilesMatch>

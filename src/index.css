@@ -39,3 +39,19 @@ h1, h2, h3, h4 {
 .reading-text p + p {
   margin-top: 0.9em;
 }
+
+/*
+ * Home hero.
+ * Mobile/tablet: the image is rendered in normal flow at its natural ratio
+ * (full width, height auto) and the text sits below it — no crop, no overlay.
+ * From xl upward: a 16:7 full-bleed cover image with the text overlaid.
+ */
+.home-hero {
+  width: 100%;
+}
+
+@media (min-width: 1280px) {
+  .home-hero {
+    aspect-ratio: 16 / 7;
+  }
+}

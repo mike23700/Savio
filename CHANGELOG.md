@@ -4,6 +4,54 @@ Toutes les évolutions notables du site sont documentées dans ce fichier.
 
 ---
 
+## 23 octobre 2026
+
+### 🚀 Préparation du déploiement IONOS (shared hosting)
+
+Le projet est prêt à être déployé sur un hébergement mutualisé IONOS, avec deux sous-domaines reliés à des dossiers du webspace (pas de Docker, pas de VPS).
+
+**Base de données initiale (déploiement sans SSH/cron)**
+- `backend/database/init/savio-init.sql` : dump complet généré depuis `migrate:fresh --seed` — 50 tables (migrations, sessions, cache, jobs incluses), tout le contenu de départ et le compte admin initial. À importer une seule fois dans phpMyAdmin.
+- `backend/database/init/README.md` : import, avertissement `DROP TABLE`, changement du mot de passe admin avant import.
+- `scripts/export-ionos-db.sh` : régénère le dump (`CONFIRM_FRESH=yes … --fresh`) après une évolution des migrations/seeders.
+- `backend/deploy/ionos/seed-uploads.sh` : copie les portraits d'équipe dans `storage/app/public/team` (pour le chemin sans SSH, où les seeders ne tournent pas).
+- `scripts/package-ionos.sh` produit désormais aussi :
+  - `release/env/backend.env` : `.env` de production prêt, avec `APP_KEY` généré (à uploader une fois comme `savio-backend/.env`) ;
+  - `release/storage-seed/team/` : portraits à copier une fois (hors ZIP backend, pour ne pas écraser les uploads lors des mises à jour) ;
+  - `release/savio-init.sql` et `release/START-HERE.txt` : checklist complète sans SSH, sans cron et sans `artisan`.
+
+**Documentation & outillage**
+- `DEPLOYMENT.md` : guide complet (test local en mode production, création des sous-domaines, upload, `.env`, base initiale, migrations, caches, sécurité, dépannage, rollback)
+- `scripts/package-ionos.sh` : construit `release/frontend` + `release/frontend.zip` et `release/backend` + `release/backend.zip` (dépendances Composer de production incluses, pas besoin de Composer sur IONOS)
+- `backend/deploy/ionos/setup.sh` : migrations, `storage:link`, seed initial optionnel et reconstruction des caches sur le serveur (pour les abonnements avec SSH/cron)
+- `backend/.env.ionos.example` : modèle de production (URLs, CORS, base IONOS, HTTPS, admin initial)
+- `.env.example` racine : `VITE_API_URL` et cible du proxy local
+
+**Frontend**
+- `public/config.js` : l'URL d'API est lue à l'exécution (`window.__SAVIO_CONFIG__.apiUrl`). Le packaging y écrit `VITE_API_URL`, mais elle peut être modifiée directement sur IONOS (File Manager) **sans rebuild**. Le `.htaccess` force `config.js` en `no-cache`.
+- `VITE_API_URL` obligatoire pour `npm run build:prod` (garde-fou : l'API doit être une URL absolue en HTTPS terminée par `/api`)
+- `npm run typecheck` ajouté ; correction de 76 séparateurs manquants dans les types TypeScript (le build Vite passait, `tsc` non)
+- `.htaccess` du build : fallback React Router, 404 sur les assets manquants, cache long des assets hashés, en-têtes de sécurité
+- `robots.txt` autorise l'indexation ; `.figma/make/site.json` passe en `index: true`, langue `fr`
+- `npm run preview` proxifie désormais `/api` et `/storage` comme `npm run dev`
+
+**Backend**
+- Routes d'infrastructure `/` (JSON) et `/storage/{path}` (fallback si `storage:link` n'est pas disponible) sans middleware de session
+- Les erreurs d'API non authentifiées renvoient toujours du JSON 401 (au lieu d'une erreur 500 « route login introuvable »)
+- `FORCE_HTTPS=true` force les URLs générées en HTTPS ; création automatique des dossiers `storage/` au boot
+- `AdminUserSeeder` : email/mot de passe configurables via `ADMIN_EMAIL`/`ADMIN_PASSWORD`, ne réécrase jamais le mot de passe d'un compte existant
+- `TeamMemberSeeder` : les portraits sont inclus dans l'artefact backend via `database/seeders/assets` (copiés depuis `src/imports` au packaging), avec garde-fou contre les fichiers Git LFS non récupérés
+- `.htaccess` racine de sécurité si le sous-domaine API pointe vers `backend/` au lieu de `backend/public/`
+- Fichiers `.htaccess` testés avec Apache 2.4 dans les deux configurations (docroot `public/` et docroot racine avec réécriture)
+
+**Vérifications**
+- `npm run typecheck` : 0 erreur
+- `npm run build:prod` : OK (logo réel une fois Git LFS récupéré)
+- `composer test` (MySQL) : 37 tests, 127 assertions, toutes vertes
+- Test local complet : frontend `preview` + API Laravel + MySQL, admin connecté, CORS, uploads et fallback `/storage` vérifiés
+
+---
+
 ## 25 septembre 2026
 
 ### ✏️ Éditeur de paires pour les repères bio et les repères diocésains (complément)

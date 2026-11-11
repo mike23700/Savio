@@ -31,13 +31,22 @@ Pour le détail de l'architecture, voir `README.md` et `AGENTS.md` à la racine.
 ```bash
 git clone https://github.com/mike23700/Savio.git
 cd Savio
+
+# Les images du site sont suivies avec Git LFS (logo, portraits, PDF)
+git lfs install
+git lfs pull
 ```
 
 Si tu as déjà le dépôt cloné :
 
 ```bash
 git pull
+git lfs pull
 ```
+
+Si `git lfs` n'est pas installé, les fichiers de `src/imports/` restent des
+pointeurs texte de ~130 octets et les images du site apparaissent cassées.
+Installe Git LFS depuis <https://git-lfs.com/> puis relance `git lfs pull`.
 
 ## 3. Installer les dépendances du frontend
 
@@ -97,7 +106,7 @@ Mot de passe : 12345678
 php artisan migrate
 ```
 
-Le compte admin ci-dessus est partagé par tous les développeurs (seed fixe, pas un script à identifiants personnalisés) — **change le mot de passe dès la première connexion** si tu comptes laisser tourner cette instance au-delà d'un test rapide.
+Le compte admin ci-dessus est partagé par tous les développeurs (seed fixe, pas un script à identifiants personnalisés) — **change le mot de passe dès la première connexion** si tu comptes laisser tourner cette instance au-delà d'un test rapide. Pour créer directement un autre compte, définis `ADMIN_EMAIL` et `ADMIN_PASSWORD` dans `backend/.env` **avant** `migrate:fresh --seed` ; le seeder ne réécrit jamais le mot de passe d'un compte existant.
 
 ## 8. Lien de stockage (photos uploadées)
 
@@ -139,8 +148,11 @@ VITE_API_PROXY_TARGET=http://127.0.0.1:XXXX npm run dev
 ## 11. Vérifier que tout fonctionne
 
 ```bash
-npx tsc --noEmit -p tsconfig.json   # aucune erreur attendue
+npm run typecheck                    # aucune erreur attendue
 npm run build                        # doit se terminer par "✓ built in ...ms"
+
+# Build de déploiement (URL d'API absolue obligatoire) :
+VITE_API_URL=http://127.0.0.1:8001/api npm run build:prod
 ```
 
 Ensuite, en navigateur :
@@ -169,3 +181,4 @@ Ensuite, en navigateur :
 - Architecture générale, structure des dossiers, technologies : `README.md`
 - Conventions de développement, workflow backend/frontend : `AGENTS.md`
 - Détail de chaque endpoint de l'API (auth, horaires, sacrements, boutique, dons, journal...) : `backend/routes/api.php`
+- Déploiement sur IONOS (sous-domaines, archives, `.env` de production, migrations) : `DEPLOYMENT.md`

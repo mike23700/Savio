@@ -36,7 +36,7 @@ src/
 ├── components/
 │   └── Layout.tsx               # En-tête, navigation, pied de page communs (public)
 ├── data/
-│   └── content.ts                # Données encore statiques (Actualités, Agenda, Équipe — hors périmètre admin)
+│   └── content.ts                # Données encore statiques (contact de la paroisse)
 ├── imports/                       # Images, logos et documents (PDF) du site
 └── pages/
     ├── Home.tsx, Contact.tsx, Agenda.tsx, Actualites.tsx, Homelies.tsx,
@@ -65,7 +65,7 @@ backend/
 - **Vie paroissiale** — mouvements & groupes (avec page détail), Caritas, projets (avec galerie photo), registre paroissial
 - **Célébrer** — horaires des messes (dynamiques), sacrements (avec page détail éditable), intentions de messe, publication des bans
 - **Se nourrir** — catéchèse éditable, prière & méditation éditable, journal paroissial (abonnement)
-- **Actualités & Agenda** — actualités de la paroisse et événements à venir (contenu statique, hors périmètre de cette évolution)
+- **Actualités & Agenda** — actualités de la paroisse et événements à venir (gérés depuis l'admin)
 - **Homélies & Médiathèque** — homélies avec favoris (connecté), photos, lien vers la chaîne YouTube
 - **Contact, Don (connexion requise), Boutique (commande + paiement guidé), Espace paroissien** — services connectés
 
@@ -82,12 +82,19 @@ Accessible à `http://localhost:8443/admin`, protégé par connexion (compte ave
 
 ## Installation et démarrage
 
+> Les images sont stockées avec **Git LFS**. Après un clone, lance
+> `git lfs install && git lfs pull` ; sinon le logo et les portraits sont des
+> pointeurs texte (images cassées). Voir [DEPLOYMENT.md](DEPLOYMENT.md) pour le
+> packaging de production.
+
 ### Frontend
 
 ```bash
 npm install
-npm run dev        # démarre Vite sur http://localhost:8443, proxie /api vers le backend
-npm run build       # build de production
+npm run dev         # démarre Vite sur http://localhost:8443, proxie /api vers le backend
+npm run typecheck   # vérifie les types TypeScript
+npm run build       # build local
+npm run build:prod  # build de déploiement (exige VITE_API_URL)
 npm run preview     # prévisualiser le build
 ```
 
@@ -104,6 +111,26 @@ php artisan serve --host=127.0.0.1 --port=8001
 Le compte admin par défaut est créé par `AdminUserSeeder` (voir la sortie de la commande de seed pour les identifiants — à changer immédiatement après la première connexion).
 
 Le proxy Vite (`vite.config.ts`) route `/api` vers `http://127.0.0.1:8001` par défaut ; ajustez `VITE_API_PROXY_TARGET` si le backend tourne sur un autre port.
+
+## Déploiement (IONOS shared hosting)
+
+Le guide complet est dans **[DEPLOYMENT.md](DEPLOYMENT.md)** : test local en mode production, création des deux sous-domaines, génération de l'archive (`scripts/package-ionos.sh`), configuration du `.env` serveur, migrations et vérifications.
+
+En résumé :
+
+```bash
+# Construire les deux archives (frontend + backend avec vendor/)
+VITE_API_URL=https://api.savio.example.com/api bash scripts/package-ionos.sh
+```
+
+- `release/frontend/` → dossier du sous-domaine frontend (l'URL d'API est modifiable dans `config.js` sans rebuild)
+- `release/backend/` → dossier Laravel, avec le sous-domaine API pointé vers **`backend/public/`**
+- `release/env/backend.env` → à uploader **une fois** comme `savio-backend/.env` (clé `APP_KEY` déjà générée)
+- `release/storage-seed/team/` → à copier **une fois** dans `savio-backend/storage/app/public/team/`
+- `release/savio-init.sql` → base de départ complète (toutes les migrations + tout le seed), à importer dans phpMyAdmin
+- `release/START-HERE.txt` → checklist complète **sans SSH, sans cron, sans script sur le serveur**
+
+La base `savio-init.sql` contient tout le contenu de départ et le compte admin initial ; aucune commande `artisan` n'est nécessaire sur IONOS.
 
 ## Alias d'import
 

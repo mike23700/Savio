@@ -24,7 +24,10 @@ const LINKS = ["/agenda", "/agenda", "/actualites", "/don"]
 
 /** Built-in slides, used until the admin saves its own (`home.slides` setting). */
 export function defaultSlides(lang: "fr" | "en" = "fr"): HomeSlide[] {
-  const d = { ...home.fr, ...(lang === "en" ? home.en : {}) } as Record<string, string>
+  const d = {
+    ...home.fr,
+    ...(lang === "en" ? home.en : {}),
+  } as Record<string, string>
   return IMAGES.map((img, i) => ({
     img,
     tag: d[`home.slide.${i + 1}.tag`] ?? "",
@@ -39,7 +42,10 @@ export function defaultSlides(lang: "fr" | "en" = "fr"): HomeSlide[] {
 /** Slides saved by the admin, or null when none are configured. */
 export function parseSlides(
   raw: string | undefined,
-  { keepEmpty = false }: { keepEmpty?: boolean } = {},
+  { keepEmpty = false, keepEmptyList = false }: {
+    keepEmpty?: boolean
+    keepEmptyList?: boolean
+  } = {},
 ): HomeSlide[] | null {
   try {
     const list = raw ? JSON.parse(raw) : null
@@ -48,7 +54,11 @@ export function parseSlides(
     const slides = list.filter(
       (s) => s && typeof s === "object" && (keepEmpty || s.img || s.title),
     ) as HomeSlide[]
-    return slides.length ? slides : null
+    if (slides.length) return slides
+    // An explicit empty list means "the admin removed every slide": keep it
+    // empty so the home hero can be hidden instead of falling back to the
+    // built-in carousel. A missing/empty setting still returns null.
+    return keepEmptyList ? [] : null
   } catch {
     return null
   }

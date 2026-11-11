@@ -69,12 +69,17 @@ function HeroSlideshow() {
 
   const settings = useSettings()
 
-  // Slides edited in admin → Bannières, textes & musique; built-in ones otherwise.
-  const SLIDES = parseSlides(settings["home.slides"]) ?? defaultSlides(lang)
+  // Slides edited in admin → Bannières, textes & musique; built-in ones
+  // otherwise. An explicit empty list (all slides deleted) hides the hero.
+  const SLIDES =
+    parseSlides(settings["home.slides"], { keepEmptyList: true }) ??
+    defaultSlides(lang)
 
   const [current, setCurrent] = useState(0)
 
   useEffect(() => {
+    if (SLIDES.length < 2) return
+
     const timer = setInterval(
       () => setCurrent((c) => (c + 1) % SLIDES.length),
       5000,
@@ -83,143 +88,162 @@ function HeroSlideshow() {
     return () => clearInterval(timer)
   }, [SLIDES.length])
 
+  if (SLIDES.length === 0) return null
+
   const slide = SLIDES[current % SLIDES.length]
 
   const isExternal = /^https?:\/\//.test(slide.to)
 
-  return (
-    <section className="relative overflow-hidden" style={{ minHeight: 580 }}>
-      {SLIDES.map((s, i) => (
-        <div
-          key={i}
-          className="absolute inset-0 transition-opacity duration-700"
-          style={{
-            opacity: i === current ? 1 : 0,
-            zIndex: i === current ? 1 : 0,
-          }}
-        >
-          <img
-            src={mediaUrl(s.img) ?? undefined}
-            alt={s.title}
-            className="w-full h-full object-cover"
-            style={{ minHeight: 580 }}
-          />
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(90deg, rgba(8,45,107,0.92) 0%, rgba(8,45,107,0.60) 55%, rgba(8,45,107,0.20) 100%)",
-            }}
-          />
-        </div>
-      ))}
+  // An image-only slide stays image-only: no decorative dash, no empty title,
+  // no "Découvrir la paroisse" button floating over nothing.
+  const hasOverlay = Boolean(
+    slide.title || slide.desc || (slide.cta && slide.to),
+  )
 
-      <div
-        className="relative z-10 max-w-7xl mx-auto px-6 py-24 flex flex-col justify-center"
-        style={{ minHeight: 580 }}
-      >
-        <div className="max-w-xl">
-          <div className="inline-flex items-center gap-2 mb-5">
-            <div style={{ width: 28, height: 2, background: "#D4AF37" }} />
-            <span
-              style={{
-                fontFamily: "Montserrat, sans-serif",
-                fontWeight: 700,
-                fontSize: "0.68rem",
-                color: "#D4AF37",
-                letterSpacing: "0.18em",
-              }}
-            >
-              {slide.tag}
-            </span>
-          </div>
-          {slide.date && (
+  return (
+    <section className="home-hero relative overflow-hidden bg-[#082d6b]">
+      {/* Mobile/tablet: full-width image at its natural ratio, text below. */}
+      <img
+        src={mediaUrl(slide.img) ?? undefined}
+        alt={slide.title}
+        className="block w-full h-auto xl:hidden"
+      />
+
+      {/* Desktop: crossfading full-bleed cover slides. */}
+      <div className="hidden xl:block absolute inset-0">
+        {SLIDES.map((s, i) => (
           <div
+            key={i}
+            className="absolute inset-0 transition-opacity duration-700"
             style={{
-              fontFamily: "Montserrat, sans-serif",
-              fontSize: "0.82rem",
-              color: "rgba(255,255,255,0.75)",
-              marginBottom: 12,
+              opacity: i === current ? 1 : 0,
+              zIndex: i === current ? 1 : 0,
             }}
           >
-            <Icon name="calendar" size={15} /> {slide.date}
+            <img
+              src={mediaUrl(s.img) ?? undefined}
+              alt={s.title}
+              className="w-full h-full object-cover"
+            />
           </div>
-          )}
-          <h1
-            key={current}
-            style={{
-              fontFamily: "Playfair Display, serif",
-              color: "white",
-              fontSize: "clamp(2rem, 5vw, 3.4rem)",
-              fontWeight: 700,
-              lineHeight: 1.12,
-            }}
-          >
-            {slide.title}
-          </h1>
-          <p
-            style={{
-              fontFamily: "Montserrat, sans-serif",
-              color: "rgba(255,255,255,0.82)",
-              fontSize: "0.95rem",
-              lineHeight: 1.75,
-              marginTop: "1rem",
-              maxWidth: 440,
-            }}
-          >
-            {slide.desc}
-          </p>
-          <div className="flex flex-wrap gap-3 mt-8">
-            {slide.cta && slide.to && (
-              isExternal ? (
-                <a
-                  href={slide.to}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{
-                    background: "#D4AF37",
-                    fontFamily: "Montserrat, sans-serif",
-                    fontWeight: 700,
-                    fontSize: "0.83rem",
-                  }}
-                  className="flex items-center gap-2 text-white px-6 py-3 rounded-full hover:opacity-90 transition-opacity"
-                >
-                  {slide.cta} <Icon name="arrowRight" size={16} />
-                </a>
-              ) : (
-                <Link
-                  to={slide.to}
-                  style={{
-                    background: "#D4AF37",
-                    fontFamily: "Montserrat, sans-serif",
-                    fontWeight: 700,
-                    fontSize: "0.83rem",
-                  }}
-                  className="flex items-center gap-2 text-white px-6 py-3 rounded-full hover:opacity-90 transition-opacity"
-                >
-                  {slide.cta} <Icon name="arrowRight" size={16} />
-                </Link>
-              )
-            )}
-            <Link
-              to="/paroisse"
-              style={{
-                border: "2px solid rgba(255,255,255,0.65)",
-                fontFamily: "Montserrat, sans-serif",
-                fontWeight: 600,
-                fontSize: "0.83rem",
-                color: "white",
-              }}
-              className="flex items-center gap-2 px-6 py-3 rounded-full hover:bg-white hover:text-blue-900 transition-all"
-            >
-              {t("home.hero.decouvrir")}
-            </Link>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Dots */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+      {hasOverlay && (
+        <div className="relative z-10 bg-[#082d6b] px-6 py-8 xl:absolute xl:inset-0 xl:bg-transparent xl:py-24 xl:flex xl:flex-col xl:justify-center">
+          <div className="max-w-7xl w-full mx-auto">
+            <div className="max-w-xl">
+              {slide.tag && (
+                <div className="inline-flex items-center gap-2 mb-5">
+                  <div
+                    style={{ width: 28, height: 2, background: "#D4AF37" }}
+                  />
+                  <span
+                    style={{
+                      fontFamily: "Montserrat, sans-serif",
+                      fontWeight: 700,
+                      fontSize: "0.68rem",
+                      color: "#D4AF37",
+                      letterSpacing: "0.18em",
+                    }}
+                  >
+                    {slide.tag}
+                  </span>
+                </div>
+              )}
+              {slide.date && (
+                <div
+                  style={{
+                    fontFamily: "Montserrat, sans-serif",
+                    fontSize: "0.82rem",
+                    color: "rgba(255,255,255,0.75)",
+                    marginBottom: 12,
+                  }}
+                >
+                  <Icon name="calendar" size={15} /> {slide.date}
+                </div>
+              )}
+              {slide.title && (
+                <h1
+                  key={current}
+                  style={{
+                    fontFamily: "Playfair Display, serif",
+                    color: "white",
+                    fontSize: "clamp(2rem, 5vw, 3.4rem)",
+                    fontWeight: 700,
+                    lineHeight: 1.12,
+                  }}
+                >
+                  {slide.title}
+                </h1>
+              )}
+              {slide.desc && (
+                <p
+                  style={{
+                    fontFamily: "Montserrat, sans-serif",
+                    color: "rgba(255,255,255,0.82)",
+                    fontSize: "0.95rem",
+                    lineHeight: 1.75,
+                    marginTop: "1rem",
+                    maxWidth: 440,
+                  }}
+                >
+                  {slide.desc}
+                </p>
+              )}
+              <div className="flex flex-wrap gap-3 mt-8">
+                {slide.cta &&
+                  slide.to &&
+                  (isExternal ? (
+                    <a
+                      href={slide.to}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        background: "#D4AF37",
+                        fontFamily: "Montserrat, sans-serif",
+                        fontWeight: 700,
+                        fontSize: "0.83rem",
+                      }}
+                      className="flex items-center gap-2 text-white px-6 py-3 rounded-full hover:opacity-90 transition-opacity"
+                    >
+                      {slide.cta} <Icon name="arrowRight" size={16} />
+                    </a>
+                  ) : (
+                    <Link
+                      to={slide.to}
+                      style={{
+                        background: "#D4AF37",
+                        fontFamily: "Montserrat, sans-serif",
+                        fontWeight: 700,
+                        fontSize: "0.83rem",
+                      }}
+                      className="flex items-center gap-2 text-white px-6 py-3 rounded-full hover:opacity-90 transition-opacity"
+                    >
+                      {slide.cta} <Icon name="arrowRight" size={16} />
+                    </Link>
+                  ))}
+                <Link
+                  to="/paroisse"
+                  style={{
+                    border: "2px solid rgba(255,255,255,0.65)",
+                    fontFamily: "Montserrat, sans-serif",
+                    fontWeight: 600,
+                    fontSize: "0.83rem",
+                    color: "white",
+                  }}
+                  className="flex items-center gap-2 px-6 py-3 rounded-full hover:bg-white hover:text-blue-900 transition-all"
+                >
+                  {t("home.hero.decouvrir")}
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dots: below the text on mobile/tablet, over the image from xl. */}
+      <div className="relative z-10 flex justify-center gap-2 py-4 bg-[#082d6b] xl:absolute xl:bottom-6 xl:left-1/2 xl:-translate-x-1/2 xl:py-0 xl:bg-transparent">
         {SLIDES.map((_, i) => (
           <button
             key={i}
@@ -244,13 +268,13 @@ function HeroSlideshow() {
         onClick={() =>
           setCurrent((c) => (c - 1 + SLIDES.length) % SLIDES.length)
         }
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/20 hover:bg-white/40 text-white rounded-full w-10 h-10 flex items-center justify-center transition-all"
+        className="hidden xl:flex absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/20 hover:bg-white/40 text-white rounded-full w-10 h-10 items-center justify-center transition-all"
       >
         <Icon name="chevronLeft" size={20} strokeWidth={1.75} />
       </button>
       <button
         onClick={() => setCurrent((c) => (c + 1) % SLIDES.length)}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/20 hover:bg-white/40 text-white rounded-full w-10 h-10 flex items-center justify-center transition-all"
+        className="hidden xl:flex absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/20 hover:bg-white/40 text-white rounded-full w-10 h-10 items-center justify-center transition-all"
       >
         <Icon name="chevronRight" size={20} strokeWidth={1.75} />
       </button>
@@ -338,7 +362,7 @@ export default function Home() {
 
   const readingRefs = readingsList(readings)
 
-  const SERVICES: { icon: IconName; label: string; sub: string; to: string }[] = [
+  const SERVICES: { icon: IconName, label: string, sub: string, to: string }[] = [
     {
       icon: "church",
       label: t("home.services.1.label"),

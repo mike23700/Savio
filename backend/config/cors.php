@@ -39,7 +39,9 @@ return [
 
     'allowed_headers' => ['*'],
 
-    'exposed_headers' => [],
+    // The admin PDF downloads read Content-Disposition to keep the server
+    // filename. It must be exposed explicitly for cross-origin requests.
+    'exposed_headers' => ['Content-Disposition'],
 
     'max_age' => 0,
 

@@ -38,6 +38,8 @@ This is the canonical project structure. Start with task-relevant files below. O
 
 ## Backend / dev workflow
 
+Deployment target: IONOS shared hosting (two subdomains, no Docker). See `DEPLOYMENT.md` and build the uploadable artifacts with `scripts/package-ionos.sh`.
+
 The Vite dev server proxies `/api` to `http://127.0.0.1:8001` (configurable via `VITE_API_PROXY_TARGET`). To run the full stack locally:
 
 1. Start MySQL (e.g. `sudo /opt/lampp/lampp startmysql` if using XAMPP).

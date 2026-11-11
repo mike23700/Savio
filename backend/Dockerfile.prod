@@ -1,0 +1,68 @@
+# Production PHP-FPM image for the Laravel API.
+#
+# Build context is backend/ (docker compose handles this). The application
+# environment is injected at runtime through compose's env_file; no .env is
+# baked into the image.
+
+FROM php:8.2-fpm-alpine
+
+# Runtime/build dependencies for the PHP extensions used by Laravel:
+# pdo_mysql, mbstring, intl, zip, bcmath, opcache, gd (dompdf/PDF and image
+# uploads) and exif.
+RUN apk add --no-cache \
+        icu-dev \
+        libzip-dev \
+        oniguruma-dev \
+        freetype-dev \
+        libjpeg-turbo-dev \
+        libpng-dev \
+        unzip \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j"$(nproc)" \
+        pdo_mysql \
+        mbstring \
+        intl \
+        zip \
+        bcmath \
+        opcache \
+        gd \
+        exif
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www/backend
+
+# Composer dependencies first, so code changes do not invalidate this layer.
+COPY composer.json composer.lock ./
+RUN composer install \
+        --no-dev \
+        --no-interaction \
+        --prefer-dist \
+        --no-scripts
+
+# Application code.
+COPY . .
+
+# Regenerate the optimized autoloader now that app/ is present. This also runs
+# Laravel package discovery, which needs no database connection.
+RUN composer dump-autoload --optimize --no-dev
+
+COPY docker/php.ini /usr/local/etc/php/conf.d/99-savio.ini
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint
+RUN chmod +x /usr/local/bin/entrypoint
+
+# Runtime directories. The storage directory is also a named volume; Docker
+# seeds an empty volume from this image content on first start.
+RUN mkdir -p \
+        storage/app/public \
+        storage/framework/cache/data \
+        storage/framework/sessions \
+        storage/framework/views \
+        storage/logs \
+        bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache
+
+EXPOSE 9000
+
+ENTRYPOINT ["entrypoint"]
+CMD ["php-fpm"]

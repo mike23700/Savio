@@ -1,8 +1,9 @@
 {
   "title": "Paroisse Saint Dominique Savio",
-  "description": "Provides a clean, modern website showcasing parish information and content for visitors seeking community updates and resources.",
+  "description": "Site officiel de la Paroisse Saint Dominique Savio, Archidiocèse de Douala (Cameroun) : actualités, agenda, célébrations, sacrements, médiathèque et vie paroissiale.",
+  "language": "fr",
   "robots": {
-    "index": false
+    "index": true
   },
   "accessibility": {
     "addBypassLinks": false,

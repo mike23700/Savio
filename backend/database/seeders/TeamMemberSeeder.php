@@ -73,11 +73,25 @@ class TeamMemberSeeder extends Seeder
             unset($m['photo_file']);
 
             // Copy the bundled portrait into public storage so the admin can
-            // later replace it like any uploaded image.
-            $source = base_path('../src/imports/' . $file);
+            // later replace it like any uploaded image. The release script
+            // copies src/imports into database/seeders/assets so the backend
+            // artifact is self-contained; local development falls back to the
+            // SPA source folder.
+            $source = database_path('seeders/assets/' . $file);
+            if (! is_file($source)) {
+                $source = base_path('../src/imports/' . $file);
+            }
             $target = 'team/' . $m['slug'] . '.' . pathinfo($file, PATHINFO_EXTENSION);
             if (is_file($source) && ! Storage::disk('public')->exists($target)) {
-                Storage::disk('public')->put($target, file_get_contents($source));
+                $contents = file_get_contents($source);
+
+                // Never publish an unfetched Git LFS pointer as an image.
+                if (
+                    $contents !== false
+                    && ! str_starts_with($contents, 'version https://git-lfs.github.com/spec/v1')
+                ) {
+                    Storage::disk('public')->put($target, $contents);
+                }
             }
 
             TeamMember::updateOrCreate(

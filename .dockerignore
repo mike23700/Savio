@@ -1,0 +1,19 @@
+# Frontend build context (Dockerfile.frontend).
+# The backend has its own .dockerignore.
+
+.git
+.gitignore
+node_modules
+dist
+release
+backend
+doc
+.figma/design-context
+.env*
+backups
+*.log
+.vite
+.vercel
+
+# Keep public/, src/, index.html, vite.config.ts, tsconfig.json and
+# .figma/make (vite.config.ts imports .figma/make/site.json).

@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "build": "vite build",
+    "build:prod": "npm run typecheck && node scripts/check-production-env.mjs && vite build --mode production",
     "preview": "vite preview",
     "format": "oxfmt"
   },

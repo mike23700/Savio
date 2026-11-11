@@ -40,18 +40,18 @@ class PageContentTest extends TestCase
 
     public function test_guest_cannot_update_a_page(): void
     {
-        $this->putJson('/api/pages/genese', ['title' => 'Hack'])->assertUnauthorized();
+        $this->putJson('/api/admin/pages/genese', ['title' => 'Hack'])->assertUnauthorized();
     }
 
     public function test_non_admin_cannot_update_a_page(): void
     {
         $user = User::create([
             'nom' => 'Doe', 'prenom' => 'John', 'email' => 'john@savio.com',
-            'password' => 'password', 'role' => 'membre',
+            'password' => 'password', 'role' => 'member',
         ]);
 
         $this->actingAs($user, 'sanctum')
-            ->putJson('/api/pages/genese', ['title' => 'Hack'])
+            ->putJson('/api/admin/pages/genese', ['title' => 'Hack'])
             ->assertStatus(403);
     }
 
@@ -59,7 +59,7 @@ class PageContentTest extends TestCase
     {
         $this->actingAs($this->adminUser(), 'sanctum');
 
-        $res = $this->putJson('/api/pages/genese', [
+        $res = $this->putJson('/api/admin/pages/genese', [
             'title' => 'Genèse mise à jour',
             'subtitle' => 'Sous-titre',
             'intro' => 'Paragraphe **gras**.',
@@ -84,7 +84,7 @@ class PageContentTest extends TestCase
 
         $this->actingAs($this->adminUser(), 'sanctum');
 
-        $res = $this->putJson('/api/pages/caritas', [
+        $res = $this->putJson('/api/admin/pages/caritas', [
             'title' => 'Caritas',
             'blocks' => [
                 ['kind' => 'card', 'title' => 'Nouvelle carte'],
@@ -104,7 +104,7 @@ class PageContentTest extends TestCase
 
         $this->actingAs($this->adminUser(), 'sanctum');
 
-        $this->putJson('/api/pages/genese', [
+        $this->putJson('/api/admin/pages/genese', [
             'title' => 'Genèse',
             'blocks' => [['kind' => 'cure', 'title' => 'Curé']],
         ])->assertOk();

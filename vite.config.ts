@@ -1,12 +1,17 @@
-import { defineConfig, type HtmlTagDescriptor, type Plugin } from "vite"
+import {
+  defineConfig,
+  loadEnv,
+  type HtmlTagDescriptor,
+  type Plugin,
+} from "vite"
 
 import react from "@vitejs/plugin-react"
 
 import tailwindcss from "@tailwindcss/vite"
 
-import path from "node:path"
+import { fileURLToPath } from "node:url"
 
-import siteConfiguration from "./.figma/make/site.json"
+import siteConfiguration from "./.figma/make/site.json" with { type: "json" }
 
 // Vite config — https://vitejs.dev/config/
 
@@ -14,6 +19,31 @@ export default defineConfig(({ mode }) => {
   // .figma/make/deploy-preview passes `--mode development` for cached-preview builds.
 
   const emitSourcemaps = mode === "development"
+
+  // Vite only injects VITE_* variables into import.meta.env. loadEnv also
+  // makes the local proxy target configurable from a root .env file.
+  const env = loadEnv(mode, process.cwd(), "")
+
+  const proxyTarget =
+    env.VITE_API_PROXY_TARGET ||
+    process.env.VITE_API_PROXY_TARGET ||
+    "http://127.0.0.1:8001"
+
+  const proxy = {
+    "/api": {
+      target: proxyTarget,
+
+      changeOrigin: true,
+    },
+
+    // Serve uploaded files (homily audio/PDF, images...) from the Laravel backend.
+
+    "/storage": {
+      target: proxyTarget,
+
+      changeOrigin: true,
+    },
+  }
 
   return {
     base: process.env.FIGMA_PUBLIC_URL
@@ -42,7 +72,7 @@ export default defineConfig(({ mode }) => {
 
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "./src"),
+        "@": fileURLToPath(new URL("./src", import.meta.url)),
       },
     },
 
@@ -57,27 +87,18 @@ export default defineConfig(({ mode }) => {
         ignored: ["**/.figma/**"],
       },
 
-      proxy: {
-        "/api": {
-          target: process.env.VITE_API_PROXY_TARGET || "http://127.0.0.1:8001",
-
-          changeOrigin: true,
-        },
-
-        // Serve uploaded files (homily audio/PDF...) from the Laravel backend.
-
-        "/storage": {
-          target: process.env.VITE_API_PROXY_TARGET || "http://127.0.0.1:8001",
-
-          changeOrigin: true,
-        },
-      },
+      proxy,
     },
 
     preview: {
       host: process.env.FIGMA_DEV_SERVER_HOST || "0.0.0.0",
 
       port: parseInt(process.env.PORT || "8443"),
+
+      // Same proxy as `npm run dev`, so `npm run preview` can test a
+      // production build against the local Laravel API without rebuilding
+      // with an absolute VITE_API_URL.
+      proxy,
     },
   }
 })

@@ -33,7 +33,11 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            // The app only serves uploads through the public disk. Leaving
+            // this enabled registers a framework-owned GET/PUT /storage/{path}
+            // route that conflicts with the shared-hosting fallback route
+            // registered in bootstrap/app.php.
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],

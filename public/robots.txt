@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+# The public site is meant to be indexed. See .figma/make/site.json.

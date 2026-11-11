@@ -1,0 +1,88 @@
+# Production stack for the VPS.
+#
+# Only the PHP-FPM port is published, and only on the loopback interface: the
+# host nginx talks to it over 127.0.0.1. MySQL and the frontend build never
+# listen on the host.
+#
+# Usage: see VPS-DEPLOY.md or run `make help`.
+
+name: savio
+
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:?Set DB_DATABASE in .env}
+      MYSQL_USER: ${DB_USERNAME:?Set DB_USERNAME in .env}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD in .env}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - savio_db_data:/var/lib/mysql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mysqladmin ping -h 127.0.0.1 -u root -p"$$MYSQL_ROOT_PASSWORD" --silent
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - savio
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      # Host nginx uses fastcgi_pass 127.0.0.1:9201 (see deploy/nginx).
+      - "127.0.0.1:${API_FCGI_PORT:-9201}:9000"
+    volumes:
+      - savio_storage_data:/var/www/backend/storage
+    depends_on:
+      db:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - savio
+
+  # One-shot build: `make frontend` runs it, `docker compose up` does not.
+  # It writes the production bundle into ./dist on the host, where nginx reads it.
+  frontend:
+    profiles:
+      - build
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        VITE_API_URL: ${API_URL:?Set API_URL in .env (absolute URL ending in /api)}
+    volumes:
+      - ./dist:/out
+    command: ["sh", "-c", "cp -a /app/dist/. /out/"]
+    networks:
+      - savio
+
+volumes:
+  savio_db_data:
+    name: savio_db_data
+  savio_storage_data:
+    name: savio_storage_data
+
+networks:
+  savio:
+    name: savio

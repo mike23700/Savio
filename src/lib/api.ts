@@ -1,4 +1,25 @@
-const API_URL = import.meta.env.VITE_API_URL || "/api"
+declare global {
+  interface Window {
+    __SAVIO_CONFIG__?: {
+      apiUrl?: string
+    }
+  }
+}
+
+/**
+ * Runtime configuration from public/config.js.
+ *
+ * The deployed frontend can be pointed at another API subdomain by editing
+ * config.js in the frontend document root — no rebuild required. When it is
+ * empty, Vite's build-time VITE_API_URL (or the local /api proxy) is used.
+ */
+const RUNTIME_API_URL =
+  typeof window !== "undefined" ? window.__SAVIO_CONFIG__?.apiUrl?.trim() : ""
+
+const API_URL = (RUNTIME_API_URL || import.meta.env.VITE_API_URL || "/api").replace(
+  /\/+$/,
+  "",
+)
 
 const TOKEN_KEY = "savio_token"
 
@@ -235,7 +256,7 @@ export function clientTimeQuery(
  * prefixed with it; in dev the Vite proxy handles /storage natively.
  */
 
-export const API_BASE_URL = (import.meta.env.VITE_API_URL || "")
+export const API_BASE_URL = (RUNTIME_API_URL || import.meta.env.VITE_API_URL || "")
 
   .replace(/\/api\/?$/, "")
 

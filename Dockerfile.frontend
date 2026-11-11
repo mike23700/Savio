@@ -1,0 +1,27 @@
+# Production build of the React/Vite frontend.
+#
+# The build arg is required: production bundles must call the API on its own
+# subdomain. `npm run build:prod` refuses to build without an absolute
+# https URL ending in /api (see scripts/check-production-env.mjs).
+
+FROM node:22-alpine AS build
+
+WORKDIR /app
+
+# Dependencies first so the layer is cached between deployments.
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund
+
+# Vite reads this at build time and inlines it into the bundle.
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
+
+COPY . .
+RUN npm run build:prod
+
+# Minimal runtime image: compose mounts ./dist on the host over /out and copies
+# the bundle there in one shot.
+FROM alpine:3.21
+
+WORKDIR /app
+COPY --from=build /app/dist /app/dist
